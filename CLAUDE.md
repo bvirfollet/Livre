@@ -19,8 +19,8 @@ cohérence du texte.
 
 Outil : la carte mentale (`methodologie/RadioHumaine_synthese.xmind`) sert à
 organiser — par strate et par chapitre — jamais à rédiger. La rédaction
-réelle se fait en prose dans `contributions/claude/` (vouvoiement, notes de
-bas de page, sans bullets ni headers dans le corps).
+réelle se fait en prose dans `Livre/` (fichier principal `Livre/manuscript.tex` et son rendu PDF `Livre/manuscript.pdf`,
+format broché A5 `twoside` `openright`, vouvoiement, vraies notes de bas de page `\footnote`, sous-sections aérées `\soussection`).
 
 Il est important de ne pas mélanger la ligne conductrice du livre qui tente 
 de faire une explication fractale de la "conscience", de l'effet de la 
@@ -30,13 +30,18 @@ et infine dans les univers.
 La mécanique est décrite, les lois sont formalisée mathématiquement le plus 
 possible en précisant à quelle strates (qualité d'information) elles
 appartiennent.
-Les strates sont expliquées ci-après.
-Afin de simplifier l'accès au lecteur, les sujets doivent être abordé selon 
-la stratégie A*: 
-- en premier par l'expérience sensible,
-- en second par la formalisation et la théorisation
-- en dernier en précisant le "reste à prouver" et les pistes possibles à 
-explorer.
+Les strates sont expliquées ci-après et définies dès l'ouverture du manuscrit dans la *Note au lecteur et note méthodologique*.
+
+Afin de simplifier l'accès au lecteur, la structure de chaque chapitre obéit obligatoirement à la **Stratégie A* élargie** :
+1. **Titre du chapitre**
+2. **Chapeau d'intention (Expérience sensible vécue)**
+3. 🔑 **Boussole du chapitre — Clés de traduction** : Encadré d'ouverture systématique déclinant la grille de lecture du chapitre selon 4 registres fixes :
+   - 🔬 *Physique & IA*
+   - 🧠 *Psychanalyse*
+   - 📜 *Tradition & Symbolique*
+   - 🕊️ *Poésie & Philosophie*
+4. **Développement formel et théorisation**
+5. **Reste à prouver & pistes de recherche** (*Strate 3*)
 
 ## Architecture du texte : trois strates explicites
 
@@ -167,11 +172,16 @@ d'une loi élémentaire de probabilité. Question posée : de quelle
 grammaire cet écart est-il la signature ?
 
 ### §2 — Une famille, pas un accident
-Statut : rédigé et validé.
+Statut : rédigé et validé, enrichi le 2026-07-28.
 Trois membres de la famille : effet d'ordre (non-commutativité),
 effet de conjonction dans le jugement de risque, indécision oscillante
 (introspection réactive / verbal overshadowing, Schooler). Cognition
-quantique opérationnelle nommée. Question centrale posée.
+quantique opérationnelle nommée. Ajout du 2026-07-28 : mécanisme de la
+non-commutativité explicité (mesurer = projeter sur la base propre de
+l'observable ; deux bases non alignées → ordre de projection change le
+résultat), avec renvoi explicite vers ses ramifications ultérieures (§4
+poids complexes, §5 déphasage, astrologie symbolique). Question centrale
+posée.
 
 ### §3 — Deux régimes, une même psyché
 Statut : rédigé et validé.
@@ -193,44 +203,69 @@ bruit (Jankowski 1996, Muezzinoglu 2003, Prasad 2022). Application
 au collectif : réseau incomplet, majorant mathématique, penseurs comme
 modificateurs du paysage. Crise comme impulsion (analogie RLC).
 Transition : question ouverte sur l'état d'attention avant toute
-action.
+action. Ajout du 2026-07-28 : énergie de Hopfield explicitée
+(E = −½ Σᵢⱼ wᵢⱼ sᵢsⱼ), manque signalé depuis le 19/07 maintenant comblé.
 
 ### §5 — Les oscillateurs et la densité du possible
-Statut : rédigé et validé.
+Statut : rédigé et validé, substantiellement enrichi le 2026-07-28.
 Structure annoncée au lecteur : Option B (expérience) puis Option A
 (formalisation).
 Option B : bascule point→densité, rythmes sous-jacents, cohérence en
 mouvement. Jeu de mots Laser/Maser/Penser validé comme pivot poétique.
 Option A : oscillateur, synchronisation (Huygens 1665), modèle de
-Kuramoto (1975), laser comme cohérence concentrée, fréquences sans
-rapport simple → quasi-périodicité → tore KAM → densité de probabilité
-comme signature du couplage. Implémentation physique par oscillateurs
-couplés (Prasad 2022). Boucle de fermeture : quatre angles, un seul
-phénomène (métaphore des quatre aveugles et l'éléphant en note 15).
+Kuramoto (1975, équation dθᵢ/dt=ωᵢ+(K/N)Σsin(θⱼ−θᵢ) désormais explicitée),
+laser comme cohérence concentrée, fréquences sans rapport simple →
+quasi-périodicité → tore KAM → densité de probabilité comme signature du
+couplage. Implémentation physique par oscillateurs couplés (Prasad 2022).
+Boucle de fermeture : quatre angles, un seul phénomène (métaphore des
+quatre aveugles et l'éléphant, note désormais renumérotée après l'ajout
+de nouvelles notes en §2/§5 — voir le fichier pour le numéro à jour).
+
+Nouvelle section « Le sable et les lignes nodales » (2026-07-28), insérée
+juste après la clôture des quatre angles, avant le double effondrement.
+Entrée sensible (expérience physique des plaques de Chladni, Chladni
+1787) précédant la formalisation (stratégie A*), qui introduit le tenseur
+de friction Γ : mémoire active des passages/intrications répétés (pas une
+résistance passive), Strate 2. Pointe explicitement vers le §6 pour la
+lecture collective des archétypes comme lignes nodales.
+
+Double effondrement reformulé (2026-07-28) : les deux objets
+mathématiques sont maintenant distingués dans le texte — 1er effondrement
+= chute de l'entropie spectrale S_eff=−Σλₖln λₖ (ancrage empirique cité,
+Suedfeld/Bluck 1988) ; 2e effondrement = brisure de symétrie
+Σv=0→Σv_selected=ε (Strate 3 explicite).
+
+Nouvelle section « Le Garant de la Cohérence » (2026-07-28), introduite
+après le double effondrement comme convenu avec Bertrand. Quatre
+fonctions : (0) Γ (frottement sédimenté, cf. ci-dessus) excite K_ana —
+ordre causal explicite, Γ n'est pas un concurrent de K_ana mais ce qui le
+déclenche ; (1) verrouillage de phase par ancrage/*pinning control*
+(Haken 1977 ; Hasson/Dumas hyperscanning) ; (2) K_ana comme intensité de
+la pression analytique, avec la zone intermédiaire comme posture propre
+du Garant (Strate 2/3, piste de recherche explicite, pas une valeur
+figée) ; (3) recontextualisation — après le second effondrement, le
+Garant rouvre la distribution pour que S_eff retrouve une dimensionnalité
+plus large, sans quoi l'acte cristallisé se comporte comme un minimum
+parasite (rappel explicite du §4).
+
 Question finale : à quelle échelle ce mécanisme opère-t-il ? Cycles
 astronomiques évoqués prudemment comme fond rythmique externe possible.
 
+Notes du §1-§6 renumérotées de 1 à 23 par ordre d'apparition (5 nouvelles
+notes ajoutées au total : non-commutativité §2 ; plaques de Chladni,
+entropie spectrale/ancrage empirique, pinning control, et gain adaptatif
+LC-NE/K_ana, toutes en §5).
+
+**Retour de lecture de Gémini (2026-07-28), partagé par Bertrand** : trois
+suggestions concrètes évaluées — Chladni et Γ retenus et rédigés
+ci-dessus ; deux déclinées avec justification (σ0/manifold sémantique :
+hors séquence, réservé au chapitre IA après TurboQuant ; Δt/rétrocausalité :
+la prudence du texte est un choix délibéré, pas un manque, le matériau de
+Guillemant reste non arbitré comme candidat d'intégration).
+
 ### §6 — Le collectif comme réseau et l'archétype comme attracteur
-Statut : premier jet rédigé, deux corrections à intégrer avant
-validation.
-
-**Correction 1** : le double effondrement ne peut pas être présenté
-comme déjà exposé au §5 (il ne l'est pas dans le texte rédigé).
-L'introduire comme concept nouveau au début du §6, ou l'ajouter en
-section finale du §5 avant de basculer.
-
-**Correction 2** : la note de Strate 3 sur N_effectif doit inclure la
-formule indicative suivante (première approximation, sans constantes
-physiques universelles) :
-
-  N_eff ~ A / (M_réseau · M_situation)
-
-  où A = constante d'attention collective (à définir
-  opérationnellement), M_réseau = inertie mémorielle du réseau
-  (densité et rigidité des attracteurs établis), M_situation = charge
-  informationnelle de la perturbation entrante. À présenter
-  explicitement comme cadre qualitatif appelant une métrologie à
-  construire, non comme loi physique.
+Statut : rédigé et substantiellement enrichi le 2026-07-28, en attente de
+validation par Bertrand.
 
 Contenu validé du §6 : expérience du collectif (couplage oscillateur
 individuel / champ collectif), réseau social comme Hopfield incomplet
@@ -240,6 +275,33 @@ paysage à grande échelle), crise comme premier effondrement collectif
 fait culturel comme second effondrement (loi, institution, œuvre),
 phase complexe du collectif (partie réelle = connexions observables,
 partie imaginaire = alignement de phase des représentations).
+
+**Substantiellement enrichi le 2026-07-28** (retour de lecture de
+Bertrand : chapitre jugé trop léger comparé au §4, manque de formalisation
+mathématique). Ajouts, tous suivant la stratégie A* (expérience puis
+formule puis reste à prouver), taille du chapitre environ doublée :
+- M·v=λ·v (archétypes comme vecteurs propres), présenté explicitement
+  comme second langage géométrique complémentaire de l'archétype-
+  attracteur, pas une fusion.
+- Nouvelle section « Le tissu social à plusieurs échelles » : noyau
+  gaussien de proximité, superposition multi-échelle famille/voisinage/
+  nation, équation de champ continu (diffusion + pression K_ana(x)),
+  callback aux figures de Chladni du §5.
+- Nouvelle section « Le couple comme système à deux corps » : Kuramoto
+  adapté à N=2, les trois régimes de phase (conjonction/opposition/
+  carré), argument du commutateur pour distinguer opposition et carré
+  (Strate 2, analogie signalée comme structurelle non causale),
+  modulation de la phase de Berry (Strate 3). Source :
+  `Demonstration_turbulance`, section couple — accord de l'épouse de
+  Bertrand confirmé pour cette publication.
+- Nouvelle section courte « Le triangle familial » (N=3) : H_famille,
+  triangulation stabilisatrice vs toxique, rôle du Garant dans le foyer.
+  Suite de Fibonacci explicitement laissée de côté (le fichier source
+  la note lui-même comme piste future, pas mûre pour cette passe).
+- Paragraphe généralisant institutions familiales, religieuses et
+  juridiques comme nœuds équivalents du tissu multi-échelle (même K_ana,
+  même mécanisme de rigidification dogmatique) — traité de façon
+  structurelle et générique, sans vocabulaire théologique spécifique.
 
 ## Éléments réservés pour chapitres ultérieurs
 
@@ -265,7 +327,12 @@ affirmations causales.
 ## Contraintes de style
 
 - Vouvoiement dans tout le corps du texte destiné au lecteur
-- Prose sans bullets ni headers dans le corps principal
+- Prose sans bullets dans le corps principal. Des sous-titres en gras
+  (ex. **Le double effondrement**) sont tolérés à l'intérieur des sections
+  longues comme repères de navigation, à condition de rester un seul niveau
+  (pas de hiérarchie de titres imbriqués) et de ne jamais remplacer une
+  transition en prose — le sous-titre annonce, il n'explique pas à la place
+  du texte
 - Notes de bas de page pour : termes techniques, références, projections
   psychologiques du lecteur, détails astrologiques, formules indicatives
 - Équations dans le corps uniquement si elles ont un statut clairement
@@ -274,7 +341,119 @@ affirmations causales.
 - Ton : ni trop technique ni trop vulgarisateur, accessible à un lecteur
   cultivé non spécialiste
 
+## Nouvelle annexe (2026-07-29)
+
+`Livre/annexe_boite_a_outils_scientifique.md` créée en réponse à une
+demande explicite de Bertrand : un renvoi mathématique/physique complet,
+séparé du corps narratif, pour ne pas casser le rythme déjà validé du
+texte principal. Deux parties :
+- **Partie A** — glossaire condensé (12 entrées) des outils mathématiques
+  transversaux : probabilité, densité de probabilité, dérivée/gradient,
+  laplacien, rotationnel (ces deux derniers anticipés pour de futurs
+  chapitres — non strictement utilisés dans §1-§6 mais demandés
+  explicitement par Bertrand), nombre complexe, valeurs/vecteurs propres,
+  entropie, commutateur, espace de Hilbert, exponentielle décroissante,
+  somme/intégrale/circulation. Chaque entrée : image concrète → notation →
+  renvoi précis à l'endroit du livre où l'outil sert.
+- **Partie B** — développement en 6 sous-sections du Hamiltonien, de la
+  sphère de Bloch et de l'équation de Lindblad (onde/superposition,
+  système à deux niveaux, Hamiltonien comme rotation réversible,
+  décohérence comme migration vers l'intérieur de la sphère, anatomie du
+  dissipateur de Lindblad, retour explicite sur ses trois réemplois dans
+  le livre : §4 implicite, §5 explicite via K_ana/Γ, §6 via l'équation de
+  champ). Se referme sur un rappel de frontière de strate (Partie B =
+  Strate 1 pure ; ce que le livre en fait ensuite = analogie assumée).
+
+Un renvoi vers cette annexe a été ajouté en tête de
+`manuscrit_draft_§1-§6.md`, avant le §1, présentant sa lecture comme
+optionnelle (avant, pendant, ou jamais).
+
+## Phase de Berry déplacée en amont du §6 (2026-07-29)
+
+Suite à une remarque de Bertrand lors de sa relecture : la phase de Berry
+ne doit pas être présentée pour la première fois au §6 (couple), au
+risque que le lecteur croie le concept propre aux couples humains, alors
+qu'il s'agit d'une propriété générale de toute paire de systèmes couplés
+(deux particules, deux oscillateurs, deux LLM en dialogue, deux
+institutions, deux populations nationales — la coloration change, la
+géométrie sous-jacente ne change pas).
+
+Correction apportée en trois temps, qui corrige au passage une
+incohérence préexistante (le §5, section Chladni, affirmait déjà que le
+terme « intrication » était défini « depuis le §2 », ce qui n'était pas
+le cas) :
+- **§2** : nouveau paragraphe, à la suite de l'image des deux grilles
+  tournées (non-commutativité). Définit le terme *intrication* comme
+  propriété du formalisme, indépendante de ce qu'il relie. Introduit
+  θ_Berry=0 comme référence établie à chaque intrication, et le principe
+  général (un cycle qui se referme laisse une trace géométrique
+  dépendant du chemin, pas seulement des points de départ/arrivée),
+  Strate 2, sans encore donner la formule complète — renvoie
+  explicitement au §5 (formalisme) et au §6 (coloration couple).
+- **§5** : juste après l'équation de Kuramoto, nouveau paragraphe qui
+  tient la promesse du §2 — formalise Δθ=θᵢ−θⱼ pour deux oscillateurs
+  intriqués et donne γ_Berry=∮A(θ)dθ, en insistant que cette construction
+  ne dépend que de la géométrie du couplage, pas de la nature de i et j.
+  Citation Berry (1984) déplacée ici (sa première apparition formelle).
+- **§6** : le passage sur le couple ne réintroduit plus le concept, il
+  le rappelle (« nous avons posé au §2... ») puis l'applique
+  spécifiquement au déphasage Δθ du couple.
+
+**Correction du 2026-07-29 (même jour, relecture de Bertrand)** : Bertrand
+a lui-même resserré la formulation du §2 pour la rendre « plus précise »,
+et a signalé son inquiétude que cette précision ait pu faire glisser la
+rigueur — bon réflexe, confirmé justifié après relecture ligne à ligne.
+Deux ajouts corrects et conservés : « incompatibles » comme terme
+technique pour deux observables qui ne commutent pas (plus précis que la
+version précédente) ; « indépendante du temps écoulé » (correct dans la
+limite adiabatique, propriété réelle de la phase de Berry).
+
+Un glissement réel corrigé : la formulation « cette sédimentation porte
+un nom : la Phase de Berry » fusionnait deux objets mathématiques
+distincts — la phase de Berry (holonome d'*un* cycle fermé unique,
+γ_Berry=∮A(θ)dθ) et la sédimentation Γ/K_mém du §5 (accumulation de
+*plusieurs* contacts répétés dans le temps, avec décroissance et résidu).
+Ce n'est pas une simplification légitime : ce sont deux réponses à deux
+questions différentes (la forme d'un cycle vs. l'usure cumulée sur
+plusieurs cycles), et les présenter comme un seul et même objet aurait créé une
+contradiction avec la présentation de Γ au §5 (présenté comme un
+mécanisme distinct). L'import de l'image du sable/archet (propre à Γ,
+pas encore introduite à ce stade du livre) et la formule "trace...
+ineffaçable" (qui surclaime la permanence, propriété de Γ et non de
+Berry) renforçaient la confusion. Reformulé pour distinguer explicitement
+les deux constructions dans le paragraphe du §2 lui-même, tout en gardant
+les deux ajouts corrects de Bertrand.
+
+Annexe scientifique mise à jour en conséquence (entrées A.5 rotationnel,
+A.13 somme/intégrale/circulation, nouvelle entrée A.12 « Intrication »
+avec la réserve de strate habituelle : le livre élargit le sens
+technique strict de l'intrication quantique à toute interaction
+mutuellement dépendante, ce n'est pas une affirmation littérale).
+
 ## Prochaine étape
 
-Rédiger la version corrigée du §6 avec les deux corrections ci-dessus
-intégrées, puis passer au §7.
+Les deux corrections du §6 (introduction du double effondrement en fin de
+§5, formule N_eff en Strate 3) sont intégrées. Le 2026-07-28, révision
+substantielle de §2 (non-commutativité), §4 (énergie de Hopfield, mémoire
+complexe M_Hopfield=R+i·I), §5 (Kuramoto explicité, double effondrement
+reformulé avec S_eff et brisure de symétrie, section Garant de la
+Cohérence/K_ana avec formalisation H_eff et loi sigmoïde, section Chladni/
+tenseur de friction Γ avec formalisation K_mém), et surtout §6
+(substantiellement enrichi : M·v=λ·v, tissu social multi-échelle, couple
+N=2, triangle familial N=3, institutions/religion généralisées) — en
+attente de lecture/validation par Bertrand. Le 2026-07-29, création de
+l'annexe boîte à outils scientifique (cf. ci-dessus) — également en
+attente de lecture.
+
+Restes identifiés pour une prochaine passe (cf.
+`methodologie/todo_xmind_vs_manuscrit.md` pour le détail) :
+- §6 : coût moral ∝ 1/cos²θ, P+jQ, H_friction, loi de Weyl — candidats
+  déjà indexés mais non rédigés dans cette passe.
+- Matériau biographique du Garant (`elements_disruptifs` §8.1) non
+  encore intégré au texte — enrichissement possible, pas bloquant.
+- Suite de Fibonacci dans l'analyse des réseaux — explicitement différée
+  par Bertrand lui-même dans la source (`Demonstration_turbulance`), pas
+  mûre pour une intégration.
+- §7 (astrologie, non-commutativité principale/secondaire sur 26 paires)
+  et chapitre IA (sémantique cosmologique après TurboQuant) restent à
+  rédiger.

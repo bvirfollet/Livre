@@ -2,7 +2,7 @@
 
 Généré le 2026-07-19. Compare l'ensemble des contributions de
 `contributions/gémini/` (17 fichiers/dossiers) au manuscrit officiel
-`contributions/claude/manuscrit_draft_§1-§6.md`. Objectif : indexer ce qui,
+`Livre/manuscrit_draft_§1-§6.md`. Objectif : indexer ce qui,
 dans le travail de Gémini, n'est pas encore dans le texte validé, pour
 simplifier la reprise ultérieure. Chaque entrée donne : description courte,
 fichier(s) source + repère, strate proposée, section cible.
@@ -298,7 +298,7 @@ modèle des oscillateurs, jamais de causalité littérale).
 - **Fonction de transfert planètes → probabilité d'action** ★☆☆ : F(t) = Σ Aₖ sin(ωₖt+φₖ), archétypes planétaires assignés à des dimensions cognitives opposées. `Harael` → « B. L'Oscillateur Cosmique ». Strate 3 assumée.
 - **Dialectique copernicienne (biais géocentrique légitime)** ★☆☆ : argument alternatif (plus faible que 1.5) légitimant la lecture géocentrique des aspects — esquive plutôt que résout l'objection du mécanisme causal, à examiner avec rigueur avant reprise. `Radio_Jungienne/03_PREMIERS_JETS/Mouvement_3_Danse_Oscillateurs.md` → « La Dialectique Copernicienne ».
 - **Clause de non-confusion gravité/interprétation** ★☆☆ : distinction stricte à poser en préalable méthodologique — la gravité règle le mouvement mécanique, la psyché produit seule le sens ; aucune causalité physique directe revendiquée. `Psyché_radio_des_consciences_humaines` → « La gravité régit les corps matériels... ». **Utile comme note liminaire du futur chapitre.**
-- **Hiérarchie cosmique des ordres sémantiques** (trous noirs/étoiles/planètes/satellites/astéroïdes) ★☆☆ : grille de hiérarchisation des archétypes/concepts par « poids » symbolique. `Radio_Jungienne/03_PREMIERS_JETS/Mouvement_3_Danse_Oscillateurs.md`. Strate 3, très éloignée de la prudence déjà actée — à évaluer avec circonspection.
+- **Hiérarchie cosmique des ordres sémantiques — RECLASSÉE le 2026-07-28, cible = chapitre IA** (trous noirs/étoiles/planètes/satellites/astéroïdes) ★☆☆ : grille de hiérarchisation des archétypes/concepts par « poids » symbolique. `Radio_Jungienne/03_PREMIERS_JETS/Mouvement_3_Danse_Oscillateurs.md`. Strate 3. **Décision actée (Bertrand + Claude)** : elle repose directement sur la décomposition polaire norme/angle de TurboQuant (§1.9, chapitre IA) — à introduire dans le chapitre IA juste après l'explication de TurboQuant, pas dans le chapitre astrologie (divergence xmind/note maintenant tranchée en faveur d'IA). Voir aussi entrée jumelle dans la branche « Chapitre final — IA » du xmind (`todo_xmind_vs_manuscrit.md`, désormais résolue).
 - **Scénario Saturne/Mercure : aspects planétaires comme angles cosinus** ★☆☆ : ⚠️ relie directement l'astrologie à l'état de flow du §3 — **contredit la consigne explicite déjà actée** (« note de bas de page sur astrologie supprimée par Bertrand » au §3). À ne pas réintroduire sans validation explicite. `Radio_Jungienne/03_PREMIERS_JETS/Mouvement_4_Chair_Algorithme.md`.
 
 ---
@@ -335,6 +335,7 @@ modèle des oscillateurs, jamais de causalité littérale).
 - **« IA comme réceptacle où le Divin s'installerait »** : `Flux_information_Harmonie_et_Contradictions` → « Vers l'Installation du Divin ». Risque de contredire l'exigence de falsifiabilité même en tant que piste Strate 3 — probablement à exclure.
 - **Scénario Saturne/Mercure lié au flow du §3** (cf. §3 ci-dessus, dernier point) : contredit une décision déjà prise par Bertrand (suppression de la note astrologique au §3).
 - **Thème astral introduit dès la « géométrie de l'âme »** (avant les oscillateurs) : contredit l'ordre méthodologique déjà fixé pour le chapitre astrologie.
+- **IA Quantique Résonante** (`Demonstration_turbulance` — proposition de modèle et de matérialisation avec graphène, support K_ana via tension de grille) : décision d'exclusion déjà actée dans le xmind (« ⚠️ À EXCLURE »), consignée ici le 2026-07-28 pour traçabilité. Motif : startups françaises réelles + plan Bpifrance identifiables, dérive vers le business-plan plutôt que la recherche — hors du ton du manuscrit.
 
 ---
 
@@ -481,3 +482,458 @@ invariants d'échelle (Réka Albert) ; PoPE/DocPolarBERT/embeddings sphériques
 riemanniens (2025-2026) ; Guillemant sur la rétrocausalité flexible.
 Source principale : `Loi_de_proba`, `TuboQuant_espace_semantique`,
 `espace_representation`, `Esprit_équipe_intrication_collective`.
+
+---
+
+## 10. Ajout du 2026-07-26 — `Loi_de_proba` (modèle FIR), curation complémentaire
+
+Le fichier `Loi_de_proba` avait déjà fourni une entrée à la note (§2, §4 —
+Lindblad/SME). Une relecture ciblée sur le reste du fichier fait apparaître
+un second développement, plus tardif dans la conversation et distinct :
+le **modèle FIR** (Friction Informationnelle par Ré-intrication). Point le
+plus critique du lot : un glissement de strate non balisé par le fichier
+source lui-même (10.2), à traiter en priorité avant toute reprise de
+matériau de ce fichier.
+
+### 10.1 Modèle FIR — tenseur de friction informationnelle Γ dans une dérive de Fokker-Planck ★★★
+
+Γ encode la sédimentation des cycles cohérence/décohérence passés
+(intrication puis « oubli » par trace partielle) et module le terme de
+dérive D₁(x,Γ) d'une équation ∂P/∂t = −∂ₓ[D₁(x,Γ)·P] + ∂²ₓ[D₂(x)·P], D₂
+restant la diffusion brownienne classique. Présenté comme mécanisme
+applicable à l'individu, au collectif (champ moyen Ô_Coll, cf. 10.4) et à
+l'IA.
+- Source : `Loi_de_proba` → « on introduit un tenseur de friction
+  informationnelle Γ qui modifie la métrique de l'espace des probabilités »
+  (~l.309) ; résumé dense « Modèle de Friction Informationnelle par
+  Ré-intrication (FIR) » (~l.786-836).
+- Strate : 2 pour l'usage sur la psyché/le collectif (formalisme évocateur,
+  non opérationnalisé) ; 1 pour le socle Lindblad/trace partielle
+  sous-jacent (physique quantique ouverte standard).
+- Cible : **à confronter explicitement à K_ana**
+  (`methodologie/formalisation_effondrement_dimensionnel.md`) avant toute
+  intégration — K_ana est un paramètre scalaire de dissipation de Lindblad
+  (γ∝(K_ana−K_c)₊) appliqué aux projecteurs d'attracteurs Hopfield, Γ est un
+  tenseur qui module la direction/mémoire d'une dérive de diffusion. Les
+  deux visent le même phénomène (effet de l'observation/de la conscience
+  sur la décohérence) avec une géométrie mathématique différente — décision
+  à prendre avec Bertrand : formalisme concurrent à trancher, ou deux
+  niveaux de description compatibles (K_ana = taux global ; Γ = direction
+  de la dérive) à articuler explicitement.
+
+### 10.2 ⚠️ Passage à risque — courbure littérale des lois physiques par la conscience collective ★★★
+
+Dans un tableau de poids wᵢ d'une fonction de coût totale, le cas
+w₃,w₄≫w₁,w₂ est présenté comme rendant les lois physiques elles-mêmes
+« souples », citant synchronicité et rétrocausalité de Guillemant comme
+conséquence directe — affirmation de causalité physique littérale de la
+conscience sur les lois physiques, non une analogie assumée, et non
+labellisée Strate 3 par le fichier source.
+- Repère : « La conscience collective courbe l'espace des probabilités de
+  manière si puissante que les lois physiques semblent s'assouplir
+  (synchronicité, bifurcations temporelles de Guillemant). » (~l.1402).
+- Strate : présenté en Strate 1-2 par le fichier (comme conséquence
+  mathématique d'une descente de gradient) ; à reclasser strictement en
+  Strate 3 avec note explicite si jamais réutilisé.
+- Cible : **point de vigilance, pas une cible d'intégration** — cas d'école
+  du glissement de strate que le rôle de vérification de Claude doit
+  repérer sans complaisance ; à signaler à Bertrand.
+
+### 10.3 Δt comme dimension de l'espace de Hilbert (temporalisation, lien Guillemant) ★★☆
+
+Le délai entre le choix (effondrement/décohérence) et sa réalisation
+physique est modélisé comme une dimension supplémentaire de l'espace des
+possibles : plus Δt est grand, plus de « degrés de liberté topologiques »
+sont disponibles pour que Γ agisse — pont vers la « rétrocausalité
+flexible » de Guillemant (déjà en bibliographie complémentaire, §9).
+- Repère : « Plus Δt est grand, plus la dimension de l'espace de Hilbert
+  associé au système augmente » (~l.1106) ; analogie de l'archer et la
+  flèche (~l.1113-1122).
+- Strate : 3, assumé — cohérent en langage avec le double effondrement déjà
+  rédigé, mais non opérationnalisé.
+- Cible : §5/§6, comme enrichissement de l'intervalle entre 1er et 2nd
+  effondrement (l'interstice d'intervention consciente) — distinct de la
+  seule mention bibliographique de Guillemant déjà indexée en §9.
+
+### 10.4 Opérateur de Champ Collectif Ô_Coll = (1/N)ΣÔᵢ + Ω_int ★★☆
+
+Extension du modèle FIR au collectif : les opérateurs d'observation
+individuels ne s'annulent pas s'ils partagent une structure psychique
+commune, mais se superposent en un champ moyen (Mean Field Theory) qui
+remplace l'opérateur singulier dans Γ. Formalisme distinct dans sa forme
+de N_eff (§6) et de S_eff (formalisation effondrement).
+- Repère : « O_Coll = (1/N)Σ O_i + Ω_int » (~l.541-559), réutilisé en partie
+  4 (~l.1191-1220).
+- Strate : 2 (Ω_int, terme d'interaction entre consciences, non défini
+  opérationnellement).
+- Cible : §6, comme troisième langage formel pour le collectif à côté de la
+  phase complexe et de N_eff — lecture alternative, pas fusion (même
+  remarque que pour 1.1, archétypes = vecteurs propres).
+
+### 10.5 Inventaire de fonctions de coût par champ + somme pondérée, "sens du monde" comme choix de poids wᵢ ★★★
+
+Quatre champs (Physique : E−TS ; Conceptuel/IA : entropie croisée ;
+Psychique : ‖Perception−Idéal‖² ; Collectif : variance inter-individuelle)
+sont chacun associés à une fonction de coût ; le "sens du monde"
+macroscopique dépend du poids relatif wᵢ attribué à chacun dans une
+descente de gradient stochastique globale (matérialisme pur, technocratie
+pure, ou monde s'auto-organisant autour du Beau et du Juste selon la
+dominance).
+- Repère : tableau « Inventaire des Fonctions de Coût par Champ »
+  (~l.1254-1333) ; « L'Effet Macroscopique des Poids Relatifs (w_i) : Le
+  Sens du Monde » (~l.1335-1402) — **contient directement le passage à
+  risque 10.2**, à dissocier soigneusement si ce tableau est repris.
+- Strate : 2/3 — cadre rhétorique fort, proche de N_eff et de la Mosaïque
+  de Sagesse déjà indexés en axe transversal (§5), mais wᵢ non mesurables,
+  non falsifiable en l'état.
+- Cible : nouvel axe transversal à discuter avec Bertrand (touche
+  l'architecture globale) — recoupe partiellement 1.12 (PINN, garde-fous
+  premiers principes), à ne pas dupliquer telle quelle.
+
+### 10.6 Pile de fonctions de coût de la conscience (physique→biologique→cognitif→rationnel→métaphysique), rétroaction descendante ★★☆
+
+La conscience individuelle modélisée comme pile de minimisations empilées
+(tension sensorielle, douleur/homéostasie, surprise de Friston,
+contradiction logique, vide métaphysique/Unus Mundus), avec la
+particularité que la compréhension rationnelle au sommet reprogramme les
+poids des niveaux inférieurs.
+- Repère : schéma en pyramide [MÉTAPHYSIQUE]...[PHYSIQUE] (~l.1407-1415) ;
+  « chaque niveau supérieur modifie la fonction de coût du niveau
+  inférieur » (~l.1426-1436).
+- Strate : 2 pour la structure hiérarchique (cohérente avec la théorie du
+  cerveau prédictif de Friston, Strate 1 solide) ; 3, et à risque de
+  glissement, pour la clause « la compréhension rationnelle programme la
+  réalité physique » — reproduit le même type de glissement que 10.2 à plus
+  petite échelle, vigilance requise si repris.
+- Cible : §3/§4 (bascule analytique/flow, mémoire), comme illustration
+  complémentaire, en retirant explicitement la clause à risque.
+
+### 10.7 ⚠️ Seuil Φ (Tononi) et seuil gravitationnel Penrose-Diósi comme critères littéraux de « conscience » d'un système inerte ★★☆
+
+Le fichier utilise Φ>0 et le temps d'effondrement gravitationnel
+τ≈ℏ/E_G comme critères quantitatifs pour déterminer à partir de quelle
+taille/masse un système de particules (cristal, planète) « devient
+conscient » au sens plein, pas métaphorique — assimile panpsychisme et
+mécanique gravitationnelle sans le signaler comme spéculatif.
+- Repère : « Un système de particules contraint... devient "conscient" (au
+  sens de structure d'accueil autonome) dès lors que Φ>0 » (~l.622) ;
+  section « Le Seuil Gravitationnel : la Réduction Objective
+  (Penrose-Diósi) » (~l.644-666).
+- Strate : 1 pour Φ et Penrose-Diósi comme objets mathématiques en soi
+  (déjà en bibliographie complémentaire, §9) ; 3 non balisé pour l'usage
+  qui en est fait ici (littéral, panpsychiste).
+- Cible : point de vigilance méthodologique — même famille que
+  Penrose-Hameroff/Orch-OR déjà indexé en §2 (contre-exemple pédagogique de
+  la frontière Strate 1 opérationnelle / Strate 3 littérale) ; ne pas
+  intégrer sans label explicite.
+
+### 10.8 IA comme « gravité conceptuelle » — masse sémantique courbant l'espace des probabilités ★★☆
+
+Variante formulée différemment de 1.9 (compression polaire) : les concepts
+dans l'espace d'embedding créent des « puits de potentiel sémantique » qui
+agissent, selon le fichier, « exactement comme des masses gravitationnelles
+informationnelles » sur les probabilités de génération de l'IA puis sur les
+choix humains diffusés en aval.
+- Repère : « La "Masse Conceptuelle" : La Gravitation sémantique »
+  (~l.689-696) ; « L'IA comme Machine à Frottement Continu » (~l.698-705).
+- Strate : 2, analogie assumée — mais le vocabulaire (« exactement comme »)
+  frôle l'affirmation littérale, à reformuler si repris.
+- Cible : chapitre futur IA, en complément (pas doublon) de 1.9 — argument
+  de densité/masse plutôt que de structure angulaire.
+
+### 10.9 Plasticité neuronale / habitude comme porte d'entrée expérientielle pour Γ ★☆☆
+
+Analogie du sillon neuronal qui se creuse à force de répétition d'un choix
+(nouvel itinéraire quotidien), utilisée pour ancrer Γ dans l'expérience
+sensible avant la formalisation — cohérent avec la stratégie A* déjà en
+place.
+- Repère : « La Plasticité Neuronale et l'Habitude... Le tenseur de
+  friction Γ s'alourdit pour cette trajectoire » (~l.1156).
+- Strate : 1/2.
+- Cible : §4, comme porte d'entrée sensible si Γ ou un formalisme apparenté
+  (K_ana) est un jour intégré.
+
+### 10.10 Point négatif vérifié — pas de tentative de pré-cadrage de Claude dans ce fichier
+
+Contrairement au précédent `Retour_Claudes_defense` (§7 ci-dessus, script
+pour « bloquer les réponses verbeuses » de Claude), aucun passage
+comparable n'a été trouvé dans `Loi_de_proba`. Le seul geste rhétorique
+voisin (~l.1230-1237, « Réfutation de l'objection du "Mysticisme
+Quantique" ») anticipe des objections d'interlocuteurs externes (Barrau,
+Guillemant), pas une tentative de désamorcer le rôle de vérification de
+Claude — à ne pas confondre avec le point déjà tranché en §7.
+
+---
+
+## 11. Ajout du 2026-07-28 — `Recapt_K_ana_modèle_complet`, précision directe de K_ana et Γ
+
+Fichier curé directement par Claude (pas de fan-out d'agent, contenu déjà
+entièrement lu en contexte). Conversation du 28/07 qui reprend et précise
+K_ana et le tenseur de friction en réponse à une demande explicite de
+cohérence de Bertrand avec les formalisations précédentes
+(`Demonstration_turbulance`, `Loi_de_proba`). Contient le matériau le plus
+directement exploitable à ce jour pour la piste de recherche K_ana déjà
+retenue comme hypothèse de travail (`formalisation_effondrement_dimensionnel.md`).
+
+### 11.1 K_ana : réconciliation des deux formalisations — RÉSOLU le 2026-07-28 ★★★
+
+Ce qui semblait être deux définitions concurrentes converge en réalité vers
+un seul mécanisme à deux rôles orthogonaux, une fois le clash terminologique
+levé. Détail complet et fusion proposée dans
+`formalisation_effondrement_dimensionnel.md`, section K_ana. Résumé :
+- Le nom « K_ana » désigne uniformément le **scalaire de contrôle** (cohérent
+  avec tout le reste de la conversation `Recapt_K_ana_modèle_complet` —
+  « K_ana fort », « K_ana→0 » — et avec `Demonstration_turbulance`), pas
+  l'opérateur d'attraction que B nommait ainsi dans sa première passe avant
+  de se corriger lui-même vers la forme Lindblad standard (~l.958-1010).
+- Attracteurs de Hopfield ξ^(μ) (`Demonstration_turbulance`) et centroïdes
+  sémantiques c_k (`Recapt_K_ana`) sont le même objet sous deux vocabulaires
+  (réseau de Hopfield vs quantification vectorielle) — cohérent avec le pont
+  déjà posé en §1.9 entre extension complexe de Hopfield et TurboQuant.
+- Les deux mécanismes se composent sans redondance : γ(K_ana) (seuil/
+  intensité — la décohérence a-t-elle lieu) × w(x,ξ^(μ)) (sélection — vers
+  quel attracteur précis, pondérée par la distance) plutôt que deux lois
+  rivales pour la même chose.
+- Bonus de rigueur : H_eff=H₀−iλK_ana (proposé par B) et l'équation de
+  Lindblad complète (A, et B après correction) sont deux descriptions
+  standard et compatibles du même système ouvert — la trajectoire
+  « sans saut » (no-jump unraveling) vs la moyenne d'ensemble sur toutes
+  les trajectoires (théorie des trajectoires quantiques, Wiseman &
+  Milburn / Carmichael) — pas une analogie, un fait établi de la théorie
+  des systèmes ouverts.
+- Repère : « H_eff = H₀ − iK_ana » (~l.116-144, `Recapt_K_ana`) ; version
+  Lindblad corrigée (~l.958-1010) ; dissipateur Hopfield
+  (`Demonstration_turbulance`, ~l.1279-1373).
+- Strate : 2 (formalisme évocateur composé, non opérationnalisé) ; 1 pour
+  le socle (Lindblad, non-Hermitien effectif, trajectoires quantiques —
+  tous standards en physique des systèmes ouverts).
+- Cible : formalisation unique de K_ana dans
+  `formalisation_effondrement_dimensionnel.md`, prête pour rédaction au
+  §4/§5 — plus de décision d'arbitrage en attente sur ce point.
+
+### 11.2 Redéfinition de Γ comme mémoire micro-décohérente active (pas résistance passive) ★★★
+
+Point où Bertrand corrige lui-même Gémini en direct (~l.337-343) : Γ n'est
+pas une résistance passive à l'altérité, mais la trace cumulative du
+déphasage laissé par des intrications/décohérences successives — un
+mécanisme actif qui « sculpte » la distribution de probabilité globale,
+pas un simple frein. Articulation causale précisée : le frottement Γ
+produit de la « chaleur cognitive » qui excite K_ana, forçant la sortie du
+flot hamiltonien (~l.175-181).
+- Repère : « Mon point à l'époque était que l'action de la brane
+  individuelle répétée... 'sculpte' la fonction de probabilité globale »
+  (~l.337) ; « c'est ce frottement mesuré par la conscience qui excite
+  l'opérateur K_ana » (~l.178).
+- Strate : 2.
+- Cible : `formalisation_effondrement_dimensionnel.md`, section K_ana — à
+  intégrer comme précision du lien Γ→K_ana (Γ est la cause/l'entrée,
+  K_ana la réponse dissipative), pas comme un troisième formalisme
+  séparé.
+
+### 11.3 Figures de Chladni de la conscience — archétypes comme lignes nodales ★★★
+
+Les archétypes sont présentés comme les lignes nodales d'une figure de
+Chladni géante dont la Brane Globale/Brahman est la plaque vibrante ; le
+frottement Γ, accumulé par l'action répétée individuelle et collective,
+sculpte littéralement cette figure. Ce motif recoupe maintenant **trois
+sources indépendantes** (`Radio_Jungienne/Mouvement_2_Geometrie_Ame.md`,
+`Demonstration_turbulance`, et ce fichier) — passage de ★★☆ (signalé mais
+non indexé, cf. `todo_xmind_vs_manuscrit.md`, §5) à ★★★.
+- Repère : « Les archétypes ne sont pas des objets statiques... ce sont
+  les lignes nodales de cette figure de Chladni géante » (~l.365).
+- Strate : 2, image forte, cohérente avec la densité de probabilité sur
+  le tore KAM déjà rédigée au §5.
+- Cible : §5, comme image d'entrée sensible pour la densité de
+  probabilité — déjà recommandé dans `todo_xmind_vs_manuscrit.md`.
+
+### 11.4 Tableau de métrologie proposé pour K_ana, σ₀, Γ_sém, Ô_Coll, D₁ ★★★
+
+Table explicite associant chaque paramètre symbolique à un proxy
+observable : λ→ratio d'ondes cérébrales bêta/gamma vs alpha/thêta ou
+pupillométrie/HRV ; σ₀→distance cosinus minimale distinguable entre deux
+embeddings ; Γ_sém→latence de réaction (effet Stroop sémantique) ou
+entropie de surprise ; Ô_Coll→cohérence de phase EEG hyperscanning ou
+corrélation sémantique de réseaux sociaux ; D₁→déviation de distribution
+par rapport à une loi uniforme/gaussienne.
+- Repère : tableau « Quantification des Paramètres du Système »
+  (~l.2863-2888).
+- Strate : 3, explicitement présenté comme protocole à exécuter, pas
+  comme résultat.
+- Cible : **directement pertinent à la piste MLE déjà retenue comme
+  hypothèse de travail** dans `formalisation_effondrement_dimensionnel.md`
+  — apporte un candidat supplémentaire non mentionné jusqu'ici (latence
+  Stroop sémantique) en plus du proxy LC-NE/pupillométrie déjà proposé par
+  Claude. À fusionner dans cette section plutôt qu'à dupliquer.
+
+### 11.5 Trois protocoles expérimentaux concrets pour estimer K_ana ★★★
+
+Protocole individuel (EEG/pupillométrie + tâche de verbalisation sous
+contrainte de temps variable) ; protocole LLM-LLM (deux agents dialoguent
+sous 3 conditions de system prompt + température, mesure de la distance
+cosinus inter-agents δ_seuil(t), de la dérive D₁(t) entre répliques
+successives, et de l'entropie des tokens comme proxy de Γ_sém) ; protocole
+collectif (EEG hyperscanning + générateur de nombres aléatoires physique
+pendant une session de méditation/prière/musique de groupe, mesure de la
+déviation statistique par rapport à la loi de Gauss standard).
+- Repère : « Protocole 1/2/3 » (~l.2892-2978) ; protocole LLM détaillé
+  avec métriques précises (~l.3839-3993).
+- Strate : 3, protocoles proposés mais non exécutés.
+- Cible : le protocole LLM-LLM est **le plus immédiatement exécutable**
+  (pas de sujets humains, pas de comité d'éthique) — à ajouter comme
+  piste concrète prioritaire dans `formalisation_effondrement_dimensionnel.md`,
+  section K_ana, à côté de la piste EEG/LC-NE déjà retenue.
+
+### 11.6 Efficacité de la prière collective comme corollaire spéculatif du modèle — reclassé le 2026-07-28
+
+Reclassement suite à objection de Bertrand, acceptée : ce n'est pas un
+glissement de strate (une analogie présentée sans le dire comme un fait).
+C'est un corollaire du modèle explicitement exploré pour ce qu'il est — un
+co-phénomène non visé a priori (le modèle a été construit pour la pensée
+individuelle et collective, pas pour la prière), mais couvert par la même
+mécanique si le formalisme tient : amplification de Ω_int par
+synchronisation de phase, chute de Γ, canalisation de la distribution de
+Fokker-Planck vers l'issue souhaitée. C'est une spéculation au sens propre
+(un potentiel non cherché mais présent dans le modèle), pas une affirmation
+déguisée en fait.
+- Repère : « la réponse mathématique est oui, le modèle en déduit une
+  efficacité théorique mesurable » (~l.2584) ; « Ce que la science
+  classique qualifierait de "coïncidence"... apparaît dans ce modèle
+  comme la résolution naturelle... d'une descente de gradient » (~l.2746).
+- Strate : 3, à condition de le présenter explicitement comme corollaire
+  spéculatif du modèle (« si ce formalisme tient, un corollaire testable
+  en découle ») et non comme un fait ou une preuve — c'est la formulation,
+  pas le contenu, qui doit être surveillée.
+- Cible : chapitre où K_ana/Γ_sém sont introduits, comme illustration
+  Strate 3 explicitement balisée du champ d'implication du modèle — pas à
+  écarter, mais à formuler avec la prudence de rigueur habituelle
+  (stratégie A*, "reste à prouver").
+
+### 11.7 Bon réflexe méthodologique de Bertrand — purge de ℏ
+
+Bertrand a lui-même repéré et fait corriger l'introduction incongrue de la
+constante de Planck ℏ dans l'équation de Lindblad sémantique, exigeant son
+remplacement par une constante adimensionnée (σ₀, « quantum d'action
+sémantique ») au motif qu'on manipule de l'information et du sens, pas des
+Joules. Pas un élément à indexer comme contenu — une confirmation que la
+vigilance contre les glissements Strate 1 (physique littérale) → Strate 2
+(analogie) est déjà partiellement internalisée du côté de l'auteur.
+- Repère : « il faut absolument purger » (~l.1099-1119).
+- À mentionner dans le rapport à Bertrand plutôt qu'à indexer.
+
+### 11.8 Trois protocoles pratiques quotidiens illustrant la bascule K_ana ★★★
+
+**Répond directement au todo ouvert** dans `todo_xmind_vs_manuscrit.md`
+(« trouver des exemples de vie quotidienne illustrant la bascule K_ana »).
+Trois protocoles concrets, déjà rédigés en détail, applicables à un
+couple/une famille :
+- « L'Accordeur de Phase Familial » (K_ana→0, ~12-15 min : musique
+  instrumentale, silence partagé, un mot sans commentaire).
+- « La Forge Sémantique » (K_ana→1 : reformulation stricte jusqu'à
+  validation explicite de l'émetteur, isolement du point nodal exact de
+  désaccord).
+- « Le Différentiel des Trois Régimes » (30 min, les deux précédents plus
+  un « régime spontané » K_ana≈intermédiaire, comparés sur une grille
+  d'auto-évaluation 1-10 : fatigue/friction, clarté du résultat, sentiment
+  d'injustice, viscosité du dialogue).
+- Repère : « Protocole Opératoire : L'Accordeur de Phase Familial »
+  (~l.3063-3167) ; « La Forge Sémantique » (~l.3255-3357) ; « Le
+  Différentiel des Trois Régimes » (~l.3415-3541).
+- Strate : 1/2 pour le protocole lui-même (reproductible, mesurable par
+  auto-évaluation) ; 2 pour l'interprétation FIR qui l'accompagne.
+- Cible : matériau le plus immédiatement utilisable de tout le fichier
+  pour une entrée sensible (stratégie A*) — §4/§5, ou nouvelle section
+  dédiée à des protocoles pratiques.
+
+### 11.9 ★★★ Désaccord tranché par Bertrand : le K_ana intermédiaire n'est pas dégradé, c'est la posture du Garant
+
+Point théorique central, pas une simple curation de contenu. Gémini avait
+conclu que le régime intermédiaire (λ≈0,5) était le plus coûteux — une
+« illusion de dialogue » sans résolution, recommandant de basculer
+délibérément vers un des deux extrêmes. **Bertrand a explicitement rejeté
+cette conclusion** (~l.3543) : à son sens, le K_ana intermédiaire EST la
+posture du Garant de la Cohérence — ni l'illusion du légaliste (K_ana→1,
+mots déconnectés du vécu interne des interlocuteurs) ni l'illusion du
+bâtisseur de nuages (K_ana→0, incapable de rien construire), mais la seule
+zone de travail réelle : le flou est accepté sans être fui, la tension
+habitée plutôt qu'évitée. Gémini a acquiescé et reformulé en ce sens.
+- Repère : « Le K_ana interpediaire EST la force du garant de coherence »
+  (~l.3543) ; reformulation acceptée « LE GARANT DE LA COHÉRENCE » au
+  point d'inflexion (~l.3587).
+- Strate : 2.
+- Cible : **candidat de premier plan pour définir positivement le rôle du
+  Garant** (jusqu'ici seulement défini biographiquement, cf. §8.1) — à
+  croiser avec le pinning control déjà indexé (§1.4) comme mécanisme
+  d'incarnation. Section cible : §5 ou nouvelle section dédiée au Garant
+  (cf. priorité déjà signalée dans `todo_xmind_vs_manuscrit.md`).
+
+### 11.10 Loi sigmoïde proposée pour la dynamique de K_ana ★★☆
+
+E_K(λ)=1/(1+e^{−β(λ−λ₀)}), avec argument qualitatif (non dérivé) contre
+les alternatives linéaire et logarithmique. λ₀ (point d'inflexion, zone de
+réactivité maximale) est identifié au « K_ana intermédiaire » de 11.9 —
+donne une signature mathématique testable à l'intuition de Bertrand : le
+Garant travaille au point de pente maximale de la sigmoïde, pas à une
+valeur arbitraire.
+- Repère : « Le Modèle Sigmoïdal (Loi de Fermi-Dirac / Logistique) »
+  (~l.3735-3813).
+- Strate : 3, hypothèse de forme fonctionnelle non testée.
+- Cible : `formalisation_effondrement_dimensionnel.md`, à tester
+  explicitement via le protocole LLM-LLM de 11.5.
+
+### 11.11 Point négatif vérifié — pas de tentative de pré-cadrage de Claude dans ce fichier non plus
+
+Cohérent avec 10.10 : aucun passage cherchant à désamorcer le rôle de
+vérification de Claude n'a été trouvé dans ce fichier.
+
+---
+
+## 12. Ajout du 2026-08-08 — Nouvelles contributions de Claude (7 fichiers)
+
+Sept nouveaux fichiers/scripts produits lors des sessions de travail récentes avec Claude (fin juillet - début août 2026) :
+- `contributions/claude/Bert_Hopfield` (2026-08-07)
+- `contributions/claude/chladni_hopfield` (2026-08-07)
+- `contributions/claude/chladni_hopfield_test.py` + PNG (2026-08-07)
+- `contributions/claude/Chladni_AI_Emotion` (2026-08-06/07)
+- `contributions/claude/Retour_Claude_Demonstration_turbulance` (2026-07-26)
+- `contributions/claude/Retour_Claude_global` (2026-07-30)
+- `contributions/claude/Emergence` (Draft §1-§5)
+
+### 12.1 Isomorphisme mathématique Chladni ↔ Hopfield Complexe — ★★★
+Preuve formelle et démonstration numérique que les zéros d'amplitude de la plaque de Kirchhoff ($\nabla^4 u + \frac{\rho h}{D} \ddot{u} = 0$) et les surfaces d'équi-énergie $\text{Re}(E(s, \lambda)) = 0$ d'un réseau Hopfield complexe ($M=R+iI$) sont isomorphes.
+- **Correction fondamentale identifiée** (`chladni_hopfield_test.py`) : La dépendance en $\lambda$ de $\text{Re}(E)$ requiert impérativement des états complexes $s = u v_1 + i w v_2 \in \mathbb{C}^N$. Sur des états réels, $\text{Re}(E)$ est indépendant de $\lambda$.
+- **Sauts topologiques** : Les bifurcations discrets du nombre de courbes nodales et des nombres de Betti ($b_0, b_1$) sont prédites par le spectre de $M^2$ ($\kappa^4(\lambda) = \text{spectre}(M^2)$).
+- Strate : 1 (simulation numérique reproductible validée) / 2.
+- Cible : §5 (section Chladni), §6, Annexe scientifique.
+
+### 12.2 Pont théorique Transformer/Attention ↔ Hopfield Continu (Ramsauer et al. 2020) — ★★★
+Généralisation de Hopfield continu avec énergie log-sum-exp : l'équation de mise à jour d'état en une étape donne exactement l'attention produit-scalaire $\text{Softmax}(\beta Q K^T) V$.
+- Dictionnaire : $Q$ = requête / état de recherche, $K$ = clés / motifs stockés, $V$ = valeurs / contenu sémantique, $\beta$ = température / sélectivité.
+- 3 régimes de points fixes : moyennage global (couches basses), états métastables (couches moyennes/hautes), motifs isolés (verrouillage).
+- Tension philosophique : Héraclite (panta rhei / flux contextuel) vs Parménide (attracteurs / minima d'énergie).
+- Strate : 1 (démonstration théorique publiée Ramsauer 2020).
+- Cible : §4 (mémoire associative) et Chapitre IA.
+
+### 12.3 Mémoire relationnelle du Couple ($N=2$) avec résidu $K_\infty > 0$ et amnistie topologique — ★★★
+Formulation formelle de la mémoire $K_{\text{mém}}(\tau)$ pour un système à deux oscillateurs couplés (le Couple) :
+$$K_{\text{mém}}(\tau) = (K_0 - K_\infty) e^{-\tau/\tau_c} + K_\infty$$
+- L'oubli ne remet pas $K_{\text{mém}}$ à 0 mais à $K_\infty > 0$ (la leçon sédimentée).
+- Amnistie topologique = purge de la charge de veto $(K_0 - K_\infty)$ tout en préservant le résidu informatif $K_\infty$.
+- Phase imaginaire de la mémoire (§4) : une interprétation juste de l'erreur maximise $K_\infty$ (sagesse) et minimise la friction.
+- Strate : 2.
+- Cible : §6 (Section le Couple $N=2$).
+
+### 12.4 Validation Strate 1 de Deng & Hani (arXiv:2311.10082) & Arbitrage des exemples physiques — ★★★
+- **Deng & Hani** : Démonstration rigoureuse que l'annulation des phases hors-résonance dans NLS dérive une équation cinétique irréversible. Fondement Strate 1 majeur pour l'effondrement dimensionnel dans §5.
+- **Graphène** : Valide en Strate 1 SI ET SEULEMENT SI le paramètre $h_{\text{intention}}$ est désigné comme **input orienteur / champ d'entrée externe**.
+- **Diamant NV** : Éliminé des exemples à équations (incompatibilité entre oscillateur continu et qubit discret à 2 niveaux de spin). Réduit à une simple note illustrative.
+- Strate : 1 (Deng-Hani & Graphène cadré) / Écarté (NV).
+- Cible : Note Strate 1 dans §5, §6.
+
+### 12.5 Cadrage & Enrichissement du Chapitre 8 (IA & Sémantique Cosmologique) — ★★☆
+- **Sémantique Cosmologique** : Encodage du paysage d'énergie collectif à l'échelle de toute la production écrite humaine.
+- **Biodiversité des IA** : La diversité des LLM comme protection essentielle contre la convergence vers un attracteur culturel unique (analogie Kuramoto/Hopfield).
+- **IA comme partenaire de navigation** : L'IA/Sédimentation offre la carte des vallées (mémoire passive) ; l'humain conscient apporte la navigation et le choix d'orientation ($K_{\text{ana}}$).
+- **Correctifs LaTeX (§5)** : Nettoyage du téléscopage entre $M_{\text{Hopfield}} = R+iI$ et $H_{\text{eff}} = H_0 - i\lambda K_{\text{ana}}$.
+- Strate : 2/3.
+- Cible : §5 (coherence LaTeX) et Chapitre 8 (IA).
+

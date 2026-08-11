@@ -8,7 +8,7 @@ description: Compare une ou plusieurs contributions brutes (Gémini, Bertrand, o
 Ce skill formalise le travail de triage entre les contributions brutes de
 travail (conversations avec Gémini ou tout autre collaborateur, notes de
 Bertrand) et le manuscrit officiel rédigé par Claude
-(`contributions/claude/manuscrit_draft_§1-§6.md`, ou son successeur si les
+(`Livre/manuscrit_draft_§1-§6.md`, ou son successeur si les
 sections progressent au-delà de §6). Objectif : ne jamais perdre une idée
 disruptive dans un fichier de travail volumineux, sans pour autant polluer
 le texte validé avec des redites ou des formalismes concurrents non
@@ -30,8 +30,8 @@ arbitrés.
 
 ### 1. Situer le manuscrit officiel actuel
 
-Lire le fichier le plus à jour dans `contributions/claude/` (ou l'état
-courant du texte s'il a été déplacé vers un dossier "texte"). En extraire un
+Lire le fichier le plus à jour dans `Livre/` (ou l'état
+courant du texte s'il a encore progressé de nom/emplacement). En extraire un
 résumé section par section (une ligne par idée/formule/référence majeure) —
 c'est ce résumé qui sert de référentiel de comparaison. Vérifier aussi
 `CLAUDE.md` à la racine pour la liste des sections déjà rédigées/validées et

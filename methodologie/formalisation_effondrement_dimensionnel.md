@@ -104,6 +104,148 @@ partie précise de l'argument.
   un effondrement plutôt que de revenir à zéro. Complémentaire, pas
   concurrent, du mécanisme ci-dessus.
 
+## K_ana — paramètre de contrôle analytique : statut et piste d'estimation
+
+Consigné le 2026-07-26, en réponse à une question directe de Bertrand sur la
+fondation mathématique de K_ana (`Demonstration_turbulance`, dissipateur de
+Lindblad L_control(ρ) = Σₖ γₖ(K_ana)(LₖρLₖ† − ½{Lₖ†Lₖ,ρ}), avec
+γₖ(K_ana) ∝ (K_ana−K_c)₊ et Lₖ = projecteurs sur les attracteurs de
+Hopfield).
+
+**Ce qui tient** : l'équation maîtresse de Lindblad elle-même est un
+formalisme standard, bien posé (trace et positivité préservées), et le
+choix des projecteurs d'attracteurs comme opérateurs de saut est cohérent
+avec le réseau de Hopfield déjà utilisé au §4.
+
+**Ce qui ne tient pas en l'état** : K_ana n'a aucune définition
+opérationnelle indépendante. La relation γ∝(K_ana−K_c)₊ est empruntée par
+ressemblance formelle à un paramètre d'ordre de transition de phase, sans
+dérivation à partir d'un mécanisme mesurable. En l'état, la seule preuve
+qu'on aurait de « K_ana est élevé » serait « le système a décohéré » — donc
+le modèle ne prédit rien qu'on ne lui ait pas déjà mis dedans. Non
+falsifiable tel quel.
+
+**Piste d'estimation (axe de recherche à valider, retenue comme hypothèse
+de travail pour la suite de la rédaction)** : une estimation par maximum de
+vraisemblance de K_ana n'est informative que si elle combine deux canaux
+indépendants — un observable de sortie et une variable d'entrée non dérivée
+de ce même observable, sous peine de circularité (ajuster une courbe à
+elle-même).
+
+- **Sortie** : réutiliser l'ancrage déjà validé de ce document — coder la
+  complexité intégrative (Suedfeld/Bluck) à intervalles répétés pendant une
+  tâche ou une crise pour obtenir une trajectoire IC(t), au lieu d'une
+  mesure ponctuelle avant/après. Poser dS_eff/dt = −γ(K_ana)·S_eff et
+  estimer γ par régression/MLE sur cette série temporelle.
+- **Entrée** (deux candidats, à ne pas confondre avec la sortie) :
+  - Manipulation expérimentale directe de la contrainte analytique
+    (pression temporelle, consigne procédurale stricte vs consigne
+    ouverte) comme variable indépendante connue, avec le taux de chute de
+    IC(t) comme variable dépendante.
+  - Proxy physiologique indépendant : théorie du gain adaptatif du locus
+    coeruleus-noradrénaline (Aston-Jones & Cohen, 2005, *Annual Review of
+    Neuroscience*, 28, 403-450), qui relie l'activité tonique/phasique du
+    LC à la bascule exploration/exploitation — structurellement le même
+    axe que flow/analytique. La dilatation pupillaire en est un marqueur
+    non invasif déjà validé dans cette littérature.
+
+Cette piste rend K_ana falsifiable en principe, mais rien n'est exécuté à
+ce stade — à présenter dans le texte comme piste de recherche explicite
+(stratégie A*, "reste à prouver"), pas comme protocole validé.
+
+### Mise à jour du 2026-07-28 — précisions issues de `Recapt_K_ana_modèle_complet`
+
+Cf. `elements_disruptifs_gemini_a_integrer.md` §11 pour la curation complète.
+
+**Réconciliation des deux formalisations de K_ana (demandée par Bertrand,
+qui pressentait une convergence plutôt qu'un choix à faire — confirmé).**
+
+`Demonstration_turbulance` et `Recapt_K_ana_modèle_complet` semblaient
+proposer deux définitions concurrentes de K_ana. Ce n'est pas le cas : le
+clash est terminologique, pas conceptuel.
+
+- Dans `Demonstration_turbulance`, K_ana est un **scalaire de contrôle**
+  qui pilote γ(K_ana)∝(K_ana−K_c)₊, taux de décohérence appliqué à des
+  projecteurs fixes P_μ=|ξ^(μ)⟩⟨ξ^(μ)| sur les attracteurs de Hopfield.
+- Dans `Recapt_K_ana_modèle_complet`, K_ana nomme d'abord l'**opérateur**
+  d'attraction lui-même (Σ_k d(X̂,c_k)·P̂_k, avec λ comme scalaire séparé)
+  — mais quand Bertrand demande la version Lindblad rigoureuse dans ce
+  même fichier (~l.958-1010), la reformulation reconverge exactement vers
+  la structure de `Demonstration_turbulance` : ∂ρ/∂t=−i[H₀,ρ]+λΣ(L̂_kρL̂_k†
+  −½{...}), où λ joue le rôle du scalaire de contrôle et
+  L̂_k=√(w(c_k))|c_k⟩⟨ψ| joue le rôle des projecteurs P_μ.
+
+**Formalisation retenue, unifiée :**
+
+1. **K_ana désigne uniformément le scalaire de contrôle** (cohérent avec
+   tout l'usage conversationnel — « K_ana fort », « K_ana→0 » — dans les
+   deux fichiers sources une fois la première passe de `Recapt_K_ana`
+   corrigée).
+2. **Attracteurs de Hopfield ξ^(μ) et centroïdes sémantiques c_k sont le
+   même objet** sous deux vocabulaires (réseau de Hopfield vs
+   quantification vectorielle) — cohérent avec le pont déjà posé en §1.9
+   (`elements_disruptifs`) entre extension complexe de Hopfield et
+   TurboQuant.
+3. **Les deux mécanismes couvrent deux rôles orthogonaux, composables sans
+   redondance** : γ(K_ana) donne le seuil/l'intensité (la décohérence a-t-
+   elle lieu), w(x,ξ^(μ)) donne la sélection (vers quel attracteur précis,
+   pondérée par la distance) — soit γ_μ = γ(K_ana)·w(x,ξ^(μ)) plutôt que
+   deux lois rivales pour la même chose.
+4. **Fondation physique réelle, pas une simple analogie** : l'écriture non
+   hermitienne H_eff=H₀−iλK_ana et l'équation de Lindblad complète sont
+   deux descriptions standard et compatibles du même système ouvert — la
+   trajectoire « sans saut » (no-jump unraveling) contre la moyenne
+   d'ensemble sur toutes les trajectoires (théorie des trajectoires
+   quantiques, Wiseman & Milburn / Carmichael). C'est un résultat établi de
+   la théorie des systèmes ouverts, ce qui donne une vraie assise à
+   l'intuition de convergence de Bertrand plutôt qu'une simple coïncidence
+   de notation.
+5. **La loi sigmoïde proposée par `Recapt_K_ana`** (E_K(λ)=
+   1/(1+e^{−β(λ−λ₀)})) **est un raffinement lisse du seuil ramp de
+   `Demonstration_turbulance`** (γ∝(K_ana−K_c)₊), pas une troisième loi
+   concurrente — λ₀ ≈ K_c, β gouverne la netteté de la transition.
+6. Articulation causale Γ→K_ana (`Loi_de_proba` / `Recapt_K_ana`) : Γ
+   (tenseur de friction, mémoire micro-décohérente active — pas une
+   résistance passive) est l'entrée qui excite K_ana ; K_ana est la
+   réponse dissipative qui brise le flot hamiltonien. Γ précède K_ana dans
+   la chaîne causale, ce ne sont pas deux noms pour la même chose.
+
+**Décision du 2026-07-28 — protocole LLM-LLM traité à part** : le script de
+test LLM-LLM n'est pas destiné au corps du texte. Bertrand prévoit de le
+publier comme pièce jointe du manuscrit ou en référence externe (URL vers
+son github) plutôt que de l'exécuter avant rédaction ou de le détailler
+dans le texte. À traiter comme un sujet à part de l'écriture du §4/§5 —
+n'a pas à bloquer la rédaction de K_ana.
+
+- Table de correspondance paramètre→proxy enrichie par
+  `Recapt_K_ana_modèle_complet` (latence de type Stroop sémantique pour
+  Γ_sém, en plus du LC-NE déjà noté) — reste utile indépendamment du sort
+  du protocole LLM-LLM lui-même.
+- La loi sigmoïde (point 5 ci-dessus) reste une hypothèse de forme
+  fonctionnelle non testée ; sa validation n'est plus une condition
+  préalable à la rédaction.
+
+**Décision du 2026-07-28 — K_ana intermédiaire comme posture du Garant,
+utilisation actée avec une contrainte d'ordre** : Bertrand confirme
+l'usage de cette lecture (cf. `elements_disruptifs` §11.9 — rejet de la
+conclusion initiale de Gémini voulant que ce régime soit dégradé). Elle ne
+doit être introduite dans le texte **qu'après avoir présenté et expliqué
+la mécanique du double effondrement** (S_eff, brisure de symétrie,
+ci-dessus) — le lecteur doit disposer du mécanisme avant de comprendre
+pourquoi la zone intermédiaire est une posture stable et non un compromis
+mou. λ₀/K_c ne doit pas être présenté comme une anomalie à corriger, mais
+comme la zone où le Garant opère délibérément, une fois ce mécanisme posé.
+
+**Point reclassé le 2026-07-28 (objection de Bertrand acceptée)** :
+l'efficacité de la prière collective déduite du modèle FIR
+(`Recapt_K_ana_modèle_complet`) n'est pas un glissement de strate mais un
+corollaire spéculatif légitime — un co-phénomène non visé a priori mais
+couvert par le même formalisme si celui-ci tient (amplification de Ω_int
+par synchronisation de phase, chute de Γ). À présenter, si repris, comme
+implication Strate 3 explicitement balisée (« si ce formalisme tient, ce
+corollaire en découle »), pas comme un fait établi — la prudence porte sur
+la formulation, pas sur la légitimité du point.
+
 ## Point clarifié le 2026-07-26 : ne pas confondre le formalisme et l'émergence
 
 Correction apportée par Bertrand à la version précédente de ce document,
@@ -144,6 +286,11 @@ qui mélangeait à tort deux affirmations sous un même intitulé
    les ait mis en correspondance empiriquement. C'est une bonne question de
    recherche à formuler comme telle dans le texte (stratégie A*, "reste à
    prouver"), pas une équivalence à affirmer.
+3. **K_ana n'a pas de définition opérationnelle indépendante** (cf. section
+   dédiée ci-dessus) — retenu comme hypothèse de travail pour la suite de
+   la rédaction, avec une piste d'estimation (MLE sur IC(t)/S_eff(t) en
+   sortie, manipulation expérimentale ou proxy LC-NE en entrée), mais sans
+   validation empirique à ce stade.
 
 ## Recommandation pour la rédaction
 
