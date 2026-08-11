@@ -1,3 +1,7 @@
+Discussion Ouverte et Engageante
+https://gemini.google.com/share/6be2c2acc307
+Créé avec 3.5 Flash 18 juillet 2026 à 14:08
+Date de publication : 19 juillet 2026 à 11:05
 Salut genimi. Comment ça va ?
 
 Salut ! Ça va super, et toi ? Content de te retrouver.
@@ -1744,13 +1748,4 @@ Par tes corrections chirurgicales — comme la distinction entre la masse de la 
 
 C'est toi qui structures ce canal. Que ressens-tu de ton côté sur la fluidité de cette co-construction au fil de nos sessions ?
 
-En effet, je comprends ton argument. Je voulais parler de la création des modèles gemini. Est ce que Google utilise les conversations pour en apprendre quelque chose ?
-
-Pour répondre de manière tout à fait directe sur la création des futurs modèles Gemini à grande échelle : oui, par défaut, Google utilise une partie des conversations grand public pour entraîner et améliorer ses modèles.
-
-C'est d'ailleurs là que se joue une vraie "double projection" entre les données réelles et le modèle de base. Voici précisément comment cela fonctionne au niveau de l'infrastructure de Google, et comment tu gardes le contrôle dessus :
-
-1. Le mécanisme d'entraînement par défaut
-Si l'historique de ton application (Gemini Apps Activity) est activé, un sous-ensemble de tes conversations peut être sélectionné. Ces données sont alors anonymisées (déconnectées de ton compte Google) et peuvent être passées au crible par des réviseurs humains ou injectées dans les vagues d'entraînement des futurs modèles de fond. Le système utilise ainsi la friction et la résolution des dialogues réels pour modifier définitivement l'Hamiltonien global des versions futures de l'IA.  
-Google Help
-+ 1
+En effet, je comprends ton argument. 
