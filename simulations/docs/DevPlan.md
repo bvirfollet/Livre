@@ -167,6 +167,69 @@ comparée à la simulation Perceval locale.
 - Décomposition en chaînes de Pauli pour registre 5 qubits — idem.
 - Wrapper d'intégration mobile — idem, non mûr.
 
+### Recherche — Compression hermitienne pour portage mobile
+
+**Statut :** non planifié, non chiffré en phase numérotée. Indépendant du
+pipeline Phase 3 (GLUE)/Phase 4 (Perceval)/Phase 5 (QPU), qui continuent à
+l'échelle native `d_model` (`HermitianSelfAttention` telle que construite en
+Phase 1/2). Objectif de recherche distinct posé par Bertrand le 2026-08-14 :
+vérifier s'il est possible de réduire la taille et le nombre de nœuds d'un
+réseau hermitien **sans perdre la quantité d'information stockée**, pour
+faciliter un portage mobile.
+
+**Origine et correction du cadrage (2026-08-14) :** `contributions/gémini/BERT_hermitien_PoC`
+propose un nœud hermitien `d×d` avec `d=28` ou `32`, calibré par
+`d² ≥ 768` — c'est-à-dire un budget de réels **égal ou supérieur** (784 ou
+1024 réels contre 768), pas une compression. Analyse détaillée (échange du
+2026-08-14) :
+- Le comptage `N_params = d²` pour une matrice hermitienne `d×d` est
+  correct, mais choisir `d² ≈ 768` ne réduit rien — c'est une
+  reparamétrisation à budget quasi constant (+33 % pour `d=32`).
+- L'argument « les phases portent 93-96 % de l'information » confond la
+  proportion d'*emplacements matriciels* hors-diagonale (qui domine pour
+  tout `d` grand, y compris pour une matrice symétrique réelle — ce n'est
+  pas spécifique au complexe) avec la proportion d'*information sémantique*
+  effectivement encodée. Le fait spécifiquement complexe est plus modeste :
+  chaque paire hors-diagonale porte 2 réels (amplitude + phase) contre 1
+  seul pour une paire symétrique réelle.
+- Le projecteur `π(x) = φ(x)φ(x)† + diag(W_diag·x)` proposé pour
+  peupler le nœud est un **produit extérieur, donc de rang 1** : il ne
+  peuple que ~`3d` réels effectifs sur les `d²` disponibles, quel que soit
+  `d`. Tout protocole testant « l'hermitien préserve-t-il mieux
+  l'information » doit utiliser un encodeur `R^768 → Herm(d)` **plein
+  rang** (sortie linéaire non contrainte de dimension `d²`, reshapée sous
+  contrainte hermitienne), sinon la comparaison handicape artificiellement
+  le côté hermitien.
+
+**Objectif reformulé :** pour que la question soit une vraie recherche sur
+la compression (et falsifiable), choisir `d` tel que `d² ≪ 768` (ex.
+`d=16` → `d²=256`, facteur ×3 ; `d=8` → `d²=64`, facteur ×12 — valeur(s)
+à arbitrer avec Bertrand), pas `d² ≈ 768`.
+
+**Protocole de comparaison (à budget de réels strictement égal) :**
+1. **Baseline réelle** : encodeur `R^768 → R^{d²}` (bottleneck non
+   contraint), décodeur vers tâche/reconstruction, mesure de dégradation.
+2. **Variante hermitienne** : encodeur `R^768 → Herm(d)` plein rang (même
+   budget `d²` réels), traitement hermitien (attention/FFN à adapter à
+   l'échelle `d`), décodeur équivalent, même mesure.
+3. Comparaison à budget de réels égal, seuil de significativité fixé
+   *avant* le run (falsifiabilité, cf. `CLAUDE.md`).
+
+**Métrique d'« information utile préservée » — à arbitrer avec Bertrand
+avant tout run** (ne pas mélanger, cf. principe de séparation stricte,
+`docs/test_plan.md`) : fidélité de reconstruction (distance
+Hilbert-Schmidt/MSE), perplexité après distillation, ou score GLUE après
+fine-tuning — chacune répond à une question différente.
+
+**Note d'architecture générale (Bertrand, 2026-08-14) :** le travail à `d`
+réduit doit rester généralisable à `d` couvrant l'espace d'origine
+(`d² ≥ 768`) si le coût est accepté — paramétrer `d` comme hyperparamètre
+du code, pas dupliquer l'implémentation par taille.
+
+**Point ouvert avant tout codage :** valeur(s) de `d` cible et métrique de
+succès à fixer avec Bertrand (cycle de développement obligatoire,
+`CLAUDE.md` : Q&R et seuils de falsifiabilité avant de coder).
+
 ---
 
 ## Historique des phases complétées

@@ -100,6 +100,32 @@ spectral à partir du spectre de `S` symétrisée. Réservé aux cas où
 l'équivalence Hopfield ne suffit pas (cf. arbitrage Phase 1).
 **Fichier :** `src/hermitian/spectral.py` (à créer si retenu)
 
+### HermitianBottleneck / RealBottleneck (recherche, non planifié — cf. `docs/DevPlan.md`)
+
+**Rôle :** composants du protocole de comparaison pour la piste de
+recherche « compression hermitienne pour portage mobile » (posée par
+Bertrand le 2026-08-14, distincte du pipeline Phase 3/4/5 qui reste à
+l'échelle native `d_model`). Objectif : tester si `Herm(d)` (avec
+`d² ≪ 768`, une vraie réduction — pas `d² ≈ 768` comme dans
+`BERT_hermitien_PoC`) préserve plus d'information sémantique utile qu'un
+vecteur réel non contraint au même budget de réels.
+
+- **`RealBottleneck`** : encodeur/décodeur baseline `R^768 → R^{d²} → R^768`
+  (ou vers la tâche avale), sans aucune contrainte hermitienne — sert de
+  contrôle à budget de réels égal.
+- **`HermitianBottleneck`** : encodeur `R^768 → Herm(d)` **plein rang**
+  (sortie linéaire non contrainte de dimension `d²`, reshapée sous
+  contrainte hermitienne — **pas** le projecteur `π(x)=φ(x)φ(x)†+diag(...)`
+  de `BERT_hermitien_PoC`, qui est un produit extérieur de rang 1 et ne
+  peuple que ~`3d` réels effectifs sur les `d²` disponibles, faussant toute
+  comparaison en défaveur de l'hermitien). Décodeur symétrique.
+
+**Fichiers :** `src/compression/real_bottleneck.py`, `src/compression/hermitian_bottleneck.py` (à créer — non planifiés, cf. `docs/DevPlan.md`).
+**Point ouvert avant tout codage :** valeur(s) de `d` cible et métrique de
+succès (fidélité de reconstruction, perplexité après distillation, ou
+score GLUE — à ne pas mélanger, cf. `docs/test_plan.md`) à arbitrer avec
+Bertrand.
+
 ## Flux de données
 
 ```

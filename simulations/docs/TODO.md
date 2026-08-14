@@ -16,15 +16,28 @@
 
 - [ ] Arbitrer avec Bertrand le rattachement (ou non) du plan Monte-Carlo
   superposition/intrication à ce projet (cf. CLAUDE.md, P1)
-- [ ] **Conception non prévue** : `SW_Design.md` ne couvre que `ComplexLinear`,
-  `HermitianSelfAttention`, l'équivalence Hopfield et `WeightProjector` —
-  rien n'est encore conçu pour le FFN complexe, les `LayerNorm` complexes,
-  les embeddings, ni l'empilement multi-couches d'un `HermitianBertModel`
-  complet. Repéré le 2026-08-14 en scopant le test I-01 (portage de poids) :
-  décidé avec Bertrand de limiter I-01 au bloc d'attention seul pour
-  l'instant (cf. `docs/DevPlan.md`, Phase 2) — mais la question de
+- [ ] **Conception non prévue (échelle native)** : `SW_Design.md` ne
+  couvre que `ComplexLinear`, `HermitianSelfAttention`, l'équivalence
+  Hopfield et `WeightProjector` — rien n'est encore conçu pour le FFN
+  complexe, les `LayerNorm` complexes, les embeddings, ni l'empilement
+  multi-couches d'un `HermitianBertModel` complet, **à l'échelle native
+  `d_model`** (portage direct de poids, pipeline Phase 3/4/5). Repéré le
+  2026-08-14 en scopant le test I-01 : décidé avec Bertrand de limiter
+  I-01 au bloc d'attention seul pour l'instant — la question de
   l'architecture complète reste ouverte et devra être tranchée avant toute
-  comparaison GLUE bout-en-bout (Phase 3).
+  comparaison GLUE bout-en-bout (Phase 3). Piste de départ pour le FFN :
+  résonance directe `H' = φ(W₂(W₁HW₁†)W₂†)` (retenue après discussion
+  avec Gémini dans `contributions/gémini/Evolution_BERT_suite`, à valider
+  empiriquement — voir en particulier la réserve sur `LayerNorm` →
+  normalisation de trace, non démontrée équivalente en stabilité de
+  gradient).
+- [ ] **Recherche séparée — compression hermitienne pour portage mobile**
+  (cf. `docs/DevPlan.md`, section dédiée) : objectif et protocole posés
+  avec Bertrand le 2026-08-14 (`d² ≪ 768`, comparaison à budget de réels
+  égal contre un bottleneck réel non contraint). Point ouvert avant tout
+  codage : arbitrer la ou les valeurs de `d` cible et la métrique de
+  succès (fidélité de reconstruction / perplexité / score GLUE — ne pas
+  mélanger).
 
 ## Améliorations / Nice-to-have
 

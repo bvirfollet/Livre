@@ -65,6 +65,33 @@ non conçus (point ouvert, `docs/TODO.md`).
 |---|---|---|---|---|
 | I-03 | Circuit Perceval reconstruit depuis la décomposition de Givens | `compute_unitary()` | `U @ U.conj().T ≈ I` | |
 
+## Tests — Recherche compression hermitienne (non planifiée, cf. docs/DevPlan.md)
+
+**Non chiffrable en IDs de test tant que `d` cible et métrique de succès
+ne sont pas arbitrés avec Bertrand** — consigné ici pour mémoire du
+protocole convenu le 2026-08-14, à formaliser en tests concrets
+(`R-01`, `R-02`, ...) une fois ces points tranchés.
+
+Question falsifiable : à budget de réels strictement égal (`d²` pour les
+deux côtés), `HermitianBottleneck` (`R^768 → Herm(d)` plein rang, `d² ≪ 768`)
+préserve-t-il plus d'information sémantique utile que `RealBottleneck`
+(`R^768 → R^{d²}` non contraint) ?
+
+Trois métriques candidates, à ne pas mélanger dans un même run (chacune
+répond à une question différente, cf. principe de séparation stricte
+ci-dessus) :
+- Fidélité de reconstruction (distance Hilbert-Schmidt / MSE) — teste la
+  compression pure, sans tâche linguistique.
+- Perplexité après distillation — teste la préservation de la capacité
+  générative.
+- Score GLUE après fine-tuning — teste la préservation de la capacité
+  discriminative en aval.
+
+Piège de protocole à ne pas reproduire (déjà identifié, cf.
+`docs/DevPlan.md`) : un encodeur `Herm(d)` construit via un produit
+extérieur (`φ(x)φ(x)†`, rang 1) handicape artificiellement le côté
+hermitien — n'utiliser que des encodeurs plein rang des deux côtés.
+
 ## Cas limites à couvrir systématiquement
 
 - [ ] Comportement si le nombre de modes Perceval demandé dépasse la limite
