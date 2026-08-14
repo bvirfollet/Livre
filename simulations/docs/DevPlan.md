@@ -31,11 +31,16 @@ coïncidence numérique approximative.
 
 ### Tâches
 
-- [ ] feat(hermitian): `ComplexLinear` (couche linéaire complexe)
-- [ ] feat(hermitian): `HermitianSelfAttention` (attention Q K†, symétrisation explicite)
-- [ ] feat(hopfield): module d'équivalence Hopfield 1-pas = attention hermitienne
-- [ ] test(hermitian): hermiticité de S, réalité du spectre, cas N=2/N=3 vérifiés à la main dans `BERT_hermitien_PoC` comme non-régression
-- [ ] docs: mise à jour SW_Design.md
+- [x] feat(hermitian): `ComplexLinear` (couche linéaire complexe) — `src/hermitian/complex_linear.py`
+- [x] feat(hermitian): `HermitianSelfAttention` (attention Q K†, symétrisation explicite) — `src/hermitian/attention.py`
+- [x] feat(hopfield): module d'équivalence Hopfield 1-pas = attention hermitienne — `src/hopfield/equivalence.py`
+- [x] test(hermitian): U-01 à U-04, cas N=2 calculés à la main directement dans les tests (la référence à `BERT_hermitien_PoC` était inexacte, cf. correction `test_plan.md` 2026-08-14) — 7/7 verts
+- [x] docs: mise à jour SW_Design.md (décision d'architecture réel/imag), test_plan.md (tolérances + correction)
+
+**Note (2026-08-14) :** décision d'architecture pendant l'implémentation —
+représentation en paires (real, imag) de bout en bout plutôt que
+`torch.complex64` matérialisé (pas de dtype "complex-bf16" natif en
+PyTorch), validée avec Bertrand. Détail dans `SW_Design.md`.
 
 ### Dépendances / Bloquants
 

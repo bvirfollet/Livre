@@ -22,12 +22,25 @@ portage et un effet réel de l'architecture sont sinon indiscernables.
 
 ## Tests unitaires (Phase 1)
 
+**Correction du 2026-08-14 :** la mention initiale « cas N=2 et N=3 vérifiés
+à la main dans `BERT_hermitien_PoC` » était inexacte — ce fichier ne
+contient aucun exemple numérique explicite pour l'attention hermitienne ou
+l'équivalence Hopfield (vérifié par grep exhaustif sur le document source).
+Les cas N=2 ci-dessous sont calculés à la main directement dans les fichiers
+de test (`tests/test_hermitian.py`, `tests/test_hopfield.py`), avec le
+détail du calcul en docstring.
+
+**Tolérances fixées a priori (falsifiabilité avant calcul) :** `atol=1e-5`,
+`rtol=1e-4`, arithmétique FP32 — cf. `tests/conftest.py::ATOL/RTOL`. Choisies
+larges par rapport au bruit d'arrondi FP32 attendu (~1e-7) : un dépassement
+signale un vrai bug, pas du bruit numérique.
+
 | ID | Ce qui est testé | Entrée | Résultat attendu |
 |---|---|---|---|
-| U-01 | Hermiticité de `S = QK†` après symétrisation | Q, K aléatoires | `S == S.conj().T` à la tolérance flottante près |
-| U-02 | Réalité du spectre | `S` hermitienne | `torch.linalg.eigh(S).eigenvalues` sans partie imaginaire résiduelle significative |
-| U-03 | Équivalence Hopfield 1-pas ≡ attention hermitienne | cas N=2 et N=3 (vérifiés à la main dans `BERT_hermitien_PoC`) | sorties identiques à la tolérance flottante près |
-| U-04 | Overflow FP16 sur le produit hermitien | valeurs de grande magnitude, dtype FP16 | reproduit l'overflow documenté (test de régression négatif — sert à documenter *pourquoi* BF16 est requis) |
+| U-01 | Hermiticité de `H = (S+S†)/2` après symétrisation | Q, K aléatoires + cas N=2 calculé à la main | `H_real` symétrique, `H_imag` antisymétrique (diagonale nulle), à `atol=1e-5`/`rtol=1e-4` |
+| U-02 | Réalité du spectre | cas N=2 hermitien calculé à la main (valeurs propres analytiques) + invariant `Tr(H) = Σλ` sur cas aléatoire | `torch.linalg.eigh` (cast FP32 local) reproduit les valeurs propres attendues à `atol=1e-5`/`rtol=1e-4` |
+| U-03 | Équivalence Hopfield 1-pas ≡ attention hermitienne | cas auto-associatif Q=K=V (projections partagées) + cas N=2 calculé à la main | sorties identiques à `atol=1e-5`/`rtol=1e-4` — équivalence exacte uniquement quand Q=K (Re(QK†) alors automatiquement symétrique) |
+| U-04 | Overflow FP16 sur le produit hermitien | valeurs de grande magnitude (300), dtype FP16 vs BF16 | reproduit l'overflow documenté en FP16 (test de régression négatif) ; absence d'overflow en BF16 sur les mêmes valeurs |
 
 ## Tests d'intégration — portage de poids (Phase 2)
 
