@@ -1,3 +1,4 @@
 *.json
+!.claude/settings.json
 *.bak
 
