@@ -43,6 +43,32 @@ Afin de simplifier l'accès au lecteur, la structure de chaque chapitre obéit o
 4. **Développement formel et théorisation**
 5. **Reste à prouver & pistes de recherche** (*Strate 3*)
 
+## Rôle du projet — lien avec simulations/
+
+RadioHumaine est **Consommateur** du contrat de résultats exposé par le
+sous-projet `simulations/` (PyTorch/ML, méthodologie de dev propre — voir
+`simulations/CLAUDE.md`). Ce sous-projet implémente et valide
+computationnellement des affirmations du manuscrit (extension hermitienne de
+BERT, équivalence avec un pas de mise à jour de Hopfield, etc.) pour leur
+donner un statut Strate 1 testable plutôt qu'une simple analogie.
+
+Règles Consommateur :
+- Ne jamais modifier le code ou les résultats sous `simulations/` depuis une
+  session de travail sur le manuscrit — signaler le besoin, ne pas contourner.
+- Le contrat est déclaré dans `docs/api_deps.yaml` (`acked_version`).
+- Un résultat ne peut être cité en Strate 1 dans le manuscrit que s'il
+  apparaît dans `simulations/docs/Simulations_API.md` avec un test associé
+  vert — jamais un résultat encore en développement.
+- Après intégration d'une mise à jour de résultat dans le texte : bumper
+  `acked_version` dans `docs/api_deps.yaml` + marquer
+  `[ACKED: RadioHumaine — date]` dans
+  `simulations/docs/Simulations_API_CHANGELOG.md`, dans le **même commit**.
+- Le hook `UserPromptSubmit` (`.claude/settings.json`) déclenche
+  `scripts/check_api_deps.sh` à chaque input utilisateur pour signaler les
+  entrées `[PENDING]` non acquittées.
+
+---
+
 ## Architecture du texte : trois strates explicites
 
 **Strate 1** — Noyau scientifique testable

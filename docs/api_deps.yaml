@@ -1,0 +1,11 @@
+# api_deps.yaml — Contrats producteurs déclarés pour ce projet consommateur.
+# RadioHumaine consomme le contrat de résultats exposé par simulations/
+# (voir CLAUDE.md, section « Rôle du projet »).
+
+project: "RadioHumaine"
+
+producers:
+  - name: "simulations"
+    contract: "simulations/docs/Simulations_API.md"
+    changelog: "simulations/docs/Simulations_API_CHANGELOG.md"
+    acked_version: ""   # à renseigner lors du premier acquittement

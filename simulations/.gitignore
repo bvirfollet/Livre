@@ -1,0 +1,20 @@
+*.json
+*.bak
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+
+# ML — checkpoints, artefacts d'expérience, données volumineuses
+checkpoints/
+*.pt
+*.ckpt
+*.safetensors
+wandb/
+mlruns/
+data/
+
+# Secrets (clé API Quandela Cloud)
+.env
