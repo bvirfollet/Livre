@@ -57,11 +57,39 @@ tolérance numérique fixée à l'avance — **ce test doit être vert avant tou
 autre affirmation sur l'effet de l'architecture hermitienne** (cf.
 `docs/test_plan.md`, séparation stricte portage/effet).
 
+**Portée réduite actée avec Bertrand le 2026-08-14 :** le critère ci-dessus
+porte sur le **bloc d'attention seul** (`BertAttention` = self-attention +
+`output.dense`), pas sur un `BertModel` complet — les embeddings, le FFN,
+les `LayerNorm` et l'empilement multi-couches ne sont pas conçus dans
+`SW_Design.md` (point ouvert consigné dans `docs/TODO.md`). Le comparatif
+GLUE bout-en-bout (Phase 3) nécessitera de trancher ce point avant de
+démarrer.
+
 ### Tâches
 
-- [ ] feat(weights): `WeightProjector` (chargement HF, injection Re/Im)
-- [ ] test(weights): régression Im≈0 ⇒ sortie ≈ BERT classique
-- [ ] docs: mise à jour SW_Design.md et test_plan.md
+- [x] spike(weights): correspondance state_dict BERT ↔ `ComplexLinear`
+  (`docs/spike-weights-state-dict-mapping.md`) — confirmée, avec la
+  contrainte `BertModel` explicite (pas `AutoModel`) sur les checkpoints
+  anciens type `bert-tiny`.
+- [x] feat(weights): `WeightProjector` (`project_bert_attention`, bloc
+  d'attention, injection Re/Im) — `src/weights/projector.py`
+- [x] test(weights): I-01 vert — régression Im≈0 ⇒ sortie ≈
+  `BertAttention` HuggingFace (`prajjwal1/bert-tiny`) — `tests/test_weights.py`
+- [x] docs: mise à jour SW_Design.md, test_plan.md, TODO.md, CorrectifPlan.md
+
+**Deux bugs Phase 1 découverts et corrigés pendant cette passe** (détail
+dans `docs/CorrectifPlan.md`, BUG-001 et BUG-002) : fuite de biais réel
+dans la partie imaginaire de `ComplexLinear`, et softmax appliqué par
+erreur sur le `S` symétrisé au lieu du `S` brut dans
+`HermitianSelfAttention` — tous deux indétectables par les seuls tests
+Phase 1 (aucune référence externe à biais/projections Q≠K non nuls), tous
+deux détectés par la conception du test I-01 avant même son premier run
+réel. Conséquence positive du correctif BUG-002 : l'équivalence Hopfield
+1-pas ≡ attention hermitienne est désormais inconditionnelle (Q, K, V
+quelconques), plus forte que le résultat Phase 1 initial.
+
+`transformers==5.15.0` installé dans `.venv` pour cette phase (pas encore
+figé dans un fichier de lock, cf. `docs/TODO.md`).
 
 ### Dépendances / Bloquants
 

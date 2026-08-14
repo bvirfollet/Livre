@@ -39,14 +39,19 @@ signale un vrai bug, pas du bruit numérique.
 |---|---|---|---|
 | U-01 | Hermiticité de `H = (S+S†)/2` après symétrisation | Q, K aléatoires + cas N=2 calculé à la main | `H_real` symétrique, `H_imag` antisymétrique (diagonale nulle), à `atol=1e-5`/`rtol=1e-4` |
 | U-02 | Réalité du spectre | cas N=2 hermitien calculé à la main (valeurs propres analytiques) + invariant `Tr(H) = Σλ` sur cas aléatoire | `torch.linalg.eigh` (cast FP32 local) reproduit les valeurs propres attendues à `atol=1e-5`/`rtol=1e-4` |
-| U-03 | Équivalence Hopfield 1-pas ≡ attention hermitienne | cas auto-associatif Q=K=V (projections partagées) + cas N=2 calculé à la main | sorties identiques à `atol=1e-5`/`rtol=1e-4` — équivalence exacte uniquement quand Q=K (Re(QK†) alors automatiquement symétrique) |
+| U-03 | Équivalence Hopfield 1-pas ≡ attention hermitienne | cas auto-associatif Q=K=V + cas général Q,K,V indépendants + cas N=2 calculé à la main | sorties identiques à `atol=1e-5`/`rtol=1e-4` — équivalence **inconditionnelle** depuis la correction BUG-002 du 2026-08-14 (`CorrectifPlan.md`) : le softmax de `HermitianSelfAttention` porte sur S brut, jamais sur le H symétrisé |
 | U-04 | Overflow FP16 sur le produit hermitien | valeurs de grande magnitude (300), dtype FP16 vs BF16 | reproduit l'overflow documenté en FP16 (test de régression négatif) ; absence d'overflow en BF16 sur les mêmes valeurs |
 
 ## Tests d'intégration — portage de poids (Phase 2)
 
+**Portée réduite actée avec Bertrand le 2026-08-14 :** bloc d'attention
+seul (`BertAttention` HuggingFace = self-attention + `output.dense`), pas
+un `BertModel` complet — embeddings/FFN/LayerNorm/empilement multi-couches
+non conçus (point ouvert, `docs/TODO.md`).
+
 | ID | Précondition | Action | Résultat attendu | Résultat obtenu |
 |---|---|---|---|---|
-| I-01 | Modèle hermitien instancié, partie imaginaire forcée à 0 | Forward sur un batch de test | Sortie ≈ sortie de `bert-base-uncased` HuggingFace (tolérance à fixer avant le run) | |
+| I-01 | `HermitianSelfAttention` instancié, poids projetés via `WeightProjector` depuis un `BertAttention` HuggingFace, partie imaginaire forcée à 0 (`imag_std=0.0`) | Forward sur un batch aléatoire, comparé à `hf_attention.output.dense(hf_attention.self(x)[0])` (bypass LayerNorm/résiduelle, absentes du module) | Sortie réelle ≈ sortie HuggingFace à `atol=1e-5`/`rtol=1e-4` ; sortie imaginaire exactement nulle | **Vert** (`prajjwal1/bert-tiny`, `tests/test_weights.py`) — diff max observée ~1e-6 |
 
 ## Tests d'intégration — effet architectural GLUE (Phase 3)
 

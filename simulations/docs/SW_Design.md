@@ -33,43 +33,65 @@ Décision validée avec Bertrand le 2026-08-14.
 ### ComplexLinear
 
 **Rôle :** couche linéaire complexe, décomposition explicite Re/Im
-(`Y_r = X_r W_r − X_i W_i`, `Y_i = X_r W_i + X_i W_r`), deux `nn.Linear`
-réels internes (`fc_real`, `fc_imag`).
+(`Y_r = X_r W_r − X_i W_i + B_r`, `Y_i = X_r W_i + X_i W_r + B_i`), deux
+`nn.Linear` réels internes sans biais (`fc_real`, `fc_imag`) + deux
+`nn.Parameter` de biais dédiés (`bias_real`, `bias_imag`).
 **Fichier :** `src/hermitian/complex_linear.py`
 **Interfaces :** `forward(x_real, x_imag) -> (y_real, y_imag)`.
+**Correction du 2026-08-14 (BUG-001, `CorrectifPlan.md`) :** la première
+version réutilisait le biais des deux `nn.Linear` internes dans les deux
+équations de sortie, faisant fuiter `B_real` dans `Y_imag` (et
+réciproquement) — indétectable par les tests Phase 1 (aucune référence
+externe à biais non nul), détecté par le test I-01 de la Phase 2.
 
 ### HermitianSelfAttention
 
-**Rôle :** attention `S = Q K† / √d_k`, symétrisée explicitement
-(`H = (S + S†)/2`, soit partie réelle symétrisée + partie imaginaire
-antisymétrisée) avant tout usage en aval. Softmax appliqué sur `Re(H)`
-uniquement ; la partie imaginaire porte le déphasage.
+**Rôle :** attention `S = Q K† / √d_k`, softmax appliqué directement sur
+`Re(S)` **brut** — pas sur le `H` symétrisé. `H = (S + S†)/2` (partie
+réelle symétrisée + partie imaginaire antisymétrisée) est calculée et
+retournée séparément, réservée à l'inspection/l'exploitation spectrale en
+aval (ex. `eigh`) ; la partie imaginaire de `S` porte le déphasage.
 **Fichier :** `src/hermitian/attention.py`
 **Interfaces :** `forward(x_real, x_imag) -> (out_real, out_imag, (h_real, h_imag))`.
+**Correction du 2026-08-14 (BUG-002, `CorrectifPlan.md`) :** la première
+version appliquait le softmax sur `H` symétrisé, ce qui aurait rendu la
+sortie invérifiable contre BERT classique dès que Q ≠ K (cas général,
+puisque BERT apprend des projections indépendantes) — détecté par le test
+I-01. Conséquence positive : l'équivalence Hopfield 1-pas ≡ attention
+hermitienne (ci-dessous) est désormais inconditionnelle.
 
 ### Module d'équivalence Hopfield 1-pas
 
 **Rôle :** `hopfield_step` calcule `softmax(β·Re(qK†))·K` (1 pas de mise à
 jour de Hopfield continu complexe, Ramsauer et al. 2020) ; `hopfield_energy`
-calcule la fonction de Liapounov associée. Dans le cas auto-associatif
-(Q = K = V, projections partagées), `Re(QK†)` est automatiquement
-symétrique, donc la symétrisation de `HermitianSelfAttention` devient un
-no-op et les deux chemins de calcul coïncident exactement (validé par
-U-03) — évite le goulet d'étranglement O(T³) de la décomposition spectrale
-(`torch.linalg.eigh`) documenté dans `BERT_hermitien_PoC` quand celle-ci
-n'est pas strictement nécessaire.
+calcule la fonction de Liapounov associée. Depuis la correction BUG-002,
+`Re(QK†)` (brut, non symétrisé) est exactement ce qu'utilise
+`HermitianSelfAttention` pour son softmax — les deux chemins de calcul
+coïncident pour Q, K, V quelconques (validé par U-03, cas auto-associatif
+*et* cas général) — évite le goulet d'étranglement O(T³) de la
+décomposition spectrale (`torch.linalg.eigh`) documenté dans
+`BERT_hermitien_PoC` quand celle-ci n'est pas strictement nécessaire.
 **Fichier :** `src/hopfield/equivalence.py`
 **Interfaces :** `hopfield_step(q_real, q_imag, k_real, k_imag, v_real, v_imag, beta)`,
 `hopfield_energy(s_real, z_real, z_imag, beta)`.
 
 ### WeightProjector
 
-**Rôle :** charge un modèle HuggingFace (`bert-base-uncased`), copie ses
-poids dans la partie réelle des couches hermitiennes, initialise la partie
-imaginaire par bruit gaussien faible.
-**Fichier :** `src/weights/projector.py` (à créer, Phase 2)
-**Interfaces :** entrée = nom de modèle HF ; sortie = modèle hermitien
-instancié avec poids injectés.
+**Rôle :** copie les poids d'un bloc `BertAttention` HuggingFace
+(`self.{query,key,value}` + `output.dense`) dans la partie réelle d'un
+`HermitianSelfAttention`, initialise la partie imaginaire par bruit
+gaussien (`imag_std`, 0.0 pour le test de régression I-01).
+**Portée actée avec Bertrand le 2026-08-14 :** bloc d'attention seul, pas
+le modèle BERT complet (embeddings, FFN, LayerNorm, empilement multi-
+couches non conçus — cf. `docs/TODO.md`, point ouvert).
+**Fichier :** `src/weights/projector.py`
+**Interfaces :** `project_bert_attention(hermitian_attn, hf_attention, imag_std=0.0)`.
+**Charger le modèle source via `BertModel.from_pretrained` explicitement,
+pas `AutoModel`** : certains checkpoints anciens (`prajjwal1/bert-tiny`)
+ont un `config.json` sans `model_type`, incompatible avec `Auto*` sous
+`transformers` récent (cf. `docs/spike-weights-state-dict-mapping.md`).
+`bert-base-uncased` (cible Phase 2 pour un résultat citable) n'a pas ce
+problème.
 
 ### SpectralCoherenceEvaluator (optionnel, si le calcul spectral est retenu)
 
@@ -97,7 +119,7 @@ l'équivalence Hopfield ne suffit pas (cf. arbitrage Phase 1).
 
 | Service | Usage | Phase |
 |---|---|---|
-| HuggingFace Hub | Téléchargement de `bert-base-uncased` | Phase 2 |
+| HuggingFace Hub | Téléchargement de `prajjwal1/bert-tiny` (debug) et `bert-base-uncased` (citable) | Phase 2 |
 | `datasets` (GLUE) | Données de benchmark | Phase 3 |
 | Perceval (local) | Simulation de circuit photonique | Phase 4 |
 | Quandela Cloud | Exécution QPU réelle | Phase 5 |
