@@ -42,9 +42,9 @@ def test_u01_hermiticity_hand_n2():
     with torch.no_grad():
         for proj in (module.q_proj, module.k_proj, module.v_proj, module.out_proj):
             proj.fc_real.weight.zero_()
-            proj.fc_real.bias.zero_()
+            proj.bias_real.zero_()
             proj.fc_imag.weight.zero_()
-            proj.fc_imag.bias.zero_()
+            proj.bias_imag.zero_()
         module.q_proj.fc_real.weight.copy_(torch.eye(2))
         module.v_proj.fc_real.weight.copy_(torch.eye(2))
         module.out_proj.fc_real.weight.copy_(torch.eye(2))

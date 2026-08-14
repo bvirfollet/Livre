@@ -4,19 +4,20 @@ Référence : réseaux de Hopfield modernes continus / dense associative
 memories (Ramsauer et al. 2020), étendus au cas hermitien complexe dans
 `contributions/gémini/BERT_hermitien_PoC`.
 
-Formalisme (cas auto-associatif, Q dérivé de la même source que K) :
+Formalisme :
 
     z^(1) = softmax(β · Re(q K†)) K
 
 C'est exactement la même formule que l'attention hermitienne
 `softmax(Re(QK†)/√d_k) · V` avec V = K et β = 1/√d_k — ce n'est pas une
-coïncidence numérique, c'est la même fonction. L'équivalence n'est exacte
-que dans ce cas auto-associatif : dès que Q ≠ K (projections apprises
-différentes), `HermitianSelfAttention` symétrise explicitement S avant le
-softmax (cf. `attention.py`), alors que le pas de Hopfield ci-dessous ne
-symétrise pas — les deux ne coïncident donc que quand S est déjà
-symétrique, ce qui est automatiquement le cas quand Q = K
-(Re(QK†) est alors symétrique par construction).
+coïncidence numérique, c'est la même fonction. L'équivalence est
+inconditionnelle (Q, K, V quelconques) depuis la correction du
+2026-08-14 : `HermitianSelfAttention` applique le softmax sur `Re(S)` brut,
+*sans* symétrisation préalable (la symétrisation `H = (S+S†)/2` n'est
+calculée que pour l'inspection/l'exploitation spectrale en aval, cf.
+`attention.py`). Une version antérieure symétrisait avant le softmax, ce
+qui aurait restreint l'équivalence au seul cas auto-associatif (Q = K) —
+détecté par le test I-01 (portage de poids HuggingFace, `docs/test_plan.md`).
 
 Fonction d'énergie de Liapounov (sert de substitut au calcul spectral
 complet, cf. `docs/SW_Design.md`) :

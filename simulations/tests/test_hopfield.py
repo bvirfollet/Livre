@@ -1,5 +1,9 @@
 """Test unitaire U-03 (cf. docs/test_plan.md) : équivalence Hopfield 1-pas
-≡ attention hermitienne dans le cas auto-associatif (Q = K = V)."""
+≡ attention hermitienne.
+
+Équivalence inconditionnelle (Q, K, V quelconques) depuis la correction du
+2026-08-14 : `HermitianSelfAttention` n'utilise plus le S symétrisé pour le
+softmax (cf. `src/hermitian/attention.py`)."""
 
 import math
 
@@ -13,20 +17,14 @@ from tests.conftest import ATOL, RTOL
 def _force_identity(proj):
     with torch.no_grad():
         proj.fc_real.weight.copy_(torch.eye(proj.fc_real.weight.shape[0]))
-        proj.fc_real.bias.zero_()
+        proj.bias_real.zero_()
         proj.fc_imag.weight.zero_()
-        proj.fc_imag.bias.zero_()
+        proj.bias_imag.zero_()
 
 
 def test_u03_equivalence_auto_associative():
-    """Q = K = V (projections partagées) : le pas de Hopfield et l'attention
-    hermitienne calculent exactement la même sortie — même formule, pas une
-    coïncidence numérique (cf. docstring de `equivalence.py`).
-
-    Dans ce cas S = Q Q^dagger est déjà symétrique (Re(S) l'est toujours
-    quand Q = K), donc la symétrisation de `HermitianSelfAttention` est un
-    no-op et les deux chemins de calcul coïncident.
-    """
+    """Q = K = V (projections partagées) : cas particulier de l'équivalence
+    générale, retenu comme non-régression du cas auto-associatif historique."""
     d_model = 4
     module = HermitianSelfAttention(d_model=d_model, num_heads=1)
     module.k_proj = module.q_proj
@@ -47,7 +45,40 @@ def test_u03_equivalence_auto_associative():
     assert torch.allclose(actual_out_real, expected_out_real, atol=ATOL, rtol=RTOL)
     assert torch.allclose(actual_out_imag, expected_out_imag, atol=ATOL, rtol=RTOL)
     # h_real du module a un axe "tête" (num_heads=1) que s_real_raw n'a pas.
+    # Ici Q=K rend S déjà symétrique, donc H == S (coïncidence de ce cas
+    # particulier, pas une propriété utilisée par le softmax — cf. test
+    # général ci-dessous, où Q != K et H != S).
     assert torch.allclose(h_real.squeeze(1), beta * s_real_raw, atol=ATOL, rtol=RTOL)
+
+
+def test_u03_equivalence_general_qkv():
+    """Q, K, V indépendants (cas général, non auto-associatif) : l'attention
+    hermitienne et le pas de Hopfield coïncident quand même — l'équivalence
+    ne dépend plus de Q = K depuis la correction du 2026-08-14 (le softmax
+    porte sur S brut, jamais sur le H symétrisé)."""
+    d_model = 4
+    module = HermitianSelfAttention(d_model=d_model, num_heads=1)
+    _force_identity(module.out_proj)
+
+    x_real = torch.randn(2, 3, d_model)
+    x_imag = torch.randn(2, 3, d_model)
+
+    actual_out_real, actual_out_imag, (h_real, _h_imag) = module(x_real, x_imag)
+
+    q_real, q_imag = module.q_proj(x_real, x_imag)
+    k_real, k_imag = module.k_proj(x_real, x_imag)
+    v_real, v_imag = module.v_proj(x_real, x_imag)
+    beta = 1.0 / math.sqrt(d_model)
+    expected_out_real, expected_out_imag, s_real_raw = hopfield_step(
+        q_real, q_imag, k_real, k_imag, v_real, v_imag, beta
+    )
+
+    assert torch.allclose(actual_out_real, expected_out_real, atol=ATOL, rtol=RTOL)
+    assert torch.allclose(actual_out_imag, expected_out_imag, atol=ATOL, rtol=RTOL)
+    # Ici Q != K en général : S n'est pas symétrique, donc H != S. Le
+    # softmax utilisé pour produire actual_out_real doit malgré tout
+    # coïncider avec celui basé sur S brut (s_real_raw), pas sur H.
+    assert not torch.allclose(h_real.squeeze(1), beta * s_real_raw, atol=ATOL, rtol=RTOL)
 
 
 def test_u03_hopfield_step_hand_n2():

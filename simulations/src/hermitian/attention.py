@@ -1,9 +1,14 @@
 """Attention self-hermitienne.
 
-Suit `docs/SW_Design.md` : S = Q K† / √d_k, symétrisée explicitement
-(H = (S + S†) / 2) avant toute exploitation spectrale, softmax appliqué
-sur Re(H) uniquement — la partie imaginaire porte le déphasage et n'entre
-pas dans la pondération d'attention.
+Suit `docs/SW_Design.md` : S = Q K† / √d_k, softmax appliqué directement
+sur Re(S) — la partie imaginaire porte le déphasage et n'entre pas dans la
+pondération d'attention. `H = (S + S†) / 2` (symétrisée) n'est calculée
+que pour l'inspection/l'exploitation spectrale en aval (ex. `eigh`), *pas*
+pour le softmax : symétriser avant softmax romprait l'équivalence avec
+l'attention standard dès que Q ≠ K (cas général en pratique, puisque BERT
+apprend des projections Q/K indépendantes) — détecté par le test I-01
+(portage de poids HuggingFace, cf. `docs/test_plan.md`), corrigé le
+2026-08-14.
 
 Représentation en paires (real, imag), cf. `complex_linear.py` pour la
 justification (compatibilité BF16 native, pas de dtype complexe matérialisé
@@ -59,17 +64,20 @@ class HermitianSelfAttention(nn.Module):
             - torch.matmul(q_r, k_i.transpose(-2, -1))
         ) / scale
 
-        # Symétrisation hermitienne explicite : H = (S + S^dagger) / 2
-        # => partie réelle symétrisée, partie imaginaire antisymétrisée.
-        h_real = 0.5 * (s_real + s_real.transpose(-2, -1))
-        h_imag = 0.5 * (s_imag - s_imag.transpose(-2, -1))
-
-        attn_weights = F.softmax(h_real, dim=-1)
+        # Softmax sur Re(S) brut (pas symétrisé) : reproduit exactement
+        # l'attention standard softmax(Re(QK†)/√d) quand Q, K sont réels.
+        attn_weights = F.softmax(s_real, dim=-1)
 
         out_real = torch.matmul(attn_weights, v_r)
         out_imag = torch.matmul(attn_weights, v_i)
 
         out_real, out_imag = self._merge_heads(out_real, out_imag)
         out_real, out_imag = self.out_proj(out_real, out_imag)
+
+        # H = (S + S^dagger) / 2, réservée à l'inspection/l'exploitation
+        # spectrale en aval (ex. eigh) — n'intervient pas dans le softmax
+        # ci-dessus. Partie réelle symétrisée, partie imaginaire antisymétrisée.
+        h_real = 0.5 * (s_real + s_real.transpose(-2, -1))
+        h_imag = 0.5 * (s_imag - s_imag.transpose(-2, -1))
 
         return out_real, out_imag, (h_real, h_imag)
