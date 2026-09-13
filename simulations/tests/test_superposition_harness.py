@@ -25,6 +25,7 @@ from src.superposition.harness import (
     aggregated_local_k3,
     exact_leggett_garg_k3,
     leggett_garg_k3,
+    required_m_for_significance,
     significance_sigma,
 )
 from src.superposition.measurement import dichotomic_projectors
@@ -103,6 +104,12 @@ def test_aggregated_local_k3_shape_and_consistency():
     assert result["standard_error"] > 0.0
     manual_mean = sum(r["k3"] for r in result["per_node"]) / 2
     assert math.isclose(result["k3"], manual_mean, rel_tol=1e-9)
+
+
+def test_required_m_for_significance_matches_hand_calculation():
+    """Cas nS=3, delta=0.5 (marge théorique maximale) : M ≥ 25*3/0.25 = 300,
+    valeur qui a servi à fixer le M=300 initial (cf. docs/DevPlan.md)."""
+    assert required_m_for_significance(delta=0.5, n_s=3, z_target=5.0) == 300
 
 
 def test_significance_sigma_sanity():

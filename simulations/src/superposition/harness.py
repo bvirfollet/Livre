@@ -187,3 +187,20 @@ def significance_sigma(k3: float, standard_error: float, bound: float = CLASSICA
     if standard_error == 0.0:
         return math.inf if excess > 0 else 0.0
     return excess / standard_error
+
+
+def required_m_for_significance(delta: float, n_s: int = 3, z_target: float = 5.0) -> int:
+    """`M` par corrélation nécessaire pour séparer la marge `delta`
+    (violation attendue − borne classique) de `z_target` erreurs standard,
+    en utilisant la borne conservative `σ_K ≤ √(nS/M)` (variance ≤1 par
+    corrélation — cf. calcul de puissance de `docs/DevPlan.md`) :
+
+        M ≥ z_target² · nS / delta²
+
+    Conservative par construction : la variance réelle d'une corrélation
+    `Cᵢⱼ` est `1−Cᵢⱼ² < 1` dès que `|Cᵢⱼ|>0`, donc le `M` réellement requis
+    est en général plus petit que la valeur retournée ici.
+    """
+    if delta <= 0:
+        raise ValueError("delta doit être strictement positif pour qu'un M fini existe")
+    return math.ceil((z_target**2) * n_s / (delta**2))
