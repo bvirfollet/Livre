@@ -247,6 +247,23 @@ inter-nœuds réel) peut déjà produire une violation sur son propre `Q_i` —
 un signal en faveur de la source 1 si c'est le cas. Non implémenté dans
 cette première itération.
 
+**Piste explorée et écartée (Bertrand, 2026-09-13)** : hypothèse que la
+préférence pour la violation relationnelle (`Q_global`) sur la violation
+locale (`Q_i`) à `nN=3` s'expliquerait par l'existence de « solides de
+Platon hermitiens » stables à cette taille (concept de
+`contributions/gémini/Hopfield_Géométrie_Sacrée_atome_Mémoire`, lignes
+917-1036). Écartée pour deux raisons indépendantes : (1) la prémisse a
+disparu — l'exploration multi-tirages ci-dessous montre que `nN=3` n'a
+rien d'anormal (82 % de violation locale, comparable aux autres tailles) ;
+(2) même sans (1), le pont mathématique n'existe pas — un « solide de
+Platon hermitien » y est défini comme un sous-groupe fini de réflexions
+complexes de `U(n)` (classification de Shephard-Todd) agissant sur la
+base propre d'une matrice hermitienne, pas indexé par un nombre de nœuds
+scalaires ; aucun des 5 solides de Platon réels n'a d'ailleurs 3 sommets.
+Notre `W` (rang ≤2, construit à partir de 2 motifs) n'est pas construit
+pour avoir une base propre à symétrie de polytope complexe régulier —
+établir un tel lien demanderait une construction dédiée, non faite ici.
+
 **Protocole statistique (falsifiabilité fixée avant tout run, 2026-09-13) :**
 - `M=300` tirages Monte-Carlo par corrélation `Cᵢⱼ` (calcul de puissance :
   `M ≥ 25·nS/Δ(nS)²` pour une séparation à 5σ, où `Δ(nS)` est l'écart
@@ -386,10 +403,41 @@ ci-dessus.
   reproductible dans son essence, pas seulement dans ses seeds. Prochaine
   étape suggérée : répéter plusieurs tirages de motifs par `nN` avant
   toute décision de citation, à valider avec Bertrand.
-- [ ] docs: mise à jour `Simulations_API.md` — **non fait**, en attente de
-  la levée de la limite 2 (cf. ci-dessus)
+- [x] **Répétition multi-tirages, `nN=3` et `nN=10` (2026-09-13, demande
+  Bertrand)** — `exact_realization`/`run_multi_realization_exact`
+  (`src/superposition/experiment.py`) : 50 tirages de motifs indépendants
+  par `nN` (seeds `50000+nN×1000+i`, namespace distinct de `run_nN_protocol`),
+  `K(3)` **exact** (sans bruit d'échantillonnage — pas un test statistique
+  par tirage, une exploration de la distribution du signal seul, moins
+  coûteuse).
 
-### Recherche — Compression hermitienne pour portage mobile
+  | nN | K3_global (moy.±ét.) | % tirages violant | K3_local (moy.±ét.) | % tirages violant |
+  |---|---|---|---|---|
+  | 3 | +1,143 ± 0,164 | 86 % | +1,069 ± 0,316 | 82 % |
+  | 10 | +1,134 ± 0,132 | 100 % | +1,114 ± 0,049 | 94 % |
+
+  **L'anomalie `nN=3` du premier tirage (seed 1003, absence de violation
+  locale) ne tient pas** : c'est un tirage minoritaire (18 % des tirages
+  à `nN=3` ne violent pas), pas une propriété caractéristique de cette
+  taille de réseau — la moyenne sur 50 tirages viole nettement (82 %).
+  `nN=10` est notablement plus stable (écart-type local ≈6× plus petit) —
+  en partie mécanique (moyenner sur 10 nœuds réduit la variance plus que
+  sur 3, indépendamment de toute physique), pas nécessairement un effet
+  qualitatif propre à cette taille.
+
+  **Statut méthodologique de cette exploration : pas encore une
+  confirmation citable.** Nombre de tirages (50) et le fait de raisonner
+  sur `K3` exact plutôt qu'un test statistique par tirage n'ont pas été
+  pré-enregistrés avant analyse — c'est une exploration qui répond à la
+  question posée (le tirage initial était-il représentatif ?), pas le
+  protocole confirmatoire final. Pour une citation dans
+  `Simulations_API.md`, il faudrait pré-enregistrer un test formel (ex. un
+  test binomial sur le taux de violation à 5σ par tirage, sur un nombre de
+  tirages et un seuil fixés avant de lancer), pas encore fait.
+- [ ] docs: mise à jour `Simulations_API.md` — **non fait**, exploration
+  encourageante (limite 2 largement affaiblie) mais protocole confirmatoire
+  formel (test binomial pré-enregistré sur le taux de violation) pas
+  encore défini ni lancé
 
 ### Recherche — Compression hermitienne pour portage mobile
 

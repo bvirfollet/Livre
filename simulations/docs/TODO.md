@@ -14,15 +14,16 @@
 
 ## Priorité normale
 
-- [ ] **Superposition Leggett-Garg — répéter sur plusieurs tirages de
-  motifs par `nN`** (`M` déjà recalculé, 9/10 tests à 5σ, cf. DevPlan.md) :
-  reste la limite 2 — un seul tirage de motifs par `nN` confond effet de
-  taille et hasard du tirage. En particulier, l'anomalie `nN=3` (absence
-  significative de violation locale alors que `Q_global` viole) doit être
-  reproduite sur plusieurs tirages avant toute citation dans
-  `Simulations_API.md`. Piste notée pour plus tard, indépendante : cas
-  `Wᵢᵢ≠0` (self-couplage, hors modèle Hopfield standard) pour discriminer
-  non-classicité locale vs relationnelle.
+- [ ] **Superposition Leggett-Garg — pré-enregistrer et lancer un test
+  confirmatoire formel** (exploration multi-tirages faite, cf. Historique :
+  l'anomalie `nN=3` ne tenait pas — 82 % de violation locale sur 50
+  tirages, comparable à `nN=10`) : reste à définir *avant* de lancer un
+  test statistique propre (ex. binomial sur le taux de violation à 5σ par
+  tirage, nombre de tirages et seuil fixés à l'avance) pour que le
+  résultat soit citable dans `Simulations_API.md` — l'exploration actuelle
+  est encourageante mais pas pré-enregistrée. Piste notée pour plus tard,
+  indépendante : cas `Wᵢᵢ≠0` (self-couplage, hors modèle Hopfield standard)
+  pour discriminer non-classicité locale vs relationnelle.
 - [ ] **Conception non prévue (échelle native)** : `SW_Design.md` ne
   couvre que `ComplexLinear`, `HermitianSelfAttention`, l'équivalence
   Hopfield et `WeightProjector` — rien n'est encore conçu pour le FFN
@@ -78,5 +79,18 @@
   initial noté (`K(3)=3/2` non reproduit exactement, régression bâtie sur
   deux faits plus modestes mais vérifiés, cf. `docs/test_plan.md`).
   2026-09-13.
+- [x] Superposition Leggett-Garg — run I-05 complet, deux passes
+  (`M=300` fixe : PARTIEL, 2/10 à 5σ ; `M` recalculé par `nN` via
+  `required_m_for_significance` : 9/10 à 5σ), script CLI relançable
+  (`scripts/run_superposition_i05.py`), résultats archivés
+  (`docs/results/i05_run_2026-09-13.json`). Exploration multi-tirages sur
+  `nN=3`/`nN=10` (50 tirages chacun, `run_multi_realization_exact`) :
+  l'anomalie `nN=3` du premier tirage ne tenait pas (82 % de violation
+  locale en moyenne, comparable à `nN=10`). Hypothèse « solides de Platon
+  hermitiens » (référence `Hopfield_Géométrie_Sacrée_atome_Mémoire`)
+  explorée et écartée (prémisse disparue + absence de pont mathématique
+  avec la construction actuelle de `W`). Toujours non cité dans
+  `Simulations_API.md` — cf. `docs/DevPlan.md` pour le détail complet et
+  le protocole confirmatoire restant à pré-enregistrer. 2026-09-13.
 
 <!-- Format : - [x] YYYY-MM-DD — description (commit: abc1234) -->
