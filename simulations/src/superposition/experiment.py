@@ -18,7 +18,14 @@ import math
 
 import torch
 
-from .harness import aggregated_local_k3, leggett_garg_k3, significance_sigma
+from .harness import (
+    CLASSICAL_BOUND_K3,
+    aggregated_local_k3,
+    exact_aggregated_local_k3,
+    exact_leggett_garg_k3,
+    leggett_garg_k3,
+    significance_sigma,
+)
 from .measurement import dichotomic_projectors
 from .patterns import build_two_pattern_weights, global_axis, local_axis
 
@@ -90,3 +97,38 @@ def run_full_experiment(
 ) -> list[dict]:
     """I-05 complet : `run_nN_protocol` pour chaque valeur de `nN`."""
     return [run_nN_protocol(n, dt=dt, m_samples=m_samples) for n in n_nodes_values]
+
+
+def exact_realization(n_nodes: int, pattern_seed: int, dt: float = DT) -> dict:
+    """`K(3)` exact (`Q_global`, `Q_i` agrégé — sans bruit d'échantillonnage)
+    pour un tirage de motifs donné. Sert à explorer beaucoup de tirages à
+    faible coût (pas de Monte-Carlo par tirage), cf. répétition `nN=3`/`nN=10`
+    du 2026-09-13, `docs/DevPlan.md`."""
+    pattern1, pattern2 = generate_patterns(n_nodes, seed=pattern_seed)
+    w = build_two_pattern_weights(pattern1, pattern2, zero_diagonal=True)
+    z0 = pattern1 + pattern2
+    z0 = z0 / z0.norm()
+
+    axis_global = global_axis(pattern1, pattern2)
+    p_plus_g, p_minus_g = dichotomic_projectors(axis_global)
+    k3_global = exact_leggett_garg_k3(z0, w, p_plus_g, p_minus_g, dt)
+
+    node_projectors = [
+        dichotomic_projectors(local_axis(pattern1, pattern2, node=i)) for i in range(n_nodes)
+    ]
+    k3_local = exact_aggregated_local_k3(z0, w, node_projectors, dt)
+
+    return {"pattern_seed": pattern_seed, "k3_global": k3_global, "k3_local": k3_local}
+
+
+def run_multi_realization_exact(
+    n_nodes: int, n_realizations: int, dt: float = DT, seed_start: int = 50000
+) -> list[dict]:
+    """`n_realizations` tirages de motifs indépendants pour `n_nodes`,
+    seeds `seed_start + n_nodes*1000 + i` (namespace distinct des seeds de
+    `run_nN_protocol`, pas de recoupement). Retourne la liste des résultats
+    `exact_realization`."""
+    return [
+        exact_realization(n_nodes, pattern_seed=seed_start + n_nodes * 1000 + i, dt=dt)
+        for i in range(n_realizations)
+    ]

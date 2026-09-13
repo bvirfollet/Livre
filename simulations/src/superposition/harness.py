@@ -144,6 +144,22 @@ def exact_leggett_garg_k3(
     return c12 + c23 - c13
 
 
+def exact_aggregated_local_k3(
+    z0: torch.Tensor,
+    w: torch.Tensor,
+    node_projectors: list[tuple[torch.Tensor, torch.Tensor]],
+    dt: float,
+) -> float:
+    """`Q_i` agrégé, version exacte (sans bruit d'échantillonnage) — moyenne
+    des `exact_leggett_garg_k3` par nœud. Utile pour explorer beaucoup de
+    tirages de motifs à faible coût (pas de tirage Monte-Carlo par nœud),
+    cf. `docs/DevPlan.md` (répétition sur plusieurs tirages, `nN=3`/`nN=10`)."""
+    per_node = [
+        exact_leggett_garg_k3(z0, w, p_plus, p_minus, dt) for p_plus, p_minus in node_projectors
+    ]
+    return sum(per_node) / len(per_node)
+
+
 def aggregated_local_k3(
     z0: torch.Tensor,
     w: torch.Tensor,
