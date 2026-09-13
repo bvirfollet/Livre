@@ -82,8 +82,8 @@ quantique ».
 
 | ID | Précondition | Action | Résultat attendu | Résultat obtenu |
 |---|---|---|---|---|
-| I-04 | U-05 à U-07 verts | Régression : calcul de `K(3)` en mesure idéale (sans bruit d'échantillonnage, cas non stochastique) sur le système à 2 niveaux de référence (Saha, Mal, Panigrahi & Home, arXiv:1409.1132) | `K(3) = 3/2` (violation maximale théorique) reproduite à `atol=1e-5` | |
-| I-05 | I-04 vert | Run complet : 10 tests (`Q_global` × 5 `nN`, `Q_i` agrégé × 5 `nN`), `M=300` par corrélation, seeds archivées | Violation ≥5σ (par test), correction de Bonferroni sur la famille de 10 | |
+| I-04 | U-05 à U-07 verts | Régression (`exact_leggett_garg_k3`, sans bruit d'échantillonnage) : (a) `dt=0` (aucune évolution) ; (b) balayage de `dt` sur le cas `nN=2` à la main. **Écart au plan initial** : la paramétrisation exacte saturant `K(3)=3/2` n'a pas été reproduite (non retrouvée dans arXiv:1409.1132, qui documente la borne mais pas les paramètres optimaux du LGI standard, seulement de sa forme de Wigner) | (a) `K(3)=1.0` exact (borne classique, corrélation triviale) ; (b) `1.0 < max\|K(3)\| ≤ 1.5` sur le balayage (viole la borne classique, ne dépasse jamais la borne quantique prouvée) | **Vert** (`tests/test_superposition_harness.py`) — max observé ≈1,248 |
+| I-05 | I-04 vert | Run complet : 10 tests (`Q_global` × 5 `nN`, `Q_i` agrégé × 5 `nN`), `M=300` par corrélation, seeds archivées | Violation ≥5σ (par test), correction de Bonferroni sur la famille de 10 | Non lancé — motifs concrets pour `nN∈{2,3,5,10,20}` restent à définir |
 
 ## Tests — Recherche compression hermitienne (non planifiée, cf. docs/DevPlan.md)
 

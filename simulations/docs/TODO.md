@@ -14,14 +14,13 @@
 
 ## Priorité normale
 
-- [ ] **Superposition Leggett-Garg — harnais Monte-Carlo** (primitives et
-  TU U-05 à U-07 faits, cf. Historique) : reste à coder le harnais
-  (`nS×M` sous-ensembles, calcul de `K(nS)`, `Q_global` et `Q_i` agrégé),
-  test de régression I-04 (`K(3)=3/2` théorique), puis le run complet I-05
-  (10 tests, seuils 5σ/Bonferroni déjà fixés, cf. `docs/DevPlan.md`).
-  Piste notée pour plus tard : cas `Wᵢᵢ≠0` (self-couplage, hors modèle
-  Hopfield standard) pour discriminer non-classicité locale vs
-  relationnelle.
+- [ ] **Superposition Leggett-Garg — run complet (I-05)** (primitives, TU
+  U-05 à U-07 et harnais + TI I-04 faits, cf. Historique) : reste à
+  définir des motifs concrets pour `nN∈{2,3,5,10,20}` et lancer le run
+  statistique complet (10 tests, seuils 5σ/Bonferroni déjà fixés, cf.
+  `docs/DevPlan.md`). Piste notée pour plus tard : cas `Wᵢᵢ≠0`
+  (self-couplage, hors modèle Hopfield standard) pour discriminer
+  non-classicité locale vs relationnelle.
 - [ ] **Conception non prévue (échelle native)** : `SW_Design.md` ne
   couvre que `ComplexLinear`, `HermitianSelfAttention`, l'équivalence
   Hopfield et `WeightProjector` — rien n'est encore conçu pour le FFN
@@ -70,5 +69,12 @@
   (`src/superposition/`) et TU U-05 à U-07 verts
   (`tests/test_superposition.py`). Point de vigilance noté sur la dérive
   numérique de `matrix_exp` composé (`SW_Design.md`). 2026-09-13.
+- [x] Superposition Leggett-Garg — harnais Monte-Carlo
+  (`src/superposition/harness.py` : `two_time_correlation`,
+  `leggett_garg_k3`, `aggregated_local_k3`, version exacte sans bruit),
+  TI I-04 vert (`tests/test_superposition_harness.py`) — écart au plan
+  initial noté (`K(3)=3/2` non reproduit exactement, régression bâtie sur
+  deux faits plus modestes mais vérifiés, cf. `docs/test_plan.md`).
+  2026-09-13.
 
 <!-- Format : - [x] YYYY-MM-DD — description (commit: abc1234) -->

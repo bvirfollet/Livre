@@ -146,10 +146,17 @@ ici, ce module ne participe à aucune boucle d'entraînement).
   observable `Q=P₊−P₋` dichotomique (règle de Born, collapse), axe défini
   par les deux motifs concurrents.
 
+- **`two_time_correlation`/`leggett_garg_k3`/`aggregated_local_k3`**
+  (`src/superposition/harness.py`) : harnais Monte-Carlo, `K(3) =
+  C₁₂+C₂₃−C₁₃`, un sous-ensemble frais de `M` tirages par paire de temps
+  (mesurabilité non invasive). `exact_leggett_garg_k3` : version
+  déterministe (probabilités de Born exactes, sans bruit d'échantillonnage)
+  utilisée pour la régression I-04.
+
 **Fichiers :** `src/superposition/`. **Statut :** primitives + TU (U-05 à
-U-07) implémentées et vertes ; harnais Monte-Carlo (`K(nS)`, `Q_global`/
-`Q_i` agrégé, seuils statistiques) non encore codé (cf. `docs/DevPlan.md`,
-tâches restantes).
+U-07) et harnais Monte-Carlo + TI (I-04) implémentés et verts. Reste :
+définir des motifs concrets pour `nN∈{2,3,5,10,20}` et lancer le run
+complet (I-05, cf. `docs/DevPlan.md`).
 
 ## Flux de données
 

@@ -283,13 +283,20 @@ ci-dessus.
 - [x] test(superposition): TU — hermiticité de `W`, unitarité de `U`
   (`U U† ≈ I`), cas `nN=2` vérifié à la main — U-05 à U-07 verts
   (`tests/test_superposition.py`)
-- [ ] feat(superposition): harnais Monte-Carlo (`nS×M` sous-ensembles,
-  calcul de `K(nS)`, `Q_global` et `Q_i` agrégé)
-- [ ] test(superposition): TI — régression sur la violation théorique
-  connue (`K(3)=3/2` en mesure idéale, cas non bruité) avant tout run
-  statistique sur le modèle réseau
+- [x] feat(superposition): harnais Monte-Carlo (`nS×M` sous-ensembles,
+  calcul de `K(nS)`, `Q_global` et `Q_i` agrégé) — `src/superposition/harness.py`
+- [x] test(superposition): TI — I-04 vert. **Écart au plan initial** :
+  n'a pas reproduit la paramétrisation exacte saturant `K(3)=3/2`
+  (non retrouvée dans la source consultée) ; régression construite sur
+  deux faits plus modestes mais vérifiés : `dt=0` ⇒ `K(3)=1.0` exactement
+  (borne classique, corrélation triviale), et un balayage de `dt` ne
+  dépasse jamais la borne quantique `1.5` tout en violant la borne
+  classique pour au moins une valeur — suffisant comme garde-fou de
+  régression contre un bug de signe/règle de Born, cf.
+  `tests/test_superposition_harness.py`.
 - [ ] experiment(superposition): premier run complet, 10 tests, seuils
-  fixés ci-dessus, seeds archivées
+  fixés ci-dessus, seeds archivées — nécessite de définir des motifs
+  concrets par valeur de `nN` (2,3,5,10,20), pas encore fait
 - [ ] docs: mise à jour `Simulations_API.md` si un résultat est jugé citable
 
 ### Recherche — Compression hermitienne pour portage mobile
