@@ -333,15 +333,61 @@ ci-dessus.
      Distinguer les deux demanderait plusieurs réalisations de motifs par
      `nN` (moyennées ou testées en famille), pas encore fait.
 
-  **Décision (Producteur, `CLAUDE.md`) : résultat non cité dans
+  **Décision (Producteur, `CLAUDE.md`) initiale : résultat non cité dans
   `Simulations_API.md`.** Un résultat mixte, sans tendance claire et
   n'atteignant le seuil pré-enregistré que sur 2 tests sur 10, n'est pas
-  un résultat stable au sens des règles Producteur. Prochaine itération
-  suggérée : `M` recalculé à partir des marges réelles constatées (limite
-  1), et/ou plusieurs tirages de motifs par `nN` (limite 2), à décider
-  avec Bertrand.
-- [ ] docs: mise à jour `Simulations_API.md` — **non fait, résultat non
-  citable en l'état** (cf. ci-dessus)
+  un résultat stable au sens des règles Producteur.
+
+  **Comment relancer** (cf. `scripts/run_superposition_i05.py`) :
+  ```bash
+  # Protocole initial (M=300 fixe pour tout nN)
+  python scripts/run_superposition_i05.py --n-nodes 2 3 5 10 20 --dt 1.0 --m-samples 300
+
+  # M recalculé par nN à partir de la marge exacte (sans bruit), cible 5σ
+  python scripts/run_superposition_i05.py --auto-m --sigma-target 5.0
+  ```
+
+- [x] **Second run, `M` recalculé par `nN` (2026-09-13, limite 1 levée)** —
+  `M` recalculé via `required_m_for_significance(delta, n_s=3, z_target=5.0)`
+  à partir de la marge de violation **exacte** (sans bruit, calcul
+  déterministe, pas la sortie stochastique du run précédent — ce n'est
+  donc pas un ajustement a posteriori sur un résultat déjà observé, mais
+  un recalibrage légitime sur une quantité indépendante du bruit
+  d'échantillonnage). Résultat archivé (écrase le fichier précédent) :
+  `docs/results/i05_run_2026-09-13.json`.
+
+  | nN | M | K3_global | σ_global | K3_local | σ_local |
+  |---|---|---|---|---|---|
+  | 2 | 32382 | +1,048 | 15,97 | +1,051 | 24,02 |
+  | 3 | 8727 | +1,109 | 6,41 | +0,878 | **−12,64** |
+  | 5 | 6013 | +1,126 | 11,97 | +1,214 | 30,32 |
+  | 10 | 2058 | +1,183 | 7,44 | +1,103 | 11,13 |
+  | 20 | 27914 | +1,052 | 15,99 | +1,088 | 75,07 |
+
+  **9 des 10 tests franchissent maintenant 5σ**, largement. Le seul qui ne
+  le fait pas (`nN=3`, local) montre au contraire une **absence
+  significative** de violation (`σ=−12,64`, confiance statistique élevée,
+  pas juste « non concluant ») — alors que `Q_global` pour ce même réseau
+  viole nettement (`σ=6,41`). C'est une confirmation empirique concrète de
+  la précision logique actée le 2026-09-13 : violation de `Q_global`
+  n'implique pas violation du `Q_i` local — ici un cas où la non-classicité
+  semble portée par le couplage (« source 2 »), pas par les nœuds pris
+  isolément, pour cette instance de réseau.
+
+  **Limite 2 non levée, reste la réserve principale avant toute
+  citation** : chaque `nN` ne repose que sur un seul tirage de motifs —
+  le caractère distinctif de `nN=3` peut être une propriété réelle de
+  cette taille ou un artefact de ce tirage spécifique. Non tranché.
+
+  **Décision (Producteur) actualisée : toujours pas cité dans
+  `Simulations_API.md`.** Malgré la significativité statistique désormais
+  large, la limite 2 (tirage unique par `nN`) reste un vrai problème de
+  robustesse, pas une formalité — un résultat cité en Strate 1 doit être
+  reproductible dans son essence, pas seulement dans ses seeds. Prochaine
+  étape suggérée : répéter plusieurs tirages de motifs par `nN` avant
+  toute décision de citation, à valider avec Bertrand.
+- [ ] docs: mise à jour `Simulations_API.md` — **non fait**, en attente de
+  la levée de la limite 2 (cf. ci-dessus)
 
 ### Recherche — Compression hermitienne pour portage mobile
 

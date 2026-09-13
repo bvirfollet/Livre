@@ -157,13 +157,20 @@ ici, ce module ne participe à aucune boucle d'entraînement).
   motifs concrets (phases aléatoires par composante, normalisés
   `‖ξᵏ‖=1`), orchestration du run I-05 sur `nN∈{2,3,5,10,20}`.
 
-**Fichiers :** `src/superposition/`. **Statut :** primitives, TU (U-05 à
-U-07), harnais + TI (I-04) et run complet I-05 faits. **I-05 : résultat
-PARTIEL** (2/10 tests à 5σ, aucune tendance monotone claire avec `nN`) —
-non citable dans `Simulations_API.md` en l'état, cf. `docs/DevPlan.md`
-pour l'analyse complète et les limites méthodologiques identifiées
-(`M=300` sous-dimensionné pour `Q_global` au vu des marges réelles ;
-un seul tirage de motifs par `nN`).
+**Pour relancer** (cf. `scripts/run_superposition_i05.py`) :
+```bash
+python scripts/run_superposition_i05.py --n-nodes 2 3 5 10 20 --dt 1.0 --m-samples 300
+python scripts/run_superposition_i05.py --auto-m --sigma-target 5.0  # M recalculé par nN
+```
+
+**Fichiers :** `src/superposition/`, `scripts/run_superposition_i05.py`.
+**Statut :** primitives, TU (U-05 à U-07), harnais + TI (I-04) et run
+complet I-05 faits (deux passes, `docs/results/i05_run_2026-09-13.json`) :
+`M=300` fixe → PARTIEL (2/10 à 5σ) ; `M` recalculé par `nN` (`required_m_for_significance`)
+→ 9/10 à 5σ, avec une absence *significative* de violation locale à
+`nN=3` (distincte de `Q_global`, qui viole pour ce même réseau). **Non
+citable dans `Simulations_API.md`** : un seul tirage de motifs par `nN`,
+robustesse de l'anomalie `nN=3` non établie — cf. `docs/DevPlan.md`.
 
 ## Flux de données
 

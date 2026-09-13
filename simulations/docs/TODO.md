@@ -14,16 +14,15 @@
 
 ## Priorité normale
 
-- [ ] **Superposition Leggett-Garg — suite après I-05 (PARTIEL, cf.
-  DevPlan.md)** : décider avec Bertrand comment lever l'ambiguïté du
-  résultat mixte du 2026-09-13 (2/10 tests à 5σ, aucune tendance
-  monotone) — deux pistes non exclusives : (a) recalculer `M` à partir
-  des marges de violation réellement observées (bien plus faibles que la
-  marge théorique maximale utilisée initialement) plutôt que `M=300` ;
-  (b) plusieurs tirages de motifs par `nN` pour distinguer un effet de
-  taille de réseau du hasard d'un tirage unique. Piste notée pour plus
-  tard, indépendante : cas `Wᵢᵢ≠0` (self-couplage, hors modèle Hopfield
-  standard) pour discriminer non-classicité locale vs relationnelle.
+- [ ] **Superposition Leggett-Garg — répéter sur plusieurs tirages de
+  motifs par `nN`** (`M` déjà recalculé, 9/10 tests à 5σ, cf. DevPlan.md) :
+  reste la limite 2 — un seul tirage de motifs par `nN` confond effet de
+  taille et hasard du tirage. En particulier, l'anomalie `nN=3` (absence
+  significative de violation locale alors que `Q_global` viole) doit être
+  reproduite sur plusieurs tirages avant toute citation dans
+  `Simulations_API.md`. Piste notée pour plus tard, indépendante : cas
+  `Wᵢᵢ≠0` (self-couplage, hors modèle Hopfield standard) pour discriminer
+  non-classicité locale vs relationnelle.
 - [ ] **Conception non prévue (échelle native)** : `SW_Design.md` ne
   couvre que `ComplexLinear`, `HermitianSelfAttention`, l'équivalence
   Hopfield et `WeightProjector` — rien n'est encore conçu pour le FFN

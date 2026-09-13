@@ -71,6 +71,10 @@ pip install torch transformers datasets
 
 # Lancer les tests unitaires (dès qu'ils existent, cf. DevPlan Phase 1)
 pytest tests/
+
+# Relancer le run I-05 (superposition Leggett-Garg, cf. docs/DevPlan.md)
+python scripts/run_superposition_i05.py --n-nodes 2 3 5 10 20 --dt 1.0 --m-samples 300
+python scripts/run_superposition_i05.py --auto-m --sigma-target 5.0  # M recalculé par nN
 ```
 
 ## Skills disponibles
