@@ -14,13 +14,16 @@
 
 ## Priorité normale
 
-- [ ] **Superposition Leggett-Garg — run complet (I-05)** (primitives, TU
-  U-05 à U-07 et harnais + TI I-04 faits, cf. Historique) : reste à
-  définir des motifs concrets pour `nN∈{2,3,5,10,20}` et lancer le run
-  statistique complet (10 tests, seuils 5σ/Bonferroni déjà fixés, cf.
-  `docs/DevPlan.md`). Piste notée pour plus tard : cas `Wᵢᵢ≠0`
-  (self-couplage, hors modèle Hopfield standard) pour discriminer
-  non-classicité locale vs relationnelle.
+- [ ] **Superposition Leggett-Garg — suite après I-05 (PARTIEL, cf.
+  DevPlan.md)** : décider avec Bertrand comment lever l'ambiguïté du
+  résultat mixte du 2026-09-13 (2/10 tests à 5σ, aucune tendance
+  monotone) — deux pistes non exclusives : (a) recalculer `M` à partir
+  des marges de violation réellement observées (bien plus faibles que la
+  marge théorique maximale utilisée initialement) plutôt que `M=300` ;
+  (b) plusieurs tirages de motifs par `nN` pour distinguer un effet de
+  taille de réseau du hasard d'un tirage unique. Piste notée pour plus
+  tard, indépendante : cas `Wᵢᵢ≠0` (self-couplage, hors modèle Hopfield
+  standard) pour discriminer non-classicité locale vs relationnelle.
 - [ ] **Conception non prévue (échelle native)** : `SW_Design.md` ne
   couvre que `ComplexLinear`, `HermitianSelfAttention`, l'équivalence
   Hopfield et `WeightProjector` — rien n'est encore conçu pour le FFN

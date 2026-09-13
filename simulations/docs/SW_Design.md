@@ -153,10 +153,17 @@ ici, ce module ne participe à aucune boucle d'entraînement).
   déterministe (probabilités de Born exactes, sans bruit d'échantillonnage)
   utilisée pour la régression I-04.
 
-**Fichiers :** `src/superposition/`. **Statut :** primitives + TU (U-05 à
-U-07) et harnais Monte-Carlo + TI (I-04) implémentés et verts. Reste :
-définir des motifs concrets pour `nN∈{2,3,5,10,20}` et lancer le run
-complet (I-05, cf. `docs/DevPlan.md`).
+- **`generate_patterns`/`run_full_experiment`** (`src/superposition/experiment.py`) :
+  motifs concrets (phases aléatoires par composante, normalisés
+  `‖ξᵏ‖=1`), orchestration du run I-05 sur `nN∈{2,3,5,10,20}`.
+
+**Fichiers :** `src/superposition/`. **Statut :** primitives, TU (U-05 à
+U-07), harnais + TI (I-04) et run complet I-05 faits. **I-05 : résultat
+PARTIEL** (2/10 tests à 5σ, aucune tendance monotone claire avec `nN`) —
+non citable dans `Simulations_API.md` en l'état, cf. `docs/DevPlan.md`
+pour l'analyse complète et les limites méthodologiques identifiées
+(`M=300` sous-dimensionné pour `Q_global` au vu des marges réelles ;
+un seul tirage de motifs par `nN`).
 
 ## Flux de données
 

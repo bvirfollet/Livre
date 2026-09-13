@@ -294,10 +294,54 @@ ci-dessus.
   classique pour au moins une valeur — suffisant comme garde-fou de
   régression contre un bug de signe/règle de Born, cf.
   `tests/test_superposition_harness.py`.
-- [ ] experiment(superposition): premier run complet, 10 tests, seuils
-  fixés ci-dessus, seeds archivées — nécessite de définir des motifs
-  concrets par valeur de `nN` (2,3,5,10,20), pas encore fait
-- [ ] docs: mise à jour `Simulations_API.md` si un résultat est jugé citable
+- [x] experiment(superposition): premier run complet (2026-09-13) —
+  `src/superposition/experiment.py` (`generate_patterns` : deux motifs à
+  phases aléatoires indépendantes, normalisés `‖ξᵏ‖=1` pour garder les
+  valeurs propres de `W` ~indépendantes de `nN`, seed déterministe par
+  `nN`), `dt=1.0` fixé *avant* le run (calibré sur le cas `nN=2` à la main
+  de I-04). Résultats archivés dans `docs/results/i05_run_2026-09-13.json`.
+
+  **Résultat : PARTIEL, non concluant.**
+
+  | nN | K3_global | σ_global | K3_local | σ_local |
+  |---|---|---|---|---|
+  | 2 | +1,020 | 0,74 | +1,067 | 3,30 |
+  | 3 | +1,193 | 2,13 | +0,911 | −1,71 |
+  | 5 | +1,160 | 3,38 | +1,181 | **5,67** |
+  | 10 | +1,133 | 2,16 | +1,113 | 4,68 |
+  | 20 | +1,047 | 1,29 | +1,077 | **6,88** |
+
+  Seuls 2 des 10 tests franchissent le seuil de 5σ pré-enregistré
+  (`nN=5` et `nN=20`, tous deux sur `Q_i` agrégé). `Q_global` ne franchit
+  jamais 5σ. Aucune tendance monotone avec `nN`. `nN=3` (local) ne montre
+  même pas de violation nominale de la borne classique.
+
+  **Deux limites méthodologiques identifiées après coup (transparence,
+  pas un ajustement du résultat) :**
+  1. Un contrôle de cohérence exact (sans bruit) réalisé *avant* le run
+     stochastique avait déjà montré que la marge de violation réelle
+     (`Δ≈0,05` à `0,19` selon `nN`) est bien plus faible que la marge
+     théorique maximale (`Δ(3)=0,5`) utilisée pour calculer `M=300` —
+     `M=300` est donc sous-dimensionné pour `Q_global` en particulier
+     (`M` requis pour 5σ à ces marges réelles : de l'ordre de 2000 à
+     30000 selon `nN`, contre 300 supposés suffisants). Le protocole
+     pré-enregistré a néanmoins été exécuté tel quel, sans ajustement de
+     `M` a posteriori (falsifiabilité, `CLAUDE.md`).
+  2. **Un seul tirage de motifs par `nN`** : la variation observée entre
+     tailles de réseau confond deux sources — un éventuel effet de `nN`
+     et le hasard du tirage spécifique des deux motifs à cette taille.
+     Distinguer les deux demanderait plusieurs réalisations de motifs par
+     `nN` (moyennées ou testées en famille), pas encore fait.
+
+  **Décision (Producteur, `CLAUDE.md`) : résultat non cité dans
+  `Simulations_API.md`.** Un résultat mixte, sans tendance claire et
+  n'atteignant le seuil pré-enregistré que sur 2 tests sur 10, n'est pas
+  un résultat stable au sens des règles Producteur. Prochaine itération
+  suggérée : `M` recalculé à partir des marges réelles constatées (limite
+  1), et/ou plusieurs tirages de motifs par `nN` (limite 2), à décider
+  avec Bertrand.
+- [ ] docs: mise à jour `Simulations_API.md` — **non fait, résultat non
+  citable en l'état** (cf. ci-dessus)
 
 ### Recherche — Compression hermitienne pour portage mobile
 
