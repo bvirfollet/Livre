@@ -65,6 +65,26 @@ non conçus (point ouvert, `docs/TODO.md`).
 |---|---|---|---|---|
 | I-03 | Circuit Perceval reconstruit depuis la décomposition de Givens | `compute_unitary()` | `U @ U.conj().T ≈ I` | |
 
+## Tests unitaires — Superposition Leggett-Garg (nouveau sous-track, cf. docs/DevPlan.md)
+
+Régime unitaire cohérent (`γ=0`), distinct de la dynamique dissipative
+testée par U-01 à U-04. Détail complet du protocole (`nN`, `nS`, `M`,
+seuils) dans `docs/DevPlan.md`, section « Recherche — Superposition
+quantique ».
+
+| ID | Ce qui est testé | Entrée | Résultat attendu |
+|---|---|---|---|
+| U-05 | Hermiticité de `W` construit à partir de deux motifs | motifs `ξ¹`, `ξ²` (cas `nN=2` calculé à la main) | `W == W.conj().T` à `atol=1e-5`/`rtol=1e-4` |
+| U-06 | Unitarité de l'évolution `U=e^{-iWΔt}` | `W` hermitien (cast FP32 pour `matrix_exp`) | `U U† ≈ I` à `atol=1e-5`/`rtol=1e-4` ; norme `|z|` conservée après application de `U` |
+| U-07 | Cas `nN=2` vérifié à la main | `W`, `z(0)` explicites, calcul analytique de `z(t)` pour `nS=3` pas | sortie du code ≈ calcul analytique à `atol=1e-5`/`rtol=1e-4` |
+
+## Tests d'intégration — Superposition Leggett-Garg (harnais Monte-Carlo)
+
+| ID | Précondition | Action | Résultat attendu | Résultat obtenu |
+|---|---|---|---|---|
+| I-04 | U-05 à U-07 verts | Régression : calcul de `K(3)` en mesure idéale (sans bruit d'échantillonnage, cas non stochastique) sur le système à 2 niveaux de référence (Saha, Mal, Panigrahi & Home, arXiv:1409.1132) | `K(3) = 3/2` (violation maximale théorique) reproduite à `atol=1e-5` | |
+| I-05 | I-04 vert | Run complet : 10 tests (`Q_global` × 5 `nN`, `Q_i` agrégé × 5 `nN`), `M=300` par corrélation, seeds archivées | Violation ≥5σ (par test), correction de Bonferroni sur la famille de 10 | |
+
 ## Tests — Recherche compression hermitienne (non planifiée, cf. docs/DevPlan.md)
 
 **Non chiffrable en IDs de test tant que `d` cible et métrique de succès

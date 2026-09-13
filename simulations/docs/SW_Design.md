@@ -126,6 +126,31 @@ succès (fidélité de reconstruction, perplexité après distillation, ou
 score GLUE — à ne pas mélanger, cf. `docs/test_plan.md`) à arbitrer avec
 Bertrand.
 
+### Superposition Leggett-Garg (sous-track de recherche, cf. `docs/DevPlan.md`)
+
+**Rôle :** teste si un nœud/réseau hermitien exhibe une authentique
+superposition (violation d'une inégalité de Leggett-Garg généralisée),
+en régime **unitaire cohérent** (`γ=0`) — distinct de la dynamique
+dissipative de `src/hermitian`/`src/hopfield`. Représentation en
+`torch.complex64` natif (pas la paire réel/imag : aucune contrainte BF16
+ici, ce module ne participe à aucune boucle d'entraînement).
+
+- **`build_two_pattern_weights`** (`src/superposition/patterns.py`) :
+  `W = ξ¹ξ¹† + ξ²ξ²†` (stockage hebbien à deux motifs), `Wᵢᵢ=0` par défaut
+  (hypothèse Hopfield standard), option `zero_diagonal=False` pour la
+  piste `Wᵢᵢ≠0` (cf. `docs/DevPlan.md`).
+- **`evolution_operator`/`evolve`** (`src/superposition/dynamics.py`) :
+  `U=exp(-iWΔt)` (cast FP32 local pour `matrix_exp`), trajectoire complète
+  sur `nS` itérations.
+- **`dichotomic_projectors`/`measure`** (`src/superposition/measurement.py`) :
+  observable `Q=P₊−P₋` dichotomique (règle de Born, collapse), axe défini
+  par les deux motifs concurrents.
+
+**Fichiers :** `src/superposition/`. **Statut :** primitives + TU (U-05 à
+U-07) implémentées et vertes ; harnais Monte-Carlo (`K(nS)`, `Q_global`/
+`Q_i` agrégé, seuils statistiques) non encore codé (cf. `docs/DevPlan.md`,
+tâches restantes).
+
 ## Flux de données
 
 ```
@@ -172,3 +197,11 @@ Bertrand.
 - Ne jamais évaluer l'effet architectural (Phase 3) avant d'avoir confirmé
   le test de régression du portage de poids (Phase 2) — cf.
   `docs/test_plan.md`.
+- **Dérive numérique sur la composition répétée de `matrix_exp`** (constaté
+  le 2026-09-13, `test_u07_hand_n2_evolution`) : appliquer `U=exp(-iWΔt)`
+  `n` fois successivement (`evolve`) accumule une dérive d'arrondi FP32
+  (~1e-4 observée sur `nS=3` pas) supérieure à un seul appel équivalent
+  `exp(-iWnΔt)` — chaque appel à `matrix_exp` (Padé + scaling-squaring) a
+  sa propre erreur d'approximation, qui se compose. Négligeable pour
+  `nS=3` face aux effets recherchés (Δ(3)=0,5, cf. protocole Leggett-Garg),
+  mais à surveiller si `nS` devait grandir significativement.

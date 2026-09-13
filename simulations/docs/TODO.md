@@ -14,8 +14,14 @@
 
 ## Priorité normale
 
-- [ ] Arbitrer avec Bertrand le rattachement (ou non) du plan Monte-Carlo
-  superposition/intrication à ce projet (cf. CLAUDE.md, P1)
+- [ ] **Superposition Leggett-Garg — harnais Monte-Carlo** (primitives et
+  TU U-05 à U-07 faits, cf. Historique) : reste à coder le harnais
+  (`nS×M` sous-ensembles, calcul de `K(nS)`, `Q_global` et `Q_i` agrégé),
+  test de régression I-04 (`K(3)=3/2` théorique), puis le run complet I-05
+  (10 tests, seuils 5σ/Bonferroni déjà fixés, cf. `docs/DevPlan.md`).
+  Piste notée pour plus tard : cas `Wᵢᵢ≠0` (self-couplage, hors modèle
+  Hopfield standard) pour discriminer non-classicité locale vs
+  relationnelle.
 - [ ] **Conception non prévue (échelle native)** : `SW_Design.md` ne
   couvre que `ComplexLinear`, `HermitianSelfAttention`, l'équivalence
   Hopfield et `WeightProjector` — rien n'est encore conçu pour le FFN
@@ -59,5 +65,10 @@
   softmax sur S symétrisé — cf. `docs/CorrectifPlan.md`).
   `requirements.txt` créé (torch, pytest, transformers + dépendances
   figées aux versions installées). 2026-08-14.
+- [x] Superposition Leggett-Garg — P1 résolu, protocole complet fixé
+  (`nN`, `nS=3`, `M=300`, seuils 5σ/Bonferroni), primitives
+  (`src/superposition/`) et TU U-05 à U-07 verts
+  (`tests/test_superposition.py`). Point de vigilance noté sur la dérive
+  numérique de `matrix_exp` composé (`SW_Design.md`). 2026-09-13.
 
 <!-- Format : - [x] YYYY-MM-DD — description (commit: abc1234) -->

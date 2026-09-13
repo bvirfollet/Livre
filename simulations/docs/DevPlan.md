@@ -1,6 +1,6 @@
 # Plan de développement — simulations
 
-Dernière mise à jour : 2026-08-14
+Dernière mise à jour : 2026-09-13
 
 ## Objectif global
 
@@ -157,15 +157,142 @@ comparée à la simulation Perceval locale.
 
 ## Backlog (non planifié)
 
-- Plan Monte-Carlo superposition/intrication généralisée (Leggett-Garg à N
-  arbitraire, couplage de phase entre deux réseaux) —
-  `contributions/claude/plan_dev_simulation_superposition_intrication.md`.
-  Arbitrage non tranché avec Bertrand : lot de ce projet ou piste séparée
-  (cf. `CLAUDE.md`, Problèmes ouverts P1).
 - Kernel OpenCL (reconstruction de Givens) — mentionné en fin de
   `BERT_hermitien_PoC`, non prioritaire.
 - Décomposition en chaînes de Pauli pour registre 5 qubits — idem.
 - Wrapper d'intégration mobile — idem, non mûr.
+
+### Recherche — Superposition quantique (Monte-Carlo Leggett-Garg)
+
+**P1 résolu (2026-09-13) :** rattaché à ce projet comme sous-track de
+recherche indépendant, pas un projet séparé (arbitré avec Bertrand — même
+environnement PyTorch, mêmes objets hermitiens déjà construits en Phase 1,
+même discipline de falsifiabilité). Indépendant du pipeline Phase 3 (GLUE)/
+Phase 4 (Perceval)/Phase 5 (QPU). Origine : `contributions/claude/plan_dev_simulation_superposition_intrication.md`
+(Objectif 1 de ce plan ; l'Objectif 2, intrication entre deux réseaux
+séparés, est différé — question distincte, non commencée).
+
+**Objectif :** vérifier si le remplacement d'un nœud réel par un nœud
+hermitien fait apparaître une authentique superposition (au sens
+opérationnel : violation d'une inégalité de Leggett-Garg généralisée),
+plutôt que de le supposer par analogie.
+
+**Séparation de régime (rappel, cf. `plan_dev_simulation_superposition_intrication.md` §0) :**
+le test ci-dessous porte sur le régime **unitaire cohérent** (`γ=0` pendant
+la fenêtre de test — une évolution dissipative effacerait les franges
+d'interférence avant la mesure). C'est un régime distinct de la dynamique
+**dissipative** déjà codée et validée en Phase 1/2
+(`HermitianSelfAttention`/Hopfield 1-pas, softmax = convergence vers un
+attracteur). Les deux coexistent dans le projet sans se substituer l'une à
+l'autre.
+
+**Notation (fixée le 2026-09-13, corrige une confusion initiale) :**
+- `nN` — taille du réseau (nombre de nœuds hermitiens), `nN ∈ {2, 3, 5, 10, 20}`
+  (plafonné à 20 par Bertrand pour raisons de coût calculatoire — `50`
+  écarté).
+- `nS` — nombre de temps de mesure dans le test de Leggett-Garg généralisé,
+  fixé à `nS=3` pour cette première itération (LG standard, le mieux
+  caractérisé dans la littérature ; simplifie le plan d'expérience et
+  suffit à démontrer l'objectif). Le rôle du « temps » = les itérations de
+  mise à jour de Hopfield (l'input reste fixe pendant les `nS` itérations).
+
+**Formule et bornes (vérifiées à la source, corrige une erreur de
+citation du plan initial — la bonne référence est Emary, Lambert & Nori,
+*Rep. Prog. Phys.* **77**, 016001 (2014), pas « 76, 2013 ») :**
+
+```
+K(nS) = C₂₁ + C₃₂ + ... + C_{nS(nS-1)} − C_{nS 1},   Cᵢⱼ = ⟨QᵢQⱼ⟩ (Q dichotomique, ±1)
+
+Borne classique (macroréalisme) :
+  −nS ≤ K(nS) ≤ nS−2        (nS impair ≥ 3)
+  −(nS−2) ≤ K(nS) ≤ nS−2    (nS pair ≥ 4)
+
+Violation quantique maximale (mesures idéales) : K(nS) = nS·cos(π/nS)
+```
+
+Pour `nS=3` : borne classique 1, borne quantique 3/2 (résultat de Lüders).
+
+**Représentation :** phasor scalaire `zⱼ=Rⱼe^{iθⱼ}` (recommandation du
+plan source, non contestée — scalable, suffit pour ce test ; le modèle
+qubit 2×2 par nœud est réservé à l'Objectif 2 différé).
+
+**Observable dichotomique `Q` :** deux motifs mémorisés concurrents
+`ξ¹`, `ξ²` (deux attracteurs Hopfield stockés dans `W`) définissent l'axe
+de mesure. Deux niveaux, formant deux familles de test distinctes (aucune
+n'implique l'autre logiquement — cf. discussion du 2026-09-13, ci-dessous) :
+- `Q_global(z)` : signe de la projection de l'état **complet** du réseau
+  sur l'axe `ξ¹`/`ξ²` — teste la superposition à l'échelle du réseau.
+- `Q_i(z)` (par nœud), agrégé en une moyenne sur les `nN` nœuds — teste la
+  superposition élémentaire, au niveau d'un seul nœud. **Ne pas tester
+  chaque nœud individuellement** : ferait passer la famille de tests de 10
+  à ~45 (un test par nœud par taille de réseau), invalidant la correction
+  de Bonferroni fixée ci-dessous.
+
+**Précision logique actée (2026-09-13)** : une violation de `Q_global`
+implique qu'il n'est pas possible que *(tous les nœuds aient une
+trajectoire classique définie) ET (Q_global soit une composition
+déterministe non perturbatrice de ces trajectoires)* — pas qu'un nœud
+précis, testé isolément, violerait lui-même son propre `Q_i`. La
+non-classicité peut être localisée dans un nœud (source 1) ou purement
+relationnelle, portée par le couplage `W` lui-même sans qu'aucun nœud
+isolé ne viole sa propre borne (source 2, analogue à la non-localisabilité
+de la violation dans un test de Bell/EPR). D'où la nécessité du test `Q_i`
+agrégé — aucune des deux affirmations n'implique l'autre.
+
+**Piste ouverte notée pour distinguer les deux sources (Bertrand,
+2026-09-13)** : étudier le cas `Wᵢᵢ ≠ 0` (self-couplage d'un nœud sur
+lui-même) — enfreint l'hypothèse standard de Hopfield (`Wᵢᵢ=0`), mais
+permet de tester si la dynamique propre d'un nœud seul (sans couplage
+inter-nœuds réel) peut déjà produire une violation sur son propre `Q_i` —
+un signal en faveur de la source 1 si c'est le cas. Non implémenté dans
+cette première itération.
+
+**Protocole statistique (falsifiabilité fixée avant tout run, 2026-09-13) :**
+- `M=300` tirages Monte-Carlo par corrélation `Cᵢⱼ` (calcul de puissance :
+  `M ≥ 25·nS/Δ(nS)²` pour une séparation à 5σ, où `Δ(nS)` est l'écart
+  borne quantique − borne classique ; `M=300` couvre `nS=3` à `50` avec
+  marge). Budget total par test : `nS × M` runs (chaque paire de temps
+  nécessite son propre sous-ensemble frais, non réutilisable, pour
+  respecter l'hypothèse de mesurabilité non invasive).
+- Seuil de significativité : violation au-delà de la borne classique par
+  **≥5 erreurs standard** (unilatéral), par test.
+- Correction de Bonferroni sur la famille de **10 tests** (`Q_global` ×
+  5 valeurs de `nN`, `Q_i` agrégé × 5 valeurs de `nN`).
+
+**Piste différée, non formalisée (Bertrand, 2026-09-13)** : modéliser la
+sortie d'un nœud comme l'effondrement de la probabilité conjointe de
+(input externe, état précédent du nœud) — reformulation bipartite
+intéressante (un nœud n'est jamais vraiment isolé, toujours couplé à un
+input), mais formalisation non aboutie. Ne bloque pas le protocole
+ci-dessus (le test LG ne requiert pas cette formalisation — contrairement
+à l'intrication, la superposition testée ici ne requiert pas ≥2 parties
+séparées). À reprendre plus tard, possiblement pertinent pour l'Objectif 2
+ou pour affiner ce que « mesurer » signifie opérationnellement.
+
+**Objectif 2 du plan source (intrication entre deux réseaux couplés)** :
+différé, non commencé — question distincte (corrélation de phase non
+factorisable entre deux systèmes séparés), pas ce que teste le protocole
+ci-dessus.
+
+#### Tâches (implémentation)
+
+- [x] feat(superposition): primitives — construction de `W` hermitien à
+  partir de deux motifs, pas d'évolution unitaire (`U=e^{-iWΔt}`, cast
+  FP32 pour `matrix_exp`/`eigh`), mesure projective dichotomique avec
+  collapse (règle de Born) — `src/superposition/`
+- [x] test(superposition): TU — hermiticité de `W`, unitarité de `U`
+  (`U U† ≈ I`), cas `nN=2` vérifié à la main — U-05 à U-07 verts
+  (`tests/test_superposition.py`)
+- [ ] feat(superposition): harnais Monte-Carlo (`nS×M` sous-ensembles,
+  calcul de `K(nS)`, `Q_global` et `Q_i` agrégé)
+- [ ] test(superposition): TI — régression sur la violation théorique
+  connue (`K(3)=3/2` en mesure idéale, cas non bruité) avant tout run
+  statistique sur le modèle réseau
+- [ ] experiment(superposition): premier run complet, 10 tests, seuils
+  fixés ci-dessus, seeds archivées
+- [ ] docs: mise à jour `Simulations_API.md` si un résultat est jugé citable
+
+### Recherche — Compression hermitienne pour portage mobile
 
 ### Recherche — Compression hermitienne pour portage mobile
 

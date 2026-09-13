@@ -81,7 +81,8 @@
 - Scopes valides pour ce projet : `hermitian` (couches complexes, attention),
   `hopfield` (équivalence 1-pas), `weights` (projecteur HuggingFace), `glue`
   (harnais d'évaluation), `perceval` (pont photonique), `qpu` (accès matériel
-  Quandela Cloud), `docs`.
+  Quandela Cloud), `superposition` (Monte-Carlo Leggett-Garg, cf.
+  `docs/DevPlan.md`), `docs`.
 - Ne **jamais** ajouter de trailer `Co-Authored-By` ni aucune mention d'un
   modèle ou service d'IA.
 - **1 commit = 1 responsabilité** : si un diff touche > 1 scope logique,
@@ -228,4 +229,4 @@ et correction, code debug sans retrait planifié.
 
 | Réf | Description | Fichier/Scope |
 |-----|-------------|--------------|
-| P1 | Arbitrage non tranché : le plan Monte-Carlo superposition/intrication (`contributions/claude/plan_dev_simulation_superposition_intrication.md`) est-il un lot de ce projet ou une piste séparée ? | `docs/DevPlan.md` (backlog) |
+| P1 | **Résolu (2026-09-13)** : rattaché à ce projet comme sous-track de recherche, scope de commit `superposition`. Protocole complet (nN, nS, Q, seuils de significativité) fixé avec Bertrand. | `docs/DevPlan.md`, section « Recherche — Superposition quantique » |
