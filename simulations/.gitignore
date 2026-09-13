@@ -1,4 +1,5 @@
 *.json
+!docs/results/*.json
 *.bak
 
 # Python
