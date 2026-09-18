@@ -1,10 +1,10 @@
 """Portage de poids HuggingFace vers les modules hermitiens.
 
-**Extension du 2026-09-18** : couvre maintenant le bloc d'attention
+**Extension du 2026-09-18** : couvre le bloc d'attention
 (`project_bert_attention`, actée le 2026-08-14), le FFN
-(`project_bert_ffn`) et les `LayerNorm` (`project_bert_layer_norm`), soit
-une couche complète (`project_bert_layer`). Les embeddings restent hors
-scope (cf. `docs/TODO.md`).
+(`project_bert_ffn`), les `LayerNorm` (`project_bert_layer_norm`), une
+couche complète (`project_bert_layer`), l'empilement complet
+(`project_bert_model`) et les embeddings (`project_bert_embeddings`).
 
 `project_bert_layer` exige que `hermitian_layer.attention_norm`/
 `output_norm` soient des `HermitianLayerNorm` (portage-compatible) — pas
@@ -24,9 +24,16 @@ import torch
 
 from src.hermitian.attention import HermitianSelfAttention
 from src.hermitian.complex_linear import ComplexLinear
+from src.hermitian.embeddings import HermitianEmbeddings
 from src.hermitian.ffn import HermitianFFN
-from src.hermitian.layer import HermitianBertLayer
+from src.hermitian.layer import HermitianBertLayer, HermitianBertModel
 from src.hermitian.norm import HermitianLayerNorm
+
+
+def _project_embedding_table(real_emb, imag_emb, hf_embedding, imag_std: float) -> None:
+    with torch.no_grad():
+        real_emb.weight.copy_(hf_embedding.weight)
+        imag_emb.weight.normal_(mean=0.0, std=imag_std)
 
 
 def _project_linear(complex_linear: ComplexLinear, hf_linear, imag_std: float) -> None:
@@ -102,3 +109,53 @@ def project_bert_layer(
     )
     project_bert_ffn(hermitian_layer.ffn, hf_layer, imag_std)
     project_bert_layer_norm(hermitian_layer.output_norm, hf_layer.output.LayerNorm, imag_std)
+
+
+def project_bert_model(
+    hermitian_model: HermitianBertModel, hf_model, imag_std: float = 0.0
+) -> None:
+    """Boucle `project_bert_layer` sur toutes les couches de l'empilement.
+
+    `hf_model` : un `BertModel` HuggingFace complet. `hermitian_model` doit
+    avoir le même nombre de couches (`len(hermitian_model.layers) ==
+    hf_model.config.num_hidden_layers`) et avoir été construit avec
+    `norm_cls=HermitianLayerNorm`.
+    """
+    hf_layers = hf_model.encoder.layer
+    if len(hermitian_model.layers) != len(hf_layers):
+        raise ValueError(
+            f"Nombre de couches incompatible : hermitian_model en a "
+            f"{len(hermitian_model.layers)}, hf_model en a {len(hf_layers)}"
+        )
+    for hermitian_layer, hf_layer in zip(hermitian_model.layers, hf_layers):
+        project_bert_layer(hermitian_layer, hf_layer, imag_std)
+
+
+def project_bert_embeddings(
+    hermitian_embeddings: HermitianEmbeddings, hf_embeddings, imag_std: float = 0.0
+) -> None:
+    """Copie les trois tables d'embeddings (word/position/token_type) et la
+    `LayerNorm` d'un `BertEmbeddings` HuggingFace dans un `HermitianEmbeddings`.
+
+    `hermitian_embeddings.norm` doit être une `HermitianLayerNorm` pour un
+    portage exact (cf. `project_bert_layer_norm`).
+    """
+    _project_embedding_table(
+        hermitian_embeddings.word_embeddings_real,
+        hermitian_embeddings.word_embeddings_imag,
+        hf_embeddings.word_embeddings,
+        imag_std,
+    )
+    _project_embedding_table(
+        hermitian_embeddings.position_embeddings_real,
+        hermitian_embeddings.position_embeddings_imag,
+        hf_embeddings.position_embeddings,
+        imag_std,
+    )
+    _project_embedding_table(
+        hermitian_embeddings.token_type_embeddings_real,
+        hermitian_embeddings.token_type_embeddings_imag,
+        hf_embeddings.token_type_embeddings,
+        imag_std,
+    )
+    project_bert_layer_norm(hermitian_embeddings.norm, hf_embeddings.LayerNorm, imag_std)
