@@ -75,6 +75,45 @@ décomposition spectrale (`torch.linalg.eigh`) documenté dans
 **Interfaces :** `hopfield_step(q_real, q_imag, k_real, k_imag, v_real, v_imag, beta)`,
 `hopfield_energy(s_real, z_real, z_imag, beta)`.
 
+### HermitianFFN (échelle native, pas encore implémenté — cf. `docs/TODO.md`)
+
+**Correction du 2026-09-18 (avant tout codage) :** la piste FFN
+initialement notée (résonance matricielle `H' = φ(W₂(W₁HW₁†)W₂†)`, issue
+de `contributions/gémini/Evolution_BERT_suite`) suppose un token
+représenté par une **matrice** hermitienne — l'architecture à
+compression écartée du pipeline natif (cf. section « Recherche —
+Compression hermitienne »). Notre `HermitianSelfAttention` représente
+chaque token par un **vecteur** `z ∈ C^{d_model}` ; `W₁HW₁†` n'a pas de
+sens pour un vecteur. Piste corrigée, validée avec Bertrand.
+
+**Rôle :** FFN position-wise pour l'architecture vectorielle native,
+cohérent avec le principe déjà établi (la phase porte le déphasage, ne
+pas la triturer arbitrairement — cf. softmax sur `Re(S)` seul dans
+`HermitianSelfAttention`) :
+```
+FFN(z) = ComplexLinear₂( g(ComplexLinear₁(z)) )
+g(z) = GELU(|z|) · z/|z|     # gate réel sur le module, phase préservée exactement
+```
+Analogue du "modReLU" (Arjovsky et al. 2016, Trabelsi et al. 2018) —
+construction établie dans la littérature des réseaux complexes, pas
+inventée pour l'occasion. L'alternative (GELU séparé sur Re et Im)
+tournerait la phase de façon incontrôlée à chaque couche.
+**Fichier :** `src/hermitian/ffn.py`, gate dans `src/hermitian/gating.py`.
+**Statut :** implémenté et testé (2026-09-18).
+
+### HermitianRMSNorm (échelle native)
+
+**Rôle :** normalisation native, `L(z)=γ·z/(RMS(z)+ε)`,
+`RMS(z)=√(mean(|z|²))`, `γ` réel par dimension appliqué identiquement à
+Re et Im — préserve `arg(z)` exactement. Remplace la piste initialement
+envisagée (normalisation de trace de Gémini, `N(H)=H/(Tr(H)+ε)`,
+également définie pour une matrice, pas un vecteur — même correction que
+pour `HermitianFFN` ci-dessus). Précédent empirique réel (RMSNorm,
+LLaMA et consorts), contrairement à la normalisation de trace jamais
+validée.
+**Fichier :** `src/hermitian/norm.py`.
+**Statut :** implémenté et testé (2026-09-18).
+
 ### WeightProjector
 
 **Rôle :** copie les poids d'un bloc `BertAttention` HuggingFace

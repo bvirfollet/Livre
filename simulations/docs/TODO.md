@@ -28,12 +28,50 @@
   2026-08-14 en scopant le test I-01 : décidé avec Bertrand de limiter
   I-01 au bloc d'attention seul pour l'instant — la question de
   l'architecture complète reste ouverte et devra être tranchée avant toute
-  comparaison GLUE bout-en-bout (Phase 3). Piste de départ pour le FFN :
-  résonance directe `H' = φ(W₂(W₁HW₁†)W₂†)` (retenue après discussion
-  avec Gémini dans `contributions/gémini/Evolution_BERT_suite`, à valider
-  empiriquement — voir en particulier la réserve sur `LayerNorm` →
-  normalisation de trace, non démontrée équivalente en stabilité de
-  gradient).
+  comparaison GLUE bout-en-bout (Phase 3).
+
+  **Correction du 2026-09-18 (avant tout codage) :** la piste FFN notée
+  précédemment ici — résonance directe `H' = φ(W₂(W₁HW₁†)W₂†)`, issue de
+  `contributions/gémini/Evolution_BERT_suite` — **ne s'applique pas à
+  notre architecture**. Cette formule suppose que chaque token soit
+  représenté par une **matrice** hermitienne `H` (le nœud « 32×32 » de
+  Gémini, l'architecture à compression qu'on a explicitement écartée du
+  pipeline natif, cf. section « Recherche — Compression hermitienne »
+  ci-dessous). Notre `HermitianSelfAttention` représente chaque token par
+  un **vecteur** `z ∈ C^{d_model}` — `W₁HW₁†` n'a pas de sens pour un
+  vecteur. Même problème pour la normalisation de trace (`N(H)=H/Tr(H)+ε`),
+  également définie pour une matrice.
+
+  **FFN natif retenu (validé avec Bertrand, 2026-09-18)** — proposition
+  cohérente avec l'architecture vectorielle et avec le principe déjà
+  établi ailleurs dans le projet (la phase porte le déphasage, ne pas la
+  triturer arbitrairement — cf. softmax sur `Re(S)` seul dans
+  `HermitianSelfAttention`) :
+  ```
+  FFN(z) = ComplexLinear₂( g(ComplexLinear₁(z)) )
+  g(z) = GELU(|z|) · z/|z|     # gate réel sur le module, phase préservée exactement
+  ```
+  Analogue direct du "modReLU" de la littérature sur les réseaux de
+  neurones complexes (Arjovsky et al. 2016, Trabelsi et al. 2018) — pas
+  une construction inventée pour l'occasion. L'alternative naïve (GELU
+  séparé sur Re et Im) tournerait la phase de façon incontrôlée à chaque
+  couche, ce qui contredirait le principe déjà établi. **Implémenté et
+  testé (2026-09-18)** : `src/hermitian/gating.py`, `src/hermitian/ffn.py`,
+  `tests/test_hermitian_ffn_norm.py` — préservation de phase vérifiée à la
+  main (cas N=2) et sur cas aléatoires.
+
+  **`LayerNorm` natif : RMSNorm préservant la phase, validé et implémenté
+  (2026-09-18)** — `L(z)=γ·z/(RMS(z)+ε)`, `γ` réel par dimension, appliqué
+  identiquement à Re et Im (précédent empirique réel via LLaMA et
+  consorts, contrairement à la normalisation de trace de Gémini jamais
+  validée). `src/hermitian/norm.py`, testé (préservation de phase, cas
+  N=2, invariant RMS=γ après normalisation).
+
+  **Reste à faire pour clore ce point d'architecture** : empilement
+  multi-couches (`HermitianBertLayer`/`HermitianBertModel`), embeddings
+  (même schéma que `WeightProjector` — Re=table HF, Im=bruit —, pas de
+  nouvelle conception requise), extension du test I-01 à la couche
+  complète puis au modèle empilé.
 - [ ] **Recherche séparée — compression hermitienne pour portage mobile**
   (cf. `docs/DevPlan.md`, section dédiée) : objectif et protocole posés
   avec Bertrand le 2026-08-14 (`d² ≪ 768`, comparaison à budget de réels
