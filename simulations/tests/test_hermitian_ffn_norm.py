@@ -11,7 +11,7 @@ import torch
 
 from src.hermitian.ffn import HermitianFFN
 from src.hermitian.gating import phase_preserving_gate
-from src.hermitian.norm import HermitianRMSNorm
+from src.hermitian.norm import HermitianLayerNorm, HermitianRMSNorm
 from tests.conftest import ATOL, RTOL
 
 
@@ -102,6 +102,98 @@ def test_rmsnorm_output_rms_is_gamma():
 
     output_rms = torch.sqrt((out_real**2 + out_imag**2).mean(dim=-1))
     assert torch.allclose(output_rms, torch.ones(4), atol=1e-5, rtol=1e-4)
+
+
+def test_layernorm_reduces_to_real_layernorm_when_im_zero():
+    """Portage-compatible : Im=0 partout, bias_imag=0 (init par défaut)
+    ⇒ identique à nn.LayerNorm(x_real) — même test de régression que
+    ComplexLinear/WeightProjector (I-01)."""
+    d_model = 6
+    eps = 1e-5
+    hermitian_ln = HermitianLayerNorm(d_model, eps=eps)
+    real_ln = torch.nn.LayerNorm(d_model, eps=eps)
+    with torch.no_grad():
+        hermitian_ln.gamma.copy_(real_ln.weight)
+        hermitian_ln.bias_real.copy_(real_ln.bias)
+
+    x_real = torch.randn(3, d_model)
+    x_imag = torch.zeros(3, d_model)
+
+    out_real, out_imag = hermitian_ln(x_real, x_imag)
+    expected = real_ln(x_real)
+
+    assert torch.allclose(out_real, expected, atol=ATOL, rtol=RTOL)
+    assert torch.allclose(out_imag, torch.zeros_like(out_imag), atol=ATOL, rtol=RTOL)
+
+
+def test_layernorm_hand_n2():
+    """Cas N=2 à la main : x=[1,3] (réel), gamma=1, bias=0.
+    mean=2, centré=[-1,1], variance=mean([1,1])=1, std≈1 ⇒ sortie=[-1,1]."""
+    ln = HermitianLayerNorm(d_model=2, eps=0.0)
+    x_real = torch.tensor([[1.0, 3.0]])
+    x_imag = torch.tensor([[0.0, 0.0]])
+
+    out_real, out_imag = ln(x_real, x_imag)
+
+    assert torch.allclose(out_real, torch.tensor([[-1.0, 1.0]]), atol=ATOL, rtol=RTOL)
+    assert torch.allclose(out_imag, torch.zeros_like(out_imag), atol=ATOL, rtol=RTOL)
+
+
+def test_layernorm_does_not_preserve_phase_in_general():
+    """Contrairement à RMSNorm, le centrage complexe déplace la phase
+    individuelle de chaque composante — vérifie que ce n'est pas
+    silencieusement redevenu faux (documentation du compromis, 2026-09-18)."""
+    d_model = 6
+    ln = HermitianLayerNorm(d_model, eps=1e-8)
+    x_real = torch.randn(1, d_model)
+    x_imag = torch.randn(1, d_model)
+
+    out_real, out_imag = ln(x_real, x_imag)
+
+    phase_in = torch.atan2(x_imag, x_real)
+    phase_out = torch.atan2(out_imag, out_real)
+    assert not torch.allclose(phase_in, phase_out, atol=1e-3, rtol=1e-3)
+
+
+def test_layernorm_blind_to_dc_shift_but_not_rmsnorm():
+    """Vérifie empiriquement la prédiction analytique du 2026-09-18 : le
+    centrage de LayerNorm annule spécifiquement la sensibilité au
+    décalage uniforme (ε·𝟙), sans réduire la discrimination pour une
+    perturbation orthogonale (moyenne nulle) — RMSNorm reste sensible aux
+    deux. Ce n'est donc pas une perte générale de discernement, mais une
+    insensibilité ciblée à une seule direction (cf. docs/DevPlan.md,
+    discussion sur le rôle du centrage pour l'attention par produit
+    scalaire sur des poids pré-entraînés)."""
+    d_model = 8
+    epsilon = 0.05
+    z0_real = torch.randn(1, d_model)
+    z0_imag = torch.randn(1, d_model)
+
+    u_dc = torch.ones(1, d_model) / (d_model**0.5)
+    v = torch.randn(1, d_model)
+    v = v - v.mean(dim=-1, keepdim=True)
+    v = v / v.norm(dim=-1, keepdim=True)
+
+    rmsnorm = HermitianRMSNorm(d_model, eps=1e-8)
+    layernorm = HermitianLayerNorm(d_model, eps=1e-8)
+
+    def distance(norm_module, real_b):
+        out_a_real, out_a_imag = norm_module(z0_real, z0_imag)
+        out_b_real, out_b_imag = norm_module(real_b, z0_imag)
+        return torch.sqrt((out_a_real - out_b_real) ** 2 + (out_a_imag - out_b_imag) ** 2).sum()
+
+    d_dc_ln = distance(layernorm, z0_real + epsilon * u_dc)
+    d_dc_rms = distance(rmsnorm, z0_real + epsilon * u_dc)
+    d_orth_ln = distance(layernorm, z0_real + epsilon * v)
+    d_orth_rms = distance(rmsnorm, z0_real + epsilon * v)
+
+    assert torch.allclose(d_dc_ln, torch.tensor(0.0), atol=1e-5)
+    assert d_dc_rms > 1e-3
+    # Les deux normes discriminent la perturbation orthogonale dans le
+    # même ordre de grandeur (pas de perte structurelle sous RMSNorm).
+    assert d_orth_rms > 1e-3
+    assert d_orth_ln > 1e-3
+    assert 0.3 < (d_orth_rms / d_orth_ln) < 3.0
 
 
 def test_rmsnorm_preserves_phase_random():
