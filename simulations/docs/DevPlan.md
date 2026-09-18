@@ -437,7 +437,51 @@ ci-dessus.
 - [ ] docs: mise à jour `Simulations_API.md` — **non fait**, exploration
   encourageante (limite 2 largement affaiblie) mais protocole confirmatoire
   formel (test binomial pré-enregistré sur le taux de violation) pas
-  encore défini ni lancé
+  encore défini ni lancé — *voir protocole ci-dessous, défini le 2026-09-13*
+
+#### Protocole confirmatoire pré-enregistré (2026-09-13)
+
+**Écrit avant de lancer le moindre nouveau tirage** (cf. discussion avec
+Bertrand : la différence entre l'exploration précédente — regarder après
+coup — et un test confirmatoire — annoncer le protocole avant de
+l'exécuter). Rappel du cadre, en toute franchise : ce protocole démontre
+avant tout notre capacité à construire correctement ce calcul binomial
+dans ce cas précis (dimensionner `M` par tirage, calibrer `p_null` sur le
+taux de faux positif réel du critère 5σ, combiner `n_realizations` tests
+indépendants) — pas une découverte de physique nouvelle. Le garder en tête
+pour ne pas sur-interpréter le résultat.
+
+**Réseaux ciblés :** `nN=3` et `nN=10` (les deux explorés précédemment).
+**`n_realizations` = 30** tirages de motifs frais par `nN` (seeds
+`90000+nN×1000+i`, namespace disjoint de `run_nN_protocol` — 1000/2000/
+3000 — et de l'exploration — 50000 —, vérifié par test, cf.
+`tests/test_superposition_experiment.py`).
+**`dt=1.0`** (inchangé, calibré en I-04).
+**Critère de succès par tirage :** `M` dimensionné via
+`required_m_for_significance` à partir de la marge **exacte** de ce
+tirage (déterministe, calculée avant toute mesure stochastique — pas un
+ajustement a posteriori), puis test `Q_global` complet ; succès si
+`σ ≥ 5,0`.
+**Plafond de budget de calcul pré-enregistré : `M ≤ 200 000`.** Un tirage
+dont le `M` requis dépasserait ce plafond est compté comme un **échec**
+(la marge existe mais son coût de vérification est déraisonnable) —
+décidé à l'avance, pas en cours de route (cf. le run de calibration qui a
+montré que certains tirages exigent des `M` de plusieurs millions, ce qui
+aurait bloqué le calcul sans ce plafond).
+**`p_null` du test binomial final** = taux de faux positif réel du
+critère « 5σ par tirage » sous l'hypothèse nulle stricte, calculé (pas
+choisi) : `p_null = P(Z≥5) ≈ 2,87×10⁻⁷` (`one_sided_normal_tail_probability`).
+**Seuil de décision pour le résultat global :** `p_value` du test binomial
+(`binomial_test_pvalue(k_succès, 30, p_null)`) `< p_null` elle-même
+(même standard 5σ appliqué à la conclusion globale, cohérence avec le
+reste du projet — pas un nouveau seuil ad hoc).
+
+**Commande** (cf. `scripts/run_superposition_confirmatory.py`) :
+```bash
+python scripts/run_superposition_confirmatory.py --n-nodes 3 10 --n-realizations 30
+```
+
+**Résultat : à venir dans la prochaine entrée de ce fichier.**
 
 ### Recherche — Compression hermitienne pour portage mobile
 
