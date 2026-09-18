@@ -14,6 +14,24 @@
 
 ## Priorité normale
 
+- [ ] **Piste Chladni-Hopfield sur BERT hermitien** (discussion du
+  2026-09-18, cf. `contributions/claude/annexe_chladni_hopfield_v3.md`
+  et `contributions/claude/Revue_Claude_Analogie_Fig_Chaldni`) : hypothèse
+  de Bertrand — l'ajout d'une partie complexe à un réseau de Hopfield
+  produit génériquement des transitions topologiques de type Chladni
+  (croisements/dégénérescences de valeurs propres), et le même phénomène
+  devrait apparaître dans le paysage d'attention du BERT hermitien
+  (dynamique des figures probablement différente, physique sous-jacente
+  la même). Plausible mathématiquement (généralisable en principe à toute
+  famille paramétrée de formes quadratiques avec dégénérescence), mais
+  **non testé empiriquement sur l'architecture réelle de `simulations/`**
+  — le script `chladni_hopfield_anim_v2.py` porte sur un Hopfield-jouet
+  `N=4` à matrice complexe *symétrique* (pas hermitienne), pas sur
+  `HermitianSelfAttention`. Reste à formuler un protocole de test (quel
+  paramètre jouer le rôle de `λ`/`α` dans l'attention hermitienne ? quelle
+  observable jouerait le rôle des lignes nodales ?) avant de pouvoir
+  trancher. Non prioritaire, à reprendre plus tard.
+
 - [ ] **Superposition Leggett-Garg — pistes restantes** (protocole
   confirmatoire fait et cité, cf. Historique) : cas `Wᵢᵢ≠0` (self-couplage,
   hors modèle Hopfield standard) pour discriminer non-classicité locale vs
