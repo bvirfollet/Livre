@@ -114,6 +114,44 @@ validée.
 **Fichier :** `src/hermitian/norm.py`.
 **Statut :** implémenté et testé (2026-09-18).
 
+**Décision (2026-09-18) : `HermitianLayerNorm` gardée en parallèle**, pas
+remplacée. Question de Bertrand : le centrage de `LayerNorm` joue-t-il un
+rôle fonctionnel (discrimination des tokens dans l'attention par produit
+scalaire sur des poids pré-entraînés) que `RMSNorm` perdrait en ne
+centrant pas ? Vérifié empiriquement (`scripts/compare_normalizations.py`,
+test de régression `test_layernorm_blind_to_dc_shift_but_not_rmsnorm`) :
+
+| Perturbation | distance sous RMSNorm | distance sous LayerNorm |
+|---|---|---|
+| Décalage uniforme `ε·𝟙` | 0,099 | **0,000** |
+| Orthogonale (moyenne nulle), même norme | 0,088 | 0,091 |
+
+**Conclusion : pas de perte générale de discernement sous RMSNorm** —
+LayerNorm est spécifiquement et exclusivement aveugle à la direction
+« décalage uniforme partagé par toutes les dimensions » (le centrage
+l'annule par construction), tout en restant aussi sensible que RMSNorm
+aux perturbations dans les autres directions. RMSNorm est donc, si
+quelque chose, *plus* discriminante sur cette direction précise, pas
+moins. Ce qui reste vrai et motive de garder `LayerNorm` en parallèle :
+les poids `Q`/`K` de BERT ont été appris avec des entrées centrées — un
+biais partagé non centré peut gonfler artificiellement `Q·K` entre tokens
+et dégrader l'attention lors du **portage de poids pré-entraînés**
+spécifiquement (question distincte de la discrimination générale,
+non encore testée empiriquement — à faire lors de l'extension du test de
+portage à la couche complète).
+
+### HermitianLayerNorm (échelle native, portage-compatible)
+
+**Rôle :** centrage complexe complet, `LN(z)=γ·(z−mean(z))/std(z)+β`,
+`mean`/`std` calculés sur `|z−mean(z)|²`. **Se réduit exactement à
+`nn.LayerNorm` réelle quand `Im=0` et `bias_imag=0`** (même schéma de
+portage que `ComplexLinear`/`WeightProjector`, testé). Ne préserve **pas**
+la phase individuelle (soustraire une moyenne complexe partagée déplace
+`arg(zᵢ)` différemment pour chaque composante) — compromis assumé, cf.
+comparaison ci-dessus.
+**Fichier :** `src/hermitian/norm.py`.
+**Statut :** implémenté et testé (2026-09-18).
+
 ### WeightProjector
 
 **Rôle :** copie les poids d'un bloc `BertAttention` HuggingFace

@@ -60,15 +60,24 @@
   `tests/test_hermitian_ffn_norm.py` — préservation de phase vérifiée à la
   main (cas N=2) et sur cas aléatoires.
 
-  **`LayerNorm` natif : RMSNorm préservant la phase, validé et implémenté
-  (2026-09-18)** — `L(z)=γ·z/(RMS(z)+ε)`, `γ` réel par dimension, appliqué
-  identiquement à Re et Im (précédent empirique réel via LLaMA et
-  consorts, contrairement à la normalisation de trace de Gémini jamais
-  validée). `src/hermitian/norm.py`, testé (préservation de phase, cas
-  N=2, invariant RMS=γ après normalisation).
+  **`LayerNorm` natif : deux variantes gardées en parallèle (2026-09-18)**
+  — `HermitianRMSNorm` (préserve la phase, pas de portage exact possible)
+  et `HermitianLayerNorm` (centrage complet, portage-compatible, ne
+  préserve pas la phase). Question de Bertrand sur le rôle du centrage
+  pour la discrimination tranchée empiriquement
+  (`scripts/compare_normalizations.py`) : le centrage n'est pas une perte
+  générale de discernement, il annule spécifiquement la sensibilité à un
+  décalage uniforme partagé par toutes les dimensions, sans affecter la
+  discrimination sur les autres directions (cf. `docs/SW_Design.md` pour
+  la table de résultats). Reste non tranché : effet réel du centrage sur
+  l'attention avec poids pré-entraînés (biais partagé gonflant `Q·K`) —
+  hypothèse plausible, pas encore testée. `src/hermitian/norm.py`, testé
+  (préservation/non-préservation de phase, portage exact à `Im=0`, cas
+  N=2, invariant de discrimination).
 
   **Reste à faire pour clore ce point d'architecture** : empilement
-  multi-couches (`HermitianBertLayer`/`HermitianBertModel`), embeddings
+  multi-couches (`HermitianBertLayer`/`HermitianBertModel` — choisir entre
+  RMSNorm et LayerNorm, ou garder les deux comme option), embeddings
   (même schéma que `WeightProjector` — Re=table HF, Im=bruit —, pas de
   nouvelle conception requise), extension du test I-01 à la couche
   complète puis au modèle empilé.
