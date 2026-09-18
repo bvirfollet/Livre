@@ -1,25 +1,29 @@
-"""Gate réel préservant la phase — brique commune au FFN et (implicitement)
-compatible avec toute non-linéarité future respectant le même principe.
+"""Gate réel préservant la phase — brique commune au FFN.
 
-Analogue du "modReLU" (Arjovsky et al. 2016, Trabelsi et al. 2018) : la
-non-linéarité porte sur le module `|z|` uniquement, jamais sur la phase —
-cohérent avec le principe déjà établi dans `attention.py` (softmax sur
-`Re(S)` seul, la partie imaginaire n'est jamais triturée arbitrairement).
+**Correction du 2026-09-18** : une première version portait sur `|z|`
+(`GELU(|z|)·z/|z|`, analogue "modReLU"). Elle préservait la phase mais ne
+se réduisait *pas* à `GELU` réel à `Im=0` — `GELU` n'est pas une fonction
+impaire (`GELU(-2)≈-0.045`, très différent de `-GELU(2)≈-1.95`), donc
+passer par le module efface l'asymétrie qui fait tout l'intérêt de GELU.
+Ça aurait cassé tout test de portage de poids sur le FFN.
+
+Version corrigée : `g(z) = z · Φ(Re(z))`, où `Φ` est la fonction de
+répartition normale standard (`GELU(x) = x·Φ(x)` est la définition exacte
+de GELU, Hendrycks & Gimpel 2016). `Φ(Re(z)) ∈ (0,1)` est toujours réel
+positif, donc `g` préserve la phase exactement (multiplication par un
+réel positif) — sans division ni `ε`, plus simple et plus stable que la
+version précédente — et se réduit exactement à `GELU(Re)` quand `Im=0`.
 """
 
 import torch
-import torch.nn.functional as F
 
 
 def phase_preserving_gate(
-    z_real: torch.Tensor, z_imag: torch.Tensor, eps: float = 1e-8
+    z_real: torch.Tensor, z_imag: torch.Tensor
 ) -> tuple[torch.Tensor, torch.Tensor]:
-    """`g(z) = GELU(|z|) · z / (|z| + ε)` — un gate réel non négatif
-    appliqué identiquement à Re et Im, donc `arg(g(z)) = arg(z)` exactement
-    (à l'arrondi flottant près), pour tout `z ≠ 0`. Le `ε` au dénominateur
-    évite `0/0` en `z=0` sans introduire de dépendance à la phase (le
-    numérateur est déjà nul via `GELU(0)=0` dans ce cas).
+    """`g(z) = z · Φ(Re(z))` — `arg(g(z)) = arg(z)` exactement (`Φ(Re(z))`
+    est un réel strictement positif), et `g(Re, 0) = (GELU(Re), 0)`
+    exactement (portage-compatible).
     """
-    modulus = torch.sqrt(z_real**2 + z_imag**2)
-    gate = F.gelu(modulus) / (modulus + eps)
+    gate = torch.special.ndtr(z_real)  # Φ(Re(z)), la CDF normale standard
     return z_real * gate, z_imag * gate

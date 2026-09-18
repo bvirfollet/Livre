@@ -21,8 +21,9 @@ def _phase(real: torch.Tensor, imag: torch.Tensor) -> torch.Tensor:
 
 def test_phase_preserving_gate_hand_n2():
     """Cas N=2 à la main : z=[3+4j, 0].
-    |z0|=5, GELU(5)≈5 (GELU(x)→x pour x grand), donc g(z0)≈z0.
-    z1=0 : gate ne doit pas produire de NaN, sortie doit être 0.
+    gate0 = Φ(Re(z0)) = Φ(3) ; par définition GELU(x)=x·Φ(x), donc
+    Re(g(z0)) = 3·Φ(3) = GELU(3) exactement, Im(g(z0)) = 4·Φ(3) = 4·GELU(3)/3.
+    z1=0 : Φ(0)=0.5, sortie doit être exactement 0.
     """
     z_real = torch.tensor([3.0, 0.0])
     z_imag = torch.tensor([4.0, 0.0])
@@ -33,13 +34,22 @@ def test_phase_preserving_gate_hand_n2():
     assert torch.allclose(out_real[1], torch.tensor(0.0), atol=ATOL, rtol=RTOL)
     assert torch.allclose(out_imag[1], torch.tensor(0.0), atol=ATOL, rtol=RTOL)
 
-    # GELU(5) ≈ 5.0 (à ~1e-6 près, la queue gaussienne est négligeable) :
-    # g(z0) ≈ z0, donc phase et magnitude quasi inchangées.
-    gelu_5 = torch.nn.functional.gelu(torch.tensor(5.0)).item()
-    expected_real0 = gelu_5 * 3.0 / 5.0
-    expected_imag0 = gelu_5 * 4.0 / 5.0
+    gelu_3 = torch.nn.functional.gelu(torch.tensor(3.0)).item()
+    expected_real0 = gelu_3
+    expected_imag0 = gelu_3 / 3.0 * 4.0
     assert torch.allclose(out_real[0], torch.tensor(expected_real0), atol=ATOL, rtol=RTOL)
     assert torch.allclose(out_imag[0], torch.tensor(expected_imag0), atol=ATOL, rtol=RTOL)
+
+
+def test_phase_preserving_gate_reduces_to_real_gelu_when_im_zero():
+    """Portage-compatible : Im=0 ⇒ Re(g(z))=GELU(Re) exactement (corrige
+    la version précédente sur |z|, qui ne s'y réduisait pas — GELU n'est
+    pas une fonction impaire)."""
+    x = torch.tensor([-2.0, -0.5, 0.0, 0.5, 2.0, 5.0])
+    out_real, out_imag = phase_preserving_gate(x, torch.zeros_like(x))
+
+    assert torch.allclose(out_real, torch.nn.functional.gelu(x), atol=ATOL, rtol=RTOL)
+    assert torch.allclose(out_imag, torch.zeros_like(out_imag), atol=ATOL, rtol=RTOL)
 
 
 def test_phase_preserving_gate_preserves_phase_random():
@@ -66,6 +76,34 @@ def test_hermitian_ffn_forward_shape_and_finite():
     assert out_real.shape == (2, 5, d_model)
     assert out_imag.shape == (2, 5, d_model)
     assert torch.isfinite(out_real).all() and torch.isfinite(out_imag).all()
+
+
+def test_hermitian_ffn_reduces_to_real_ffn_when_im_zero():
+    """Portage-compatible bout-en-bout : Im=0 partout, biais imaginaires à
+    zéro ⇒ identique à un FFN réel classique (Linear→GELU exact→Linear)."""
+    d_model, d_ff = 6, 12
+    ffn = HermitianFFN(d_model, d_ff)
+
+    real_fc1 = torch.nn.Linear(d_model, d_ff)
+    real_fc2 = torch.nn.Linear(d_ff, d_model)
+    with torch.no_grad():
+        ffn.fc1.fc_real.weight.copy_(real_fc1.weight)
+        ffn.fc1.bias_real.copy_(real_fc1.bias)
+        ffn.fc1.fc_imag.weight.zero_()
+        ffn.fc1.bias_imag.zero_()
+        ffn.fc2.fc_real.weight.copy_(real_fc2.weight)
+        ffn.fc2.bias_real.copy_(real_fc2.bias)
+        ffn.fc2.fc_imag.weight.zero_()
+        ffn.fc2.bias_imag.zero_()
+
+    x_real = torch.randn(3, d_model)
+    x_imag = torch.zeros(3, d_model)
+
+    out_real, out_imag = ffn(x_real, x_imag)
+    expected = real_fc2(torch.nn.functional.gelu(real_fc1(x_real)))
+
+    assert torch.allclose(out_real, expected, atol=ATOL, rtol=RTOL)
+    assert torch.allclose(out_imag, torch.zeros_like(out_imag), atol=ATOL, rtol=RTOL)
 
 
 def test_rmsnorm_hand_n2():
