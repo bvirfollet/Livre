@@ -92,11 +92,15 @@ pas la triturer arbitrairement — cf. softmax sur `Re(S)` seul dans
 `HermitianSelfAttention`) :
 ```
 FFN(z) = ComplexLinear₂( g(ComplexLinear₁(z)) )
-g(z) = GELU(|z|) · z/|z|     # gate réel sur le module, phase préservée exactement
+g(z) = z · Φ(Re(z))     # Φ = CDF normale standard, GELU(x)=x·Φ(x) exactement
 ```
-Analogue du "modReLU" (Arjovsky et al. 2016, Trabelsi et al. 2018) —
-construction établie dans la littérature des réseaux complexes, pas
-inventée pour l'occasion. L'alternative (GELU séparé sur Re et Im)
+**Correction du 2026-09-18 (BUG-003, `CorrectifPlan.md`)** : la version
+initiale portait sur `|z|` (`GELU(|z|)·z/|z|`, analogue "modReLU",
+Arjovsky et al. 2016, Trabelsi et al. 2018) — préservait la phase mais ne
+se réduisait pas à `GELU` réel à `Im=0` (`GELU` n'est pas une fonction
+impaire). `g(z)=z·Φ(Re(z))` préserve la phase (facteur réel toujours
+positif) *et* se réduit exactement à `GELU(Re)` à `Im=0` — trouvé en
+préparant le portage de poids du FFN. L'alternative (GELU séparé sur Re et Im)
 tournerait la phase de façon incontrôlée à chaque couche.
 **Fichier :** `src/hermitian/ffn.py`, gate dans `src/hermitian/gating.py`.
 **Statut :** implémenté et testé (2026-09-18).

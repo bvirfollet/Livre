@@ -119,3 +119,44 @@ jour en conséquence : `SW_Design.md`, docstrings de `attention.py` et
 (régression bout-en-bout sur poids réels) + `tests/test_hopfield.py::test_u03_equivalence_general_qkv`
 (régression ciblée : Q ≠ K, vérifie explicitement que `h_real ≠ s_real`
 tout en confirmant que le softmax utilisé correspond à `s_real`).
+
+---
+
+### BUG-003 — Gate du FFN basé sur le module, ne se réduit pas à GELU réel
+
+**Sévérité :** critique
+**Découvert :** 2026-09-18 (en préparant le portage de poids du FFN)
+**Corrigé :** 2026-09-18
+
+**Symptôme :**
+`phase_preserving_gate` (`g(z)=GELU(|z|)·z/|z|`) donnait, à `Im=0`, des
+valeurs très éloignées de `GELU` réel classique pour les entrées
+négatives — ex. `Re=-2` : `GELU(-2)≈-0.045` (réel) contre `≈-1.95` (notre
+gate). N'aurait été détecté qu'au moment du test de portage du FFN
+(pas encore écrit), pas par les tests existants (aucun ne comparait à une
+référence `GELU` réelle asymétrique).
+
+**Cause racine :**
+`GELU` n'est pas une fonction impaire (`GELU(-x) ≠ -GELU(x)`) — c'est même
+tout l'intérêt de `GELU` par rapport à une fonction symétrique comme
+`ReLU` centré. En faisant porter le gate sur `|z|` (une quantité toujours
+positive, symétrique par construction), l'asymétrie réel/négatif de
+`GELU` était effacée dès que `Im=0`.
+
+**Correctif appliqué :**
+`g(z) = z · Φ(Re(z))`, `Φ` = fonction de répartition normale standard
+(`GELU(x)=x·Φ(x)` est la définition exacte de GELU). `Φ(Re(z))` est
+toujours réel positif (`∈(0,1)`), donc `g` préserve la phase exactement
+(comme avant), mais se réduit maintenant à `GELU(Re)` exactement quand
+`Im=0` — sans division ni `ε` (plus simple et plus stable que la version
+précédente).
+
+**Impact potentiel :**
+Aucun résultat déjà cité dans `Simulations_API.md`. `HermitianFFN` n'était
+pas encore utilisé dans un test de portage de poids réel — impact limité
+aux tests unitaires du gate/FFN, tous mis à jour.
+
+**Test de non-régression :**
+`tests/test_hermitian_ffn_norm.py::test_phase_preserving_gate_reduces_to_real_gelu_when_im_zero`
+et `test_hermitian_ffn_reduces_to_real_ffn_when_im_zero` (bout-en-bout,
+FFN complet comparé à `Linear→GELU→Linear` réel).
