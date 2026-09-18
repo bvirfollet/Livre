@@ -14,6 +14,46 @@
 
 ## Priorité normale
 
+- [ ] **Équivalence Hopfield non vérifiée pour la couche complète
+  (FFN+Norm)** (soulevé par Bertrand, 2026-09-18) — **point important,
+  priorité haute logique même si classé ici pour l'instant**. Le fil
+  conducteur du projet est que BERT, malgré la complexité apparente de
+  ses couches (LayerNorm, FFN...), se ramène in fine à un réseau de
+  Hopfield (Ramsauer et al. 2020) — un Hopfield qu'on plonge ensuite dans
+  l'espace hermitien. Ce qu'on a réellement démontré :
+  - Phase 1 (`test_u03_equivalence_general_qkv`) : le **bloc d'attention
+    seul** (`HermitianSelfAttention`) est exactement un pas de Hopfield
+    (`hopfield_step`), pour `Q`, `K`, `V` quelconques.
+  - 2026-09-18 : la **couche complète** (attention+FFN+2 Norm+résiduelles,
+    `HermitianBertLayer`) reproduit BERT classique à `Im=0` — un test de
+    *portage*, pas un test d'*équivalence Hopfield*.
+  Ces deux résultats ne se recouvrent pas : `HermitianFFN` et
+  `HermitianRMSNorm`/`HermitianLayerNorm` ont été conçus sur d'autres
+  critères (préservation de phase, compatibilité de portage), **jamais
+  vérifiés vis-à-vis du cadre Hopfield**. Rien ne garantit que la couche
+  complète — résiduelle + norme + FFN autour du pas de Hopfield — reste
+  elle-même interprétable comme une dynamique de Hopfield (simple ou
+  généralisée) plutôt que comme un objet mathématique différent. Note :
+  Ramsauer et al. 2020 établissent l'équivalence pour l'**attention
+  seule**, pas pour un bloc transformeur complet avec FFN — donc il n'est
+  même pas évident que la littérature de référence promette cette
+  équivalence au niveau couche complète. À trancher avant de présenter le
+  travail natif comme « un Hopfield hermitien », y compris pour la Phase 3
+  (GLUE) et pour toute citation dans `Simulations_API.md` :
+  1. **Fait (2026-09-18)** : le sous-bloc attention, *isolé* à l'intérieur
+     de `HermitianBertLayer` assemblé et chargé avec de **vrais poids
+     pré-entraînés** (bruit imaginaire non nul, régime complexe réel — pas
+     seulement `Im=0`), reste exactement un pas de Hopfield —
+     `tests/test_weights.py::test_layer_attention_subblock_still_hopfield_equivalent_after_assembly`,
+     vert du premier coup. Ceci confirme que l'assemblage et le portage
+     n'ont pas silencieusement altéré le sous-bloc attention lui-même.
+  2. **Reste ouvert, non répondu par (1)** : (1) ne teste que le
+     sous-bloc, pas la couche complète. Reste à statuer (littérature ou
+     dérivation propre) si la couche complète — résiduelle + norme + FFN
+     autour du pas de Hopfield — admet une fonction d'énergie de Hopfield
+     généralisée dont elle serait le pas de descente, ou à documenter
+     clairement que ce n'est **pas** le cas et que seul le sous-bloc
+     attention porte l'équivalence Hopfield stricto sensu.
 - [ ] **Piste Chladni-Hopfield sur BERT hermitien** (discussion du
   2026-09-18, cf. `contributions/claude/annexe_chladni_hopfield_v3.md`
   et `contributions/claude/Revue_Claude_Analogie_Fig_Chaldni`) : hypothèse
@@ -37,84 +77,6 @@
   hors modèle Hopfield standard) pour discriminer non-classicité locale vs
   relationnelle ; étendre le protocole confirmatoire à `Q_i` agrégé (fait
   uniquement sur `Q_global` cette fois) et/ou à d'autres `nN` si jugé utile.
-- [ ] **Conception non prévue (échelle native)** : `SW_Design.md` ne
-  couvre que `ComplexLinear`, `HermitianSelfAttention`, l'équivalence
-  Hopfield et `WeightProjector` — rien n'est encore conçu pour le FFN
-  complexe, les `LayerNorm` complexes, les embeddings, ni l'empilement
-  multi-couches d'un `HermitianBertModel` complet, **à l'échelle native
-  `d_model`** (portage direct de poids, pipeline Phase 3/4/5). Repéré le
-  2026-08-14 en scopant le test I-01 : décidé avec Bertrand de limiter
-  I-01 au bloc d'attention seul pour l'instant — la question de
-  l'architecture complète reste ouverte et devra être tranchée avant toute
-  comparaison GLUE bout-en-bout (Phase 3).
-
-  **Correction du 2026-09-18 (avant tout codage) :** la piste FFN notée
-  précédemment ici — résonance directe `H' = φ(W₂(W₁HW₁†)W₂†)`, issue de
-  `contributions/gémini/Evolution_BERT_suite` — **ne s'applique pas à
-  notre architecture**. Cette formule suppose que chaque token soit
-  représenté par une **matrice** hermitienne `H` (le nœud « 32×32 » de
-  Gémini, l'architecture à compression qu'on a explicitement écartée du
-  pipeline natif, cf. section « Recherche — Compression hermitienne »
-  ci-dessous). Notre `HermitianSelfAttention` représente chaque token par
-  un **vecteur** `z ∈ C^{d_model}` — `W₁HW₁†` n'a pas de sens pour un
-  vecteur. Même problème pour la normalisation de trace (`N(H)=H/Tr(H)+ε`),
-  également définie pour une matrice.
-
-  **FFN natif retenu (validé avec Bertrand, 2026-09-18)** — proposition
-  cohérente avec l'architecture vectorielle et avec le principe déjà
-  établi ailleurs dans le projet (la phase porte le déphasage, ne pas la
-  triturer arbitrairement — cf. softmax sur `Re(S)` seul dans
-  `HermitianSelfAttention`) :
-  ```
-  FFN(z) = ComplexLinear₂( g(ComplexLinear₁(z)) )
-  g(z) = GELU(|z|) · z/|z|     # gate réel sur le module, phase préservée exactement
-  ```
-  Analogue direct du "modReLU" de la littérature sur les réseaux de
-  neurones complexes (Arjovsky et al. 2016, Trabelsi et al. 2018) — pas
-  une construction inventée pour l'occasion. L'alternative naïve (GELU
-  séparé sur Re et Im) tournerait la phase de façon incontrôlée à chaque
-  couche, ce qui contredirait le principe déjà établi. **Implémenté et
-  testé (2026-09-18)** : `src/hermitian/gating.py`, `src/hermitian/ffn.py`,
-  `tests/test_hermitian_ffn_norm.py` — préservation de phase vérifiée à la
-  main (cas N=2) et sur cas aléatoires.
-
-  **`LayerNorm` natif : deux variantes gardées en parallèle (2026-09-18)**
-  — `HermitianRMSNorm` (préserve la phase, pas de portage exact possible)
-  et `HermitianLayerNorm` (centrage complet, portage-compatible, ne
-  préserve pas la phase). Question de Bertrand sur le rôle du centrage
-  pour la discrimination tranchée empiriquement
-  (`scripts/compare_normalizations.py`) : le centrage n'est pas une perte
-  générale de discernement, il annule spécifiquement la sensibilité à un
-  décalage uniforme partagé par toutes les dimensions, sans affecter la
-  discrimination sur les autres directions (cf. `docs/SW_Design.md` pour
-  la table de résultats). Reste non tranché : effet réel du centrage sur
-  l'attention avec poids pré-entraînés (biais partagé gonflant `Q·K`) —
-  hypothèse plausible, pas encore testée. `src/hermitian/norm.py`, testé
-  (préservation/non-préservation de phase, portage exact à `Im=0`, cas
-  N=2, invariant de discrimination).
-
-  **Empilement multi-couches fait et testé (2026-09-18)** —
-  `HermitianBertLayer`/`HermitianBertModel` (`src/hermitian/layer.py`),
-  Post-LN comme BERT classique, `HermitianRMSNorm` par défaut (préservation
-  de la phase — corrigé après une première version qui mettait
-  `HermitianLayerNorm` par défaut sans validation de Bertrand ; l'expérience
-  de discrimination ne montrant aucun désavantage pour RMSNorm, rien ne
-  justifiait de s'écarter du principe directeur). `HermitianLayerNorm`
-  reste disponible (`norm_cls` paramétrable), réservée à la vérification
-  de portage. Tests structurels verts (forme, finitude, absence de fuite
-  Re→Im).
-
-  **`WeightProjector` étendu au FFN/LayerNorm, I-01 étendu vert
-  (2026-09-18)** — `project_bert_ffn`, `project_bert_layer_norm` (exige
-  `HermitianLayerNorm`), `project_bert_layer` (couche complète). Couche
-  `HermitianBertLayer` entière (attention+FFN+2 LayerNorm, résiduelles),
-  `Im=0` ⇒ identique à `BertLayer` HuggingFace complet, vert du premier
-  coup (`tests/test_weights.py::test_i01_extended_full_layer_matches_classic_bert`).
-
-  **Reste à faire pour clore ce point d'architecture** : embeddings
-  (même schéma — Re=table HF, Im=bruit —, pas de nouvelle conception
-  requise) ; portage au niveau `HermitianBertModel` (empilement complet,
-  boucler `project_bert_layer` sur toutes les couches).
 - [ ] **Recherche séparée — compression hermitienne pour portage mobile**
   (cf. `docs/DevPlan.md`, section dédiée) : objectif et protocole posés
   avec Bertrand le 2026-08-14 (`d² ≪ 768`, comparaison à budget de réels
@@ -132,6 +94,21 @@
 
 ## Historique (items résolus)
 
+- [x] **Architecture native (échelle `d_model`) — portage complet BERT↔Hermitien**
+  (2026-09-18) : `HermitianFFN`/`gating.py` (gate `g(z)=z·Φ(Re(z))`,
+  corrigé en BUG-003 — la première version sur `|z|` ne se réduisait pas
+  à `GELU` réel), `HermitianRMSNorm`/`HermitianLayerNorm` (deux variantes,
+  `RMSNorm` par défaut — préservation de phase —, `LayerNorm` réservée à
+  la vérification de portage), `HermitianBertLayer`/`HermitianBertModel`
+  (empilement Post-LN), `HermitianEmbeddings`. `WeightProjector` étendu à
+  l'ensemble (`project_bert_ffn/_layer_norm/_layer/_model/_embeddings`).
+  I-01 étendu vert à toutes les échelles (couche, empilement, modèle
+  complet embeddings+encodeur) — `Im=0` reproduit `BertModel` HuggingFace
+  exactement, du premier coup à chaque niveau. **Réserve importante
+  soulevée par Bertrand (2026-09-18), non résolue** : voir le nouveau
+  point ouvert ci-dessus sur l'équivalence Hopfield de la couche complète
+  (FFN+Norm non vérifiés vis-à-vis du cadre Hopfield, seule l'attention
+  seule l'a été en Phase 1).
 - [x] Phase 1 — `ComplexLinear`, `HermitianSelfAttention`, module d'équivalence
   Hopfield 1-pas (`src/hermitian/`, `src/hopfield/`), tests U-01 à U-04 verts
   (`tests/`). 2026-08-14.

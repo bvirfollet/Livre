@@ -178,13 +178,25 @@ empile `num_layers` couches indépendantes (poids propres par couche,
 comme BERT).
 **Fichier :** `src/hermitian/layer.py`.
 **Statut :** implémenté et testé structurellement (forme, finitude,
-absence de fuite Re→Im quand rien n'en introduit). **Portage de poids
-réel testé et vert (2026-09-18, I-01 étendu)** : couche complète
-(attention+FFN+2 LayerNorm, résiduelles incluses) avec
-`norm_cls=HermitianLayerNorm`, `Im=0` ⇒ sortie identique à `BertLayer`
-HuggingFace complet, du premier coup (`tests/test_weights.py::test_i01_extended_full_layer_matches_classic_bert`).
-Portage au niveau `HermitianBertModel` (empilement) et aux embeddings pas
-encore fait.
+absence de fuite Re→Im quand rien n'en introduit). **Portage de poids réel
+testé et vert à toutes les échelles (2026-09-18, I-01 étendu)** : couche
+seule, empilement `HermitianBertModel` complet, et modèle entier
+(embeddings + empilement) — `Im=0` ⇒ sortie identique à `BertModel`
+HuggingFace complet (`embeddings` + `encoder`, sans pooler — non porté),
+vert du premier coup à chaque niveau
+(`tests/test_weights.py::test_i01_extended_full_layer_matches_classic_bert`,
+`test_i01_embeddings_match_classic_bert`,
+`test_i01_extended_full_model_matches_classic_bert`).
+
+### HermitianEmbeddings (échelle native)
+
+**Rôle :** embeddings word+position+token_type, sommés puis normalisés
+(structure identique à `BertEmbeddings`), `Re`/`Im` séparés comme le reste
+du portage. `norm_cls=HermitianRMSNorm` par défaut (cohérent avec
+`HermitianBertLayer`), `HermitianLayerNorm` pour la vérification de
+portage.
+**Fichier :** `src/hermitian/embeddings.py`.
+**Statut :** implémenté et testé (structurel + portage exact, 2026-09-18).
 
 ### WeightProjector
 
@@ -192,16 +204,18 @@ encore fait.
 correspondants, partie imaginaire initialisée par bruit gaussien
 (`imag_std`, 0.0 pour les tests de régression I-01).
 **Portée initiale (2026-08-14) :** bloc d'attention seul.
-**Étendue le 2026-09-18** : couvre maintenant le FFN et les `LayerNorm`,
-donc une couche `BertLayer` complète — une fois FFN/LayerNorm/empilement
-conçus (cf. `docs/TODO.md`). Reste hors scope : les embeddings.
+**Étendue le 2026-09-18** : couvre maintenant l'ensemble — FFN,
+`LayerNorm`, couche complète, empilement, embeddings. Le modèle BERT
+complet (hors pooler) peut être porté et reproduit exactement à `Im=0`.
 **Fichier :** `src/weights/projector.py`
 **Interfaces :** `project_bert_attention(hermitian_attn, hf_attention, imag_std=0.0)`,
 `project_bert_ffn(hermitian_ffn, hf_layer, imag_std=0.0)`,
 `project_bert_layer_norm(hermitian_norm, hf_layer_norm, imag_std=0.0)`
 (exige une `HermitianLayerNorm`, pas `HermitianRMSNorm`),
 `project_bert_layer(hermitian_layer, hf_layer, imag_std=0.0)` (couche
-complète).
+complète), `project_bert_model(hermitian_model, hf_model, imag_std=0.0)`
+(boucle sur toutes les couches), `project_bert_embeddings(hermitian_embeddings,
+hf_embeddings, imag_std=0.0)`.
 **Charger le modèle source via `BertModel.from_pretrained` explicitement,
 pas `AutoModel`** : certains checkpoints anciens (`prajjwal1/bert-tiny`)
 ont un `config.json` sans `model_type`, incompatible avec `Auto*` sous

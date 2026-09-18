@@ -46,15 +46,16 @@ signale un vrai bug, pas du bruit numérique.
 
 **Portée initiale actée avec Bertrand le 2026-08-14 :** bloc d'attention
 seul (`BertAttention` HuggingFace = self-attention + `output.dense`).
-**Étendue le 2026-09-18** à la couche complète (I-01 étendu, ci-dessous)
-une fois FFN/LayerNorm/empilement conçus — reste hors scope : les
-embeddings et le portage au niveau `HermitianBertModel` (empilement),
-cf. `docs/TODO.md`.
+**Étendue le 2026-09-18** à la couche complète, à l'empilement
+(`HermitianBertModel`) et aux embeddings — le modèle BERT complet (hors
+pooler, non porté) est maintenant couvert.
 
 | ID | Précondition | Action | Résultat attendu | Résultat obtenu |
 |---|---|---|---|---|
 | I-01 | `HermitianSelfAttention` instancié, poids projetés via `WeightProjector` depuis un `BertAttention` HuggingFace, partie imaginaire forcée à 0 (`imag_std=0.0`) | Forward sur un batch aléatoire, comparé à `hf_attention.output.dense(hf_attention.self(x)[0])` (bypass LayerNorm/résiduelle, absentes du module) | Sortie réelle ≈ sortie HuggingFace à `atol=1e-5`/`rtol=1e-4` ; sortie imaginaire exactement nulle | **Vert** (`prajjwal1/bert-tiny`, `tests/test_weights.py`) — diff max observée ~1e-6 |
-| I-01 étendu | `HermitianBertLayer` complet (`norm_cls=HermitianLayerNorm`, `norm_eps` aligné sur `config.layer_norm_eps`), poids projetés via `project_bert_layer` depuis un `BertLayer` HuggingFace complet, `Im=0` | Forward sur un batch aléatoire, comparé à `hf_layer(x)` (couche complète, résiduelles + 2 LayerNorm inclus) | Sortie réelle ≈ sortie HuggingFace à `atol=1e-5`/`rtol=1e-4` ; sortie imaginaire exactement nulle | **Vert** (2026-09-18, `prajjwal1/bert-tiny`, `tests/test_weights.py::test_i01_extended_full_layer_matches_classic_bert`) — vert du premier coup |
+| I-01 étendu (couche) | `HermitianBertLayer` complet (`norm_cls=HermitianLayerNorm`, `norm_eps` aligné sur `config.layer_norm_eps`), poids projetés via `project_bert_layer` depuis un `BertLayer` HuggingFace complet, `Im=0` | Forward sur un batch aléatoire, comparé à `hf_layer(x)` (couche complète, résiduelles + 2 LayerNorm inclus) | Sortie réelle ≈ sortie HuggingFace à `atol=1e-5`/`rtol=1e-4` ; sortie imaginaire exactement nulle | **Vert** (2026-09-18, `tests/test_weights.py::test_i01_extended_full_layer_matches_classic_bert`) — vert du premier coup |
+| I-01 étendu (embeddings) | `HermitianEmbeddings` (`norm_cls=HermitianLayerNorm`), poids projetés via `project_bert_embeddings`, `Im=0` | Forward sur des `input_ids` aléatoires, comparé à `hf_embeddings(input_ids)` | Sortie réelle ≈ sortie HuggingFace ; sortie imaginaire exactement nulle | **Vert** (2026-09-18, `tests/test_weights.py::test_i01_embeddings_match_classic_bert`) |
+| I-01 étendu (modèle complet) | `HermitianEmbeddings` + `HermitianBertModel` (empilement complet, `norm_cls=HermitianLayerNorm`), poids projetés via `project_bert_embeddings`+`project_bert_model`, `Im=0` | Forward `input_ids → embeddings → empilement`, comparé à `hf_model.embeddings(input_ids)` puis `hf_model.encoder(...)` (sans pooler, non porté) | Sortie réelle ≈ sortie HuggingFace ; sortie imaginaire exactement nulle | **Vert** (2026-09-18, `tests/test_weights.py::test_i01_extended_full_model_matches_classic_bert`) — vert du premier coup, aucun bug résiduel |
 
 ## Tests d'intégration — effet architectural GLUE (Phase 3)
 
