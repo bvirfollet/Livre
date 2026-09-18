@@ -104,12 +104,17 @@
   de portage. Tests structurels verts (forme, finitude, absence de fuite
   Re→Im).
 
+  **`WeightProjector` étendu au FFN/LayerNorm, I-01 étendu vert
+  (2026-09-18)** — `project_bert_ffn`, `project_bert_layer_norm` (exige
+  `HermitianLayerNorm`), `project_bert_layer` (couche complète). Couche
+  `HermitianBertLayer` entière (attention+FFN+2 LayerNorm, résiduelles),
+  `Im=0` ⇒ identique à `BertLayer` HuggingFace complet, vert du premier
+  coup (`tests/test_weights.py::test_i01_extended_full_layer_matches_classic_bert`).
+
   **Reste à faire pour clore ce point d'architecture** : embeddings
-  (même schéma que `WeightProjector` — Re=table HF, Im=bruit —, pas de
-  nouvelle conception requise) ; **étendre `WeightProjector` au FFN**
-  (`intermediate.dense`/`output.dense` de BERT — non fait, seul le bloc
-  d'attention est couvert) avant de pouvoir étendre le test I-01 à la
-  couche complète puis au modèle empilé.
+  (même schéma — Re=table HF, Im=bruit —, pas de nouvelle conception
+  requise) ; portage au niveau `HermitianBertModel` (empilement complet,
+  boucler `project_bert_layer` sur toutes les couches).
 - [ ] **Recherche séparée — compression hermitienne pour portage mobile**
   (cf. `docs/DevPlan.md`, section dédiée) : objectif et protocole posés
   avec Bertrand le 2026-08-14 (`d² ≪ 768`, comparaison à budget de réels
