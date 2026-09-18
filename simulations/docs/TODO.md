@@ -75,12 +75,18 @@
   (préservation/non-préservation de phase, portage exact à `Im=0`, cas
   N=2, invariant de discrimination).
 
-  **Reste à faire pour clore ce point d'architecture** : empilement
-  multi-couches (`HermitianBertLayer`/`HermitianBertModel` — choisir entre
-  RMSNorm et LayerNorm, ou garder les deux comme option), embeddings
+  **Empilement multi-couches fait et testé (2026-09-18)** —
+  `HermitianBertLayer`/`HermitianBertModel` (`src/hermitian/layer.py`),
+  Post-LN comme BERT classique, `HermitianLayerNorm` par défaut
+  (`norm_cls` paramétrable, `HermitianRMSNorm` en option). Tests
+  structurels verts (forme, finitude, absence de fuite Re→Im).
+
+  **Reste à faire pour clore ce point d'architecture** : embeddings
   (même schéma que `WeightProjector` — Re=table HF, Im=bruit —, pas de
-  nouvelle conception requise), extension du test I-01 à la couche
-  complète puis au modèle empilé.
+  nouvelle conception requise) ; **étendre `WeightProjector` au FFN**
+  (`intermediate.dense`/`output.dense` de BERT — non fait, seul le bloc
+  d'attention est couvert) avant de pouvoir étendre le test I-01 à la
+  couche complète puis au modèle empilé.
 - [ ] **Recherche séparée — compression hermitienne pour portage mobile**
   (cf. `docs/DevPlan.md`, section dédiée) : objectif et protocole posés
   avec Bertrand le 2026-08-14 (`d² ≪ 768`, comparaison à budget de réels

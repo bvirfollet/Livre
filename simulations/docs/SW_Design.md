@@ -152,6 +152,25 @@ comparaison ci-dessus.
 **Fichier :** `src/hermitian/norm.py`.
 **Statut :** implémenté et testé (2026-09-18).
 
+### HermitianBertLayer / HermitianBertModel (échelle native)
+
+**Rôle :** empilement Post-LN identique à BERT classique (pour rester
+portage-compatible) :
+```
+x1 = Norm(x + Attention(x))
+x2 = Norm(x1 + FFN(x1))
+```
+`HermitianLayerNorm` par défaut (`norm_cls`, portage-compatible, cohérent
+avec l'objectif déclaré du projet — hériter des poids pré-entraînés) ;
+`HermitianRMSNorm` disponible en alternative. `HermitianBertModel` empile
+`num_layers` couches indépendantes (poids propres par couche, comme BERT).
+**Fichier :** `src/hermitian/layer.py`.
+**Statut :** implémenté et testé structurellement (forme, finitude,
+absence de fuite Re→Im quand rien n'en introduit) — **portage de poids
+réel non testé à ce niveau** : `WeightProjector` ne couvre encore que le
+bloc d'attention (I-01), pas le FFN. Extension nécessaire avant tout test
+de portage à l'échelle couche/modèle complet (cf. `docs/TODO.md`).
+
 ### WeightProjector
 
 **Rôle :** copie les poids d'un bloc `BertAttention` HuggingFace
