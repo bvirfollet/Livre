@@ -481,7 +481,51 @@ reste du projet — pas un nouveau seuil ad hoc).
 python scripts/run_superposition_confirmatory.py --n-nodes 3 10 --n-realizations 30
 ```
 
-**Résultat : à venir dans la prochaine entrée de ce fichier.**
+**Résultat (2026-09-18, `docs/results/confirmatory_run_2026-09-18.json`) :**
+
+| nN | tirages testés (`M≤200000`) | dont succès (5σ) | échecs « M requis > plafond » | `k_succès/30` | `p_value` |
+|---|---|---|---|---|---|
+| 3 | 20 | 17 | 10 (33 %) | 17/30 | 7,13×10⁻¹⁰⁴ |
+| 10 | 25 | 24 | 5 (17 %) | 24/30 | 5,63×10⁻¹⁵² |
+
+Les deux `p_value` sont infiniment en-dessous du seuil pré-enregistré
+(`p_null≈2,87×10⁻⁷`) — décision : **rejet net de l'hypothèse nulle
+« taux de violation nul » pour `nN=3` et `nN=10`.** Même en comptant les
+tirages « `M` requis `>200000` » comme des échecs purs (traitement
+conservateur), le résultat reste écrasant.
+
+**Le taux d'échecs « M trop grand » plus élevé à `nN=3` (33 % contre
+17 % à `nN=10`) n'est pas une observation nouvelle — c'est la
+confirmation quantitative de l'exploration à 50 tirages déjà documentée
+ci-dessus** : l'écart-type de `K3_global` y était déjà plus élevé pour
+`nN=3` (0,164) que pour `nN=10` (0,132), signe d'une distribution plus
+étalée avec davantage de tirages proches de la frontière classique.
+Comme `M` requis varie en `1/Δ²`, un écart-type modérément plus grand se
+traduit mécaniquement par une proportion nettement plus élevée de tirages
+à marge quasi nulle, donc invérifiables dans le budget de calcul fixé.
+Le lien entre les deux observations (variance plus grande ↔ plus
+d'échecs de vérification) est donc attendu et cohérent, pas une
+coïncidence à expliquer séparément.
+
+**Ce que ce résultat établit, précisément, et ce qu'il n'établit pas** :
+il démontre qu'un taux de violation de la borne de Leggett-Garg
+significativement non nul, sur des tirages de motifs frais et un
+protocole entièrement pré-enregistré, est statistiquement incompatible
+avec l'absence totale de l'effet — pour `nN=3` et `nN=10`, dans ce modèle
+spécifique (phasor scalaire, `W` à deux motifs, régime unitaire cohérent).
+Comme signalé avant de lancer ce run : la contribution principale de
+cette étape est méthodologique (construire correctement le calcul du
+seuil `M` par tirage et du test binomial calibré), pas une nouvelle
+affirmation physique — le résultat confirme la présence répétée de
+violations déjà vues dans l'exploration précédente, il ne l'étend pas
+qualitativement.
+
+**Décision (Producteur) : condition de citation remplie.** Contrairement
+aux deux étapes précédentes, celle-ci est un protocole confirmatoire
+complet (pré-enregistré avant le run, seeds fraîches, seuil fixé à
+l'avance, résultat comparé sans ajustement). Proposition d'entrée pour
+`docs/Simulations_API.md` soumise à Bertrand avant commit — pas encore
+committée à ce stade.
 
 ### Recherche — Compression hermitienne pour portage mobile
 
