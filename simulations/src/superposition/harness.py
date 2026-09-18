@@ -205,6 +205,28 @@ def significance_sigma(k3: float, standard_error: float, bound: float = CLASSICA
     return excess / standard_error
 
 
+def one_sided_normal_tail_probability(z: float) -> float:
+    """`P(Z ≥ z)` pour `Z~N(0,1)` (approximation par la fonction d'erreur
+    complémentaire). Sert à calibrer `p_null` du test binomial confirmatoire
+    (cf. `binomial_test_pvalue`) : le taux de faux positif d'un test à `z`
+    erreurs standard, sous l'hypothèse nulle exacte."""
+    return 0.5 * math.erfc(z / math.sqrt(2.0))
+
+
+def binomial_test_pvalue(k_successes: int, n_trials: int, p_null: float) -> float:
+    """`P(X ≥ k_successes)` pour `X~Binomial(n_trials, p_null)` — p-value
+    unilatérale du test confirmatoire (cf. `docs/DevPlan.md`, protocole
+    pré-enregistré). Calcul exact (somme des masses, `n_trials` petit ici),
+    pas une approximation.
+    """
+    if not (0 <= k_successes <= n_trials):
+        raise ValueError("k_successes doit être entre 0 et n_trials")
+    return sum(
+        math.comb(n_trials, i) * (p_null**i) * ((1.0 - p_null) ** (n_trials - i))
+        for i in range(k_successes, n_trials + 1)
+    )
+
+
 def required_m_for_significance(delta: float, n_s: int = 3, z_target: float = 5.0) -> int:
     """`M` par corrélation nécessaire pour séparer la marge `delta`
     (violation attendue − borne classique) de `z_target` erreurs standard,

@@ -23,8 +23,10 @@ from src.superposition.harness import (
     CLASSICAL_BOUND_K3,
     QUANTUM_BOUND_K3,
     aggregated_local_k3,
+    binomial_test_pvalue,
     exact_leggett_garg_k3,
     leggett_garg_k3,
+    one_sided_normal_tail_probability,
     required_m_for_significance,
     significance_sigma,
 )
@@ -110,6 +112,24 @@ def test_required_m_for_significance_matches_hand_calculation():
     """Cas nS=3, delta=0.5 (marge théorique maximale) : M ≥ 25*3/0.25 = 300,
     valeur qui a servi à fixer le M=300 initial (cf. docs/DevPlan.md)."""
     assert required_m_for_significance(delta=0.5, n_s=3, z_target=5.0) == 300
+
+
+def test_one_sided_normal_tail_probability_known_values():
+    """Valeurs de référence usuelles : 1,96σ ≈ 2,5% (unilatéral), 5σ ≈ 2,87e-7."""
+    assert math.isclose(one_sided_normal_tail_probability(1.959964), 0.025, rel_tol=1e-3)
+    assert math.isclose(one_sided_normal_tail_probability(5.0), 2.867e-7, rel_tol=1e-2)
+
+
+def test_binomial_test_pvalue_sanity():
+    """k=0 succès sur n essais : p-value = 1 (aucune preuve contre le null).
+    Avec p_null minuscule, k≥1 succès sur n=30 rejette déjà très fortement."""
+    assert math.isclose(binomial_test_pvalue(0, 30, p_null=1e-7), 1.0, rel_tol=1e-6)
+
+    p_null = one_sided_normal_tail_probability(5.0)  # ≈2.87e-7
+    p_value_one_hit = binomial_test_pvalue(1, 30, p_null=p_null)
+    # ≈ 1 - (1-p)^30 ≈ 30*p pour p très petit
+    assert math.isclose(p_value_one_hit, 30 * p_null, rel_tol=1e-2)
+    assert p_value_one_hit < 1e-4
 
 
 def test_significance_sigma_sanity():

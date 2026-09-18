@@ -5,6 +5,7 @@ import torch
 
 from src.superposition.experiment import (
     generate_patterns,
+    run_confirmatory_binomial_test,
     run_multi_realization_exact,
     run_nN_protocol,
 )
@@ -39,6 +40,19 @@ def test_run_multi_realization_exact_shape_and_no_seed_collision():
 
     for r in results_a:
         assert "k3_global" in r and "k3_local" in r
+
+
+def test_run_confirmatory_binomial_test_smoke_small_n():
+    """Vérifie la forme du résultat sur un petit nombre de tirages (le test
+    complet réel utilise n_realizations plus grand, cf. docs/DevPlan.md)."""
+    result = run_confirmatory_binomial_test(n_nodes=3, n_realizations=3, sigma_target=5.0)
+    assert result["n_nodes"] == 3
+    assert result["n_realizations"] == 3
+    assert len(result["per_draw"]) == 3
+    assert 0 <= result["k_successes"] <= 3
+    assert 0.0 <= result["p_value"] <= 1.0
+    # p_null doit être minuscule (taux de faux positif à 5σ)
+    assert result["p_null"] < 1e-5
 
 
 def test_run_nN_protocol_smoke_small_m():

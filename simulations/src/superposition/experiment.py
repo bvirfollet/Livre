@@ -21,9 +21,12 @@ import torch
 from .harness import (
     CLASSICAL_BOUND_K3,
     aggregated_local_k3,
+    binomial_test_pvalue,
     exact_aggregated_local_k3,
     exact_leggett_garg_k3,
     leggett_garg_k3,
+    one_sided_normal_tail_probability,
+    required_m_for_significance,
     significance_sigma,
 )
 from .measurement import dichotomic_projectors
@@ -132,3 +135,88 @@ def run_multi_realization_exact(
         exact_realization(n_nodes, pattern_seed=seed_start + n_nodes * 1000 + i, dt=dt)
         for i in range(n_realizations)
     ]
+
+
+def run_confirmatory_binomial_test(
+    n_nodes: int,
+    n_realizations: int,
+    dt: float = DT,
+    sigma_target: float = 5.0,
+    seed_start: int = 90000,
+    max_m: int = 200_000,
+) -> dict:
+    """Protocole confirmatoire pré-enregistré (cf. `docs/DevPlan.md`) :
+    `n_realizations` tirages de motifs **frais** (seeds `seed_start +
+    n_nodes*1000 + i`, namespace distinct de `run_nN_protocol` — 1000/2000/
+    3000 — et de `run_multi_realization_exact` — 50000 —, aucun
+    recoupement).
+
+    Pour chaque tirage : `M` dimensionné via `required_m_for_significance`
+    à partir de la marge **exacte** de ce tirage (déterministe, calculée
+    avant toute mesure stochastique), puis test `Q_global` complet ; succès
+    si `sigma ≥ sigma_target`. Deux cas d'échec par construction, sans
+    lancer de Monte-Carlo (fixés *avant* le run, pas un choix fait en
+    cours de route) :
+    - `delta≤0` (aucune violation exacte) : aucun `M` fini n'y changerait
+      rien.
+    - `M` requis `> max_m` (plafond de budget de calcul pré-enregistré) :
+      la marge existe mais est si ténue que la confirmer coûterait un
+      temps de calcul déraisonnable — compté comme échec, pas comme un
+      succès qu'on n'aurait pas les moyens de vérifier.
+
+    `p_null` du test binomial final = taux de faux positif réel du critère
+    « `sigma_target` par tirage » sous l'hypothèse nulle stricte (pas une
+    valeur choisie arbitrairement) — cf. `one_sided_normal_tail_probability`.
+    """
+    p_null = one_sided_normal_tail_probability(sigma_target)
+    per_draw = []
+
+    for i in range(n_realizations):
+        pattern_seed = seed_start + n_nodes * 1000 + i
+        pattern1, pattern2 = generate_patterns(n_nodes, seed=pattern_seed)
+        w = build_two_pattern_weights(pattern1, pattern2, zero_diagonal=True)
+        z0 = pattern1 + pattern2
+        z0 = z0 / z0.norm()
+        axis_global = global_axis(pattern1, pattern2)
+        p_plus, p_minus = dichotomic_projectors(axis_global)
+
+        k3_exact = exact_leggett_garg_k3(z0, w, p_plus, p_minus, dt)
+        delta = abs(abs(k3_exact) - CLASSICAL_BOUND_K3)
+
+        if delta <= 0:
+            per_draw.append({"pattern_seed": pattern_seed, "k3_exact": k3_exact, "m": None, "sigma": 0.0, "success": False, "reason": "delta<=0"})
+            continue
+
+        m_required = required_m_for_significance(delta, n_s=3, z_target=sigma_target)
+        if m_required > max_m:
+            per_draw.append({"pattern_seed": pattern_seed, "k3_exact": k3_exact, "m": m_required, "sigma": None, "success": False, "reason": "m_required>max_m"})
+            continue
+
+        mc_seed = seed_start + n_nodes * 1000 + 500000 + i  # namespace distinct des seeds de motifs
+        result = leggett_garg_k3(
+            z0, w, p_plus, p_minus, dt, m_required,
+            generator=torch.Generator().manual_seed(mc_seed),
+        )
+        sigma = significance_sigma(result["k3"], result["standard_error"])
+        per_draw.append({
+            "pattern_seed": pattern_seed,
+            "k3_exact": k3_exact,
+            "m": m_required,
+            "k3_observed": result["k3"],
+            "sigma": sigma,
+            "success": sigma >= sigma_target,
+        })
+
+    k_successes = sum(1 for r in per_draw if r["success"])
+    p_value = binomial_test_pvalue(k_successes, n_realizations, p_null)
+
+    return {
+        "n_nodes": n_nodes,
+        "n_realizations": n_realizations,
+        "dt": dt,
+        "sigma_target": sigma_target,
+        "p_null": p_null,
+        "k_successes": k_successes,
+        "p_value": p_value,
+        "per_draw": per_draw,
+    }
