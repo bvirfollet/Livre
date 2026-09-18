@@ -77,9 +77,14 @@
 
   **Empilement multi-couches fait et testé (2026-09-18)** —
   `HermitianBertLayer`/`HermitianBertModel` (`src/hermitian/layer.py`),
-  Post-LN comme BERT classique, `HermitianLayerNorm` par défaut
-  (`norm_cls` paramétrable, `HermitianRMSNorm` en option). Tests
-  structurels verts (forme, finitude, absence de fuite Re→Im).
+  Post-LN comme BERT classique, `HermitianRMSNorm` par défaut (préservation
+  de la phase — corrigé après une première version qui mettait
+  `HermitianLayerNorm` par défaut sans validation de Bertrand ; l'expérience
+  de discrimination ne montrant aucun désavantage pour RMSNorm, rien ne
+  justifiait de s'écarter du principe directeur). `HermitianLayerNorm`
+  reste disponible (`norm_cls` paramétrable), réservée à la vérification
+  de portage. Tests structurels verts (forme, finitude, absence de fuite
+  Re→Im).
 
   **Reste à faire pour clore ce point d'architecture** : embeddings
   (même schéma que `WeightProjector` — Re=table HF, Im=bruit —, pas de

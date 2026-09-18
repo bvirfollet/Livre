@@ -154,16 +154,24 @@ comparaison ci-dessus.
 
 ### HermitianBertLayer / HermitianBertModel (échelle native)
 
-**Rôle :** empilement Post-LN identique à BERT classique (pour rester
-portage-compatible) :
+**Rôle :** empilement Post-LN identique à BERT classique :
 ```
 x1 = Norm(x + Attention(x))
 x2 = Norm(x1 + FFN(x1))
 ```
-`HermitianLayerNorm` par défaut (`norm_cls`, portage-compatible, cohérent
-avec l'objectif déclaré du projet — hériter des poids pré-entraînés) ;
-`HermitianRMSNorm` disponible en alternative. `HermitianBertModel` empile
-`num_layers` couches indépendantes (poids propres par couche, comme BERT).
+**Correction du 2026-09-18** : `HermitianRMSNorm` par défaut (`norm_cls`)
+— préservation de la phase, principe directeur explicite de tout ce
+travail (cf. `HermitianFFN`), confirmé par l'expérience de discrimination
+ci-dessus (RMSNorm ne montre aucun désavantage face à LayerNorm, elle est
+même plus discriminante sur l'axe DC). Une version précédente de ce
+document faisait de `HermitianLayerNorm` le défaut au nom de la
+compatibilité de portage — un raisonnement que Bertrand n'avait pas
+validé (il avait accepté LayerNorm « en parallèle pour le temps de ces
+tests », pas comme défaut définitif). `HermitianLayerNorm` reste
+disponible via `norm_cls`, réservée à la vérification de portage de poids
+(I-01 étendu), pas à l'architecture principale. `HermitianBertModel`
+empile `num_layers` couches indépendantes (poids propres par couche,
+comme BERT).
 **Fichier :** `src/hermitian/layer.py`.
 **Statut :** implémenté et testé structurellement (forme, finitude,
 absence de fuite Re→Im quand rien n'en introduit) — **portage de poids
