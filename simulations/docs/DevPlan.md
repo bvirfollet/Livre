@@ -434,10 +434,8 @@ ci-dessus.
   `Simulations_API.md`, il faudrait pré-enregistrer un test formel (ex. un
   test binomial sur le taux de violation à 5σ par tirage, sur un nombre de
   tirages et un seuil fixés avant de lancer), pas encore fait.
-- [ ] docs: mise à jour `Simulations_API.md` — **non fait**, exploration
-  encourageante (limite 2 largement affaiblie) mais protocole confirmatoire
-  formel (test binomial pré-enregistré sur le taux de violation) pas
-  encore défini ni lancé — *voir protocole ci-dessous, défini le 2026-09-13*
+- [x] docs: mise à jour `Simulations_API.md` — **fait le 2026-09-18**,
+  cf. protocole confirmatoire et résultat ci-dessous
 
 #### Protocole confirmatoire pré-enregistré (2026-09-13)
 
@@ -523,9 +521,13 @@ qualitativement.
 **Décision (Producteur) : condition de citation remplie.** Contrairement
 aux deux étapes précédentes, celle-ci est un protocole confirmatoire
 complet (pré-enregistré avant le run, seeds fraîches, seuil fixé à
-l'avance, résultat comparé sans ajustement). Proposition d'entrée pour
-`docs/Simulations_API.md` soumise à Bertrand avant commit — pas encore
-committée à ce stade.
+l'avance, résultat comparé sans ajustement). **Entrée committée dans
+`docs/Simulations_API.md` le 2026-09-18** (`contract_version: 2026-09-18-v2`,
+entrée `[PENDING: RadioHumaine]` dans `Simulations_API_CHANGELOG.md`) —
+validée par Bertrand avant commit. Registre choisi délibérément technique
+(notes de travail scientifique) : la prose Stratégie A* pour le lecteur
+du livre reste à écrire depuis une session sur le manuscrit
+`RadioHumaine`, pas depuis `simulations/`.
 
 ### Recherche — Compression hermitienne pour portage mobile
 

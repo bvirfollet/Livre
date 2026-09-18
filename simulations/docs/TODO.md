@@ -14,16 +14,11 @@
 
 ## Priorité normale
 
-- [ ] **Superposition Leggett-Garg — pré-enregistrer et lancer un test
-  confirmatoire formel** (exploration multi-tirages faite, cf. Historique :
-  l'anomalie `nN=3` ne tenait pas — 82 % de violation locale sur 50
-  tirages, comparable à `nN=10`) : reste à définir *avant* de lancer un
-  test statistique propre (ex. binomial sur le taux de violation à 5σ par
-  tirage, nombre de tirages et seuil fixés à l'avance) pour que le
-  résultat soit citable dans `Simulations_API.md` — l'exploration actuelle
-  est encourageante mais pas pré-enregistrée. Piste notée pour plus tard,
-  indépendante : cas `Wᵢᵢ≠0` (self-couplage, hors modèle Hopfield standard)
-  pour discriminer non-classicité locale vs relationnelle.
+- [ ] **Superposition Leggett-Garg — pistes restantes** (protocole
+  confirmatoire fait et cité, cf. Historique) : cas `Wᵢᵢ≠0` (self-couplage,
+  hors modèle Hopfield standard) pour discriminer non-classicité locale vs
+  relationnelle ; étendre le protocole confirmatoire à `Q_i` agrégé (fait
+  uniquement sur `Q_global` cette fois) et/ou à d'autres `nN` si jugé utile.
 - [ ] **Conception non prévue (échelle native)** : `SW_Design.md` ne
   couvre que `ComplexLinear`, `HermitianSelfAttention`, l'équivalence
   Hopfield et `WeightProjector` — rien n'est encore conçu pour le FFN
@@ -89,8 +84,16 @@
   locale en moyenne, comparable à `nN=10`). Hypothèse « solides de Platon
   hermitiens » (référence `Hopfield_Géométrie_Sacrée_atome_Mémoire`)
   explorée et écartée (prémisse disparue + absence de pont mathématique
-  avec la construction actuelle de `W`). Toujours non cité dans
-  `Simulations_API.md` — cf. `docs/DevPlan.md` pour le détail complet et
-  le protocole confirmatoire restant à pré-enregistrer. 2026-09-13.
+  avec la construction actuelle de `W`). 2026-09-13.
+- [x] Superposition Leggett-Garg — **protocole confirmatoire
+  pré-enregistré et lancé** (`run_confirmatory_binomial_test`,
+  `scripts/run_superposition_confirmatory.py`, plafond `M≤200000` ajouté
+  après un hang constaté sur des tirages à marge quasi nulle) : `nN=3`
+  (17/30 succès, `p=7,13×10⁻¹⁰⁴`) et `nN=10` (24/30, `p=5,63×10⁻¹⁵²`), tous
+  deux très en-dessous du seuil pré-enregistré. Résultat archivé
+  (`docs/results/confirmatory_run_2026-09-18.json`) et **cité dans
+  `docs/Simulations_API.md`** (`contract_version: 2026-09-18-v2`, entrée
+  `[PENDING: RadioHumaine]` dans `Simulations_API_CHANGELOG.md`) — premier
+  résultat citable de ce projet. 2026-09-18.
 
 <!-- Format : - [x] YYYY-MM-DD — description (commit: abc1234) -->
