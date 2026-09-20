@@ -727,6 +727,56 @@ automatiquement par l'analogie de descente de gradient contrainte déjà
   robustesse mesuré — pas un pass/fail unique, une courbe.
 - `σ=0` doit reproduire exactement l'étape 1 (garde-fou de cohérence).
 
+#### Résultats — Étapes 1 et 2 (2026-09-20)
+
+**Étape 1 : confirmée sans exception.** `tests/test_hopfield_tying.py::test_u08_tied_dynamics_energy_nonincreasing_k_fixed`
+— sur les 20 graines pré-enregistrées, `E(ξ_{t+1}) ≤ E(ξ_t) + tol` tient à
+chaque pas, du premier coup. Garde-fou de non-vacuité (`σ=5.0` casse bien
+la monotonie sur au moins une graine) également vert. La dynamique
+résiduelle réelle (`ξ + Attention(ξ)` puis rétraction `RMSNorm`, pas
+infinitésimal, pas la règle de remplacement de Ramsauer) fait donc
+décroître `E` empiriquement, malgré la mise en garde méthodologique
+ci-dessus sur l'absence de garantie théorique directe pour cette forme
+précise de mise à jour.
+
+**Étape 2 : rupture nette, pas de dégradation progressive**
+(`scripts/run_tied_energy_sensitivity.py`, résultat archivé dans
+`docs/results/tied_energy_sensitivity_2026-09-20.json`) :
+
+```
+ sigma | fraction monotone
+----------------------------------------
+  0.00 | ################################################## 1.0000
+  0.01 | ############################### 0.6175
+  0.05 | ############################## 0.5925
+  0.10 | ############################## 0.5950
+  0.20 | ############################## 0.5900
+  0.50 | ############################ 0.5675
+  1.00 | ########################### 0.5400
+----------------------------------------
+```
+
+Seuil pré-enregistré (« plus grand `σ` avec fraction `≥95%` ») :
+**`σ=0` uniquement.** La fraction chute de 100 % à ~62 % dès le plus
+petit bruit testé (`σ=0,01`, un centième de l'échelle de `K`), puis se
+stabilise entre 54 % et 60 % sur deux ordres de grandeur de `σ`
+supplémentaires — pas une dégradation continue, un effondrement immédiat
+suivi d'un plateau.
+
+**Lecture, sans équivoque** : la garantie de décroissance d'énergie du
+tying `V=K` est une propriété du point exact, sans marge de tolérance
+mesurable — elle ne survit à aucune perturbation non nulle de `K`, même
+infinitésimale. Conséquence directe pour le choix de variante posé plus
+haut (tying strict vs régularisation souple) : une **régularisation
+souple** (rapprocher `V` de `K` sans les égaler exactement) n'offrirait
+vraisemblablement **aucune garantie d'énergie, même approximative** —
+seul un tying strict (`V:=K` exact, littéral) préserve la propriété
+observée ici. Le rapprochement progressif envisagé initialement comme
+piste d'apprentissage complémentaire (cf. section précédente, point 3)
+n'a donc plus de fondement théorique tel qu'observé empiriquement pour
+la propriété d'énergie — il pourrait rester pertinent pour d'autres
+critères (ex. score de tâche), mais pas pour celui-ci.
+
 **Étape 3 — `K` réévalué à partir de `ξ` (empilement réel, exploratoire,
 Strate 2/3)** :
 - `K_t = k_proj(ξ_t)` (projection apprise, réutilisée en boucle — pas de
