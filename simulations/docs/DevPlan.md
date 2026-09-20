@@ -1053,6 +1053,77 @@ par simple empilement** — chaque nouvelle composition (attention+FFN,
 séparément, elle ne se déduit pas des garanties déjà établies sur les
 parties.
 
+#### Approfondissement (2026-09-20) — nature réelle des violations, structure des bassins, échelle du bruit
+
+**Demande de Bertrand** : reformuler la question en termes de monotonie
+*globale* de l'empilement plutôt que de monotonie stricte pas-à-pas —
+si des bassins locaux se créent par accumulation de couches, ce serait
+un problème mineur tant que la barrière séparant les bassins reste
+faible devant le bruit du signal d'entrée (régime `K_ana` fort) ou
+franchissable par un mécanisme de type effet tunnel (régime `K_ana`
+faible).
+
+**1) Les violations mesurées ne sont pas une barrière entre bassins.**
+Inspection directe des deux trajectoires violantes (seeds 4 et 14) :
+chacune atteint un **minimum**, puis remonte **doucement et
+monotonement** vers sa valeur d'équilibre asymptotique (seed 4 :
+minimum à `t=11` (`E=-101,4448`), puis remontée jusqu'à `E_final=
+-101,4414` ; seed 14 : minimum à `t=6`, remontée similaire). C'est un
+**dépassement (overshoot) à l'intérieur d'un seul bassin**, pas un
+franchissement entre deux — signature typique d'une dynamique linéaire
+**non normale** près du point fixe (le jacobien de la carte combinée
+n'a aucune raison d'être symétrique, puisque l'énergie diagnostique
+n'est une vraie potentielle que pour chaque composante séparément, pas
+pour l'assemblage — croissance transitoire non normale, phénomène
+classique, pas exotique).
+
+**2) Mais la structure multi-bassins existe réellement, à une autre
+échelle.** Test dédié : paysage figé (`K`, `W₁` d'une seule graine),
+60 conditions initiales différentes, 60 pas. Résultat : **17 bassins
+distincts** (regroupement des énergies finales à `±0,5`), avec des
+écarts entre bassins voisins de **0,5 à 3,4** unités — contre une plage
+totale d'environ 30 unités sur cet échantillon. Confirme directement
+l'intuition de Bertrand : l'empilement crée bien des bassins locaux,
+mais peu profonds à l'échelle du paysage global (à ne pas confondre
+avec l'overshoot du point 1, phénomène différent, échelle ~0,01, 50 à
+300 fois plus petit).
+
+**3) Échelle de bruit nécessaire pour franchir ces bassins (test
+direct, pas une extrapolation)** : bruit gaussien frais injecté sur
+l'état à chaque pas, magnitude `σ`, paysage et condition initiale fixes,
+10 tirages de bruit par `σ` :
+
+```
+sigma=0.000  étendue des E_final = 0.000
+sigma=0.001  étendue = 0.020
+sigma=0.005  étendue = 0.120
+sigma=0.010  étendue = 0.230
+sigma=0.020  étendue = 0.470
+sigma=0.050  étendue = 1.140
+sigma=0.100  étendue = 2.210
+```
+
+`RMSNorm` force `‖x‖~1` par token, donc `σ` se lit directement comme
+une fraction du signal. **À `σ≈0,05-0,1` (5-10% du signal), l'étalement
+induit par le bruit (1 à 2 unités) devient du même ordre que les écarts
+inter-bassins mesurés au point 2 (0,5 à 3 unités).** En-dessous de
+`σ≈0,02`, le bruit ne suffit pas à changer de bassin.
+
+**Conclusion, sans sur-interpréter** : l'hypothèse de Bertrand est
+confirmée quantitativement pour le régime `K_ana` fort — un bruit
+d'entrée d'une magnitude réaliste (quelques % du signal) produit une
+exploration entre bassins voisins de l'ordre de grandeur mesuré,
+cohérent avec l'idée qu'une évolution énergique n'y reste pas piégée.
+**Le régime `K_ana` faible / effet tunnel reste, lui, explicitement
+hors de portée de la simulation actuelle** — le système codé ici est
+classique et déterministe ; tester un mécanisme d'exploration
+sub-seuil (tunneling ou équivalent) demanderait un formalisme
+authentiquement stochastique (Langevin) ou quantique (amplitude WKB),
+distinct de ce qui existe aujourd'hui. Ce n'est pas contredit par ce
+qu'on a trouvé, mais ce n'est pas non plus démontré — piste distincte,
+à traiter séparément si jugée prioritaire, pas à confondre avec le
+résultat classique ci-dessus.
+
 ### Recherche — Compression hermitienne pour portage mobile
 
 **Statut :** non planifié, non chiffré en phase numérotée. Indépendant du
