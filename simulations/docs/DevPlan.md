@@ -1289,6 +1289,78 @@ canal dissipatif `Lᵏ` explicite pour interpoler entre les deux régimes
 déjà testés séparément (`K_ana` fort classique bruité, `K_ana=0` unitaire
 pur) plutôt que de les traiter comme deux expériences disjointes.
 
+#### Protocole confirmatoire — transfert unitaire entre bassins (pré-enregistré, 2026-09-20)
+
+**Écrit avant tout nouveau run** (cf. `CLAUDE.md`, falsifiabilité avant
+calcul) : le run exploratoire précédent a deux failles méthodologiques à
+corriger avant toute citation, corrigées ici.
+
+**Faille 1 — la grille `Δt` fixe risque de manquer le vrai maximum.**
+Chaque paire de bassins a sa propre fréquence de Rabi (le système est
+exactement un problème à deux niveaux, `W` étant de rang `≤2`) ; une
+grille `Δt` unique appliquée à toutes les paires peut sous-estimer
+fortement `P_B_max` pour une paire dont la fréquence naturelle tombe
+entre deux points de la grille.
+
+**Correction — réduction analytique au sous-espace invariant :**
+`span(ξ_A,ξ_B)` est invariant sous `W=ξ_Aξ_A†+ξ_Bξ_B†`. Construction
+d'une base orthonormée `{e₁,e₂}` (`e₁=ξ_A/‖ξ_A‖`, `e₂` = composante de
+`ξ_B` orthogonale à `e₁`, normalisée), réduction de `W` à une matrice
+hermitienne `2×2` exacte, diagonalisation directe (`torch.linalg.eigvalsh`),
+fréquence de Rabi `Ω_R=λ₂-λ₁`. **Vérifié** : la réduction 2×2 reproduit
+exactement le calcul complet `80×80` sur une grille adaptée à `Ω_R`
+(écart `<3×10⁻³` sur `P_B_max`, cf. test de cohérence avant ce
+pré-enregistrement). `P_B_max` calculé par balayage de `t` sur
+`[0, 4π/Ω_R]` (au moins deux périodes de Rabi complètes, garanti par
+construction — plus de grille arbitraire).
+
+**Faille 2 — la paire de bassins du run exploratoire a été choisie
+*après coup* comme « le plus petit écart trouvé »**, le cas le plus
+favorable — biais de sélection, pas un échantillon représentatif.
+
+**Correction — échantillon non biaisé :** **5 paysages fraîchement
+tirés** (seeds `201, 202, 203, 204, 205` — namespace disjoint de tout ce
+qui a déjà été utilisé : `14` du run exploratoire, `1000/2000/3000/50000/
+90000` du sous-track Leggett-Garg). Pour chaque paysage : 60 conditions
+initiales (seeds `300000+seed_paysage×1000+i`, `i∈[0,60)`), mêmes
+paramètres que `run_full_stack_tied_check.py` (`d_model=16`, `d_ff=32`,
+`T=5`, 60 pas de relaxation). Regroupement en bassins (tolérance `±0,5`,
+comme précédemment). **Toutes les paires de bassins adjacents en
+énergie** (pas seulement la plus favorable) sont testées — un paysage à
+`n` bassins distincts fournit `n-1` paires.
+
+**Critère de succès par paire, fixé à l'avance :** `P_B_max > 0,5`
+(seuil naturel et significatif — « plus probable qu'improbable de
+retrouver le système dans l'autre bassin » — pas un seuil ajusté après
+coup).
+
+**Rapport prévu** (pas de test statistique au sens Monte-Carlo : chaque
+`P_B_max` est une amplitude quantique calculée exactement, sans bruit
+d'échantillonnage — la question ici est la représentativité de
+l'échantillon de paires, pas la significativité statistique d'une
+mesure bruitée) :
+- Fraction des paires testées franchissant le seuil `P_B_max>0,5`.
+- Nuage de points `P_B_max` vs écart classique (`gap`) et vs
+  recouvrement `|⟨ξ_A|ξ_B⟩|/(‖ξ_A‖‖ξ_B‖)` — rapporté tel quel, **aucune
+  tendance n'est présupposée** (`gap` et `Ω_R` sont des objets
+  mathématiques différents — le premier vient de l'énergie composite
+  non linéaire `E(x)`, le second de la géométrie linéaire du sous-espace
+  `span(ξ_A,ξ_B)` — rien ne garantit a priori une relation monotone
+  simple entre les deux).
+- Garde-fou de cohérence : vérifier que `P_B_max→0` quand le
+  recouvrement `→0` (fait mathématique nécessaire — deux motifs
+  orthogonaux sont des vecteurs propres exacts de `W`, sans terme
+  croisé — déjà vérifié sur un couple aléatoire indépendant avant ce
+  pré-enregistrement, `P_B_max≈0,009` pour un recouvrement quasi nul en
+  dimension 80).
+
+**Décision de citation** : si la fraction de paires au-dessus du seuil
+est substantielle (pas de seuil numérique fixé ici pour cette fraction
+elle-même — à discuter avec Bertrand une fois le résultat obtenu, la
+question de la citation portant sur l'ensemble du tableau, pas sur un
+chiffre unique), et que le garde-fou de cohérence est vert, alors le
+résultat pourra être proposé pour `Simulations_API.md`.
+
 ## Historique des phases complétées
 
 <!-- Déplacer ici les phases terminées avec date de complétion -->
