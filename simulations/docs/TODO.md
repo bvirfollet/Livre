@@ -97,8 +97,23 @@
      vraisemblablement **aucune** garantie d'énergie, même approximative
      — seul un tying strict serait porteur de la propriété, et encore
      uniquement dans le cas `K` fixe (jamais vérifié pour l'empilement
-     réel). Tying FFN (`W₂=W₁ᵀ`) toujours hors scope (Lagrangienne du
-     gate `g(z)=z·Φ(Re(z))` non dérivée).
+     réel).
+
+     **Tying FFN (`W₂=W₁†`) fait (2026-09-20)**, après un blocage
+     préalable resolu : le gate portage (`z·Φ(Re(z))`) est prouvé non
+     conservatif (théorème général : tout gate multiplicatif préservant
+     la phase n'est conservatif que s'il est radial) — trilemme phase/
+     énergie/portage `GELU` exact, insatisfaisable simultanément.
+     Résolu en séparant les deux variantes : `TiedHermitianFFN`
+     (`src/hermitian/tied_ffn.py`, poids `fc1` uniques, `W₂=W₁†` sans
+     paramètre séparé) + `conservative_radial_gate` (radial, sacrifie le
+     portage `GELU` exact — cohérent, cette variante l'avait déjà
+     sacrifié dès l'attention). Dérivation de Wirtinger complète :
+     `TiedHermitianFFN(x)=∇_x Σ_a F(|h_a(x)|)` exactement. Même
+     protocole que l'étape 1 attention : décroissance d'énergie
+     confirmée sans exception sur 20 graines
+     (`tests/test_ffn_tying.py`). Sensibilité à `W₁` variable (analogue
+     étape 2) non testée pour le FFN — piste identique disponible.
      (ii) même en `V=K`, vérifier si `Q≠K` (qui, lui, ne casse pas l'égalité
      formule=Hopfield-step déjà prouvée) affecte la dérivation d'énergie
      ci-dessus — toujours ouvert, non traité par le protocole ci-dessus

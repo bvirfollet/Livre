@@ -849,6 +849,71 @@ fonction de Lagrange `L(z)` pour notre `gate(z)=z·Φ(Re(z))` telle que
 `gate=∂L/∂z` (cf. formalisme de Krotov, non faite), sans quoi aucune
 énergie FFN n'est même définie pour un test de décroissance.
 
+### Recherche — Hopfield hermitien à poids liés (tying V=K) : FFN (2026-09-20)
+
+**Blocage initial, indépendant du tying** : le test de Schwarz
+(`∂g_réel/∂Im` vs `∂g_imag/∂Re`) appliqué à `gate(z)=z·Φ(Re(z))`
+(`gating.py`, variante portage BERT) donne `0` contre `Im·φ(Re)` —
+non conservatif, sauf sur `Im=0`. **Aucune fonction de Lagrange n'existe
+pour ce gate**, donc aucune énergie FFN n'est définissable, quelle que
+soit la condition sur les poids (`W₂=W₁ᵀ` ou non).
+
+**Théorème général (vérifié le 2026-09-20, calcul direct + preuve par
+séparation de variables)** : pour tout gate multiplicatif préservant la
+phase `g(z)=z·s(z)` (`s` réel), la condition de conservativeness
+`a·∂s/∂Im = Im·∂s/∂Re` équivaut, en coordonnées polaires
+(`a=Re,Im=r sinθ`), à `∂s/∂θ=0` — **`g` est conservatif si et seulement
+si `s` ne dépend que de `|z|`** (gate radial). Preuve : la condition
+définit une EDP linéaire dont la seule solution réelle univoque
+(périodique en `θ`) est `s(r)·e^{θ}` restreint à `θ`-indépendance, donc
+`s=s(r)`.
+
+**Trilemme qui en découle** : un gate radial `g(z)=z·s(|z|)` est
+conservatif ET préserve la phase — **mais** `g(a,0)=a·s(|a|)` est
+nécessairement une fonction **impaire** de `a` (`s(|a|)` pair), alors que
+`GELU` ne l'est pas (`GELU(-2)≈-0.045 ≠ -GELU(2)≈-1.95`). **Phase
+préservée, énergie, et portage exact à `GELU` réel ne peuvent pas être
+satisfaits tous les trois simultanément.**
+
+**Résolution actée avec Bertrand (2026-09-20)** : reconsidérer l'utilité
+de l'exigence « portage `GELU` exact » avant de trancher. Cette exigence
+ne sert qu'à valider la fidélité de la variante **portage BERT**
+(`HermitianFFN`, gate `phase_preserving_gate`) — qui n'a jamais revendiqué
+d'énergie. La variante **Hopfield hermitien strict** (`TiedHermitianFFN`,
+tying `W₂=W₁†`) a *déjà* renoncé au portage exact dès l'étape attention
+(`V:=K` diffère de `V` appris indépendamment par BERT) : lui imposer
+`GELU` exact au FFN n'était jamais une contrainte cohérente. **Deux
+gates pour deux variantes, rien d'essentiel sacrifié** :
+`phase_preserving_gate` reste inchangé pour le portage BERT ;
+`conservative_radial_gate(z)=z·Φ(|z|)` (`gating.py`) pour la variante
+stricte — conservatif ET préservant la phase, avec Lagrangienne fermée
+`radial_gate_lagrangian(r) = F(r) = ∫₀^r v·Φ(v) dv` (l'antidérivée de
+`GELU` évaluée en `|z|` — toujours « à saveur GELU », construite sur le
+module plutôt que sur `Re(z)`), vérifiée `∇L=g` par différences finies
+(`tests/test_ffn_tying.py`).
+
+**Implémentation** : `TiedHermitianFFN` (`src/hermitian/tied_ffn.py`) —
+un seul jeu de poids appris (`fc1`), `fc2` n'existe pas : la sortie
+utilise directement `conj(W₁)` (tying `W₂=W₁†` sans paramètre séparé),
+pas de biais (cohérent avec Krotov). **Dérivation de Wirtinger complète**
+(calcul à la main, vérifiée par différences finies) : avec `h=fc1(x)`
+(linéaire, sans conjugaison) et `g` radial, `TiedHermitianFFN(x) =
+∇_x Σ_a F(|h_a(x)|)` **exactement** — même structure que
+`Attention(x)=∇_x lse(...)` pour l'attention liée. Énergie définie par
+analogie directe : `E(x) = -Σ_a F(|h_a(x)|) + ½‖x‖²`
+(`src/hopfield/ffn_tied_dynamics.py`).
+
+**Protocole et résultat (même schéma que l'étape 1 attention — `W₁`
+fixe, `x` itéré, `d_model=16`, `d_ff=32`, `T=5`, `num_steps=20`,
+`num_seeds=20`, `tol=1e-4`)** : garde-fou de gradient exact vert
+(`test_u09_ffn_tied_gradient_property_matches_lagrangian`), puis
+**décroissance d'énergie confirmée sans exception sur les 20 graines**
+(`test_u09_ffn_tied_energy_nonincreasing`) — même résultat que pour
+l'attention à `K` strictement fixe. Cohérent avec l'étape 2 de
+l'attention (rupture nette dès la moindre perturbation) : cette garantie
+n'a pas été testée pour `W₁` variable ici (hors scope de cette passe,
+piste identique disponible si jugé utile).
+
 ### Recherche — Compression hermitienne pour portage mobile
 
 **Statut :** non planifié, non chiffré en phase numérotée. Indépendant du
