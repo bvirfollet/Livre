@@ -604,11 +604,8 @@ auto-associatifs (comme dans `test_u03_equivalence_auto_associative`,
 Phase 1, qui teste précisément — et seulement — ce cas particulier).
 
 **Reste ouvert, non résolu :**
-- Le FFN n'a aucune dérivation d'énergie à ce jour. Piste identifiée :
-  formalisme de Lagrangien de Krotov & Hopfield pour fonctions
-  d'activation générales au-delà du softmax (*Dense Associative Memory*,
-  Krotov & Hopfield 2016 ; *Large Associative Memory*, Krotov 2021) — non
-  exploré.
+- ~~Le FFN n'a aucune dérivation d'énergie à ce jour~~ — **exploré le
+  2026-09-20, cf. sous-section suivante.**
 - Vérifier si `Q≠K` (qui ne casse pas l'équivalence de *formule*, déjà
   prouvée inconditionnelle) affecte ou non la dérivation d'énergie
   ci-dessus au-delà de la condition `V=K` déjà identifiée.
@@ -617,6 +614,59 @@ Phase 1, qui teste précisément — et seulement — ce cas particulier).
   à formuler explicitement avant toute citation dans `Simulations_API.md`
   qui s'appuierait sur le mot « Hopfield » au sens physique, pas
   seulement computationnel.
+
+#### Krotov (formalisme de Lagrangien, *Hierarchical Associative Memory*) — exploré le 2026-09-20
+
+**Vérifié à la source** (Read direct du PDF, arXiv:2107.06446, Krotov,
+*Hierarchical Associative Memory*, 2021 — MIT-IBM Watson AI Lab/IBM
+Research) — pas une lecture de mémoire.
+
+**Ce que le formalisme apporte réellement :** une énergie générale se
+construit à partir d'une fonction de Lagrange `L(x)` par couche, l'activation
+étant définie comme `g=∂L/∂x` (éq. 1), et la dynamique comme
+`τ dx/dt = Σ W·g − x` (éq. 2). Ceci couvre **n'importe quelle fonction
+d'activation** (pas seulement `softmax`) — donc notre gate FFN
+`g(z)=z·Φ(Re(z))` serait couvrable en principe.
+
+**Mais la contrainte structurelle est la même que celle qu'on avait déjà
+trouvée par dérivation propre, généralisée à toute paire de couches** —
+citation directe du papier (p.5) : *« the feedforward weights and the
+feedback weights are equal, which is a consequence of the symmetry »*, et
+(p.6, explicite) : *« if this constraint is violated it is impossible to
+derive an energy function »*. Dans le schéma à deux couches de la Fig. 2
+du papier (l'équivalent exact d'une étape d'attention dans ce formalisme),
+**une seule matrice `ξ` sert à la fois à comparer et à récupérer** — il
+n'existe pas, dans ce cadre, d'objet « clé » et d'objet « valeur »
+distincts : c'est un seul ensemble de motifs stockés.
+
+**Conclusion : Krotov ne fait pas disparaître le problème, il le
+généralise et le confirme.** La condition `V=K` déjà trouvée pour
+l'attention n'est pas une bizarrerie de la dérivation de Ramsauer — c'est
+un cas particulier d'une contrainte structurelle qui s'applique à
+**toute** paire de couches dans cette famille de modèles, y compris le
+FFN (`W₂` devrait être la transposée de `W₁` pour une garantie d'énergie
+— condition que le FFN de BERT réel, `W₁`/`W₂` indépendamment appris, ne
+satisfait pas non plus).
+
+**Ce que ça apporte de concret, malgré tout :**
+1. **Réponse à « qu'est-ce qui porte l'attention dans Hopfield »**
+   (question de Bertrand, 2026-09-20) : c'est l'objet unique de motifs
+   stockés `X` — ce que le transformeur a scindé en `K`/`V` distincts en
+   les apprenant séparément. Concept clair, transposable directement au
+   modèle hermitien.
+2. Un critère de conception explicite pour une variante **« Hopfield
+   hermitien au sens strict »** (poids d'attention et de FFN
+   volontairement liés — `V` dérivée de `K`, `W₂` dérivée de `W₁ᵀ` —
+   plutôt qu'indépendamment appris), distincte de la variante
+   « portage BERT » (fidèle à BERT, poids indépendants, jamais de
+   garantie d'énergie). Les deux variantes répondent à des besoins
+   différents et ne doivent pas être confondues dans le manuscrit.
+3. Piste opérationnelle pour l'étape d'« apprentissage complémentaire »
+   déjà proposée par Bertrand (portage = initialisation, puis affinage) :
+   **cibler explicitement le rapprochement `V→K` et `W₂→W₁ᵀ`** comme
+   terme de l'objectif d'entraînement, en plus de l'erreur de tâche — pas
+   encore exploré (cf. discussion à suivre sur la méthodologie de
+   projection initiale).
 
 ### Recherche — Compression hermitienne pour portage mobile
 

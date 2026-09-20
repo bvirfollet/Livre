@@ -120,6 +120,24 @@ jour en conséquence : `SW_Design.md`, docstrings de `attention.py` et
 (régression ciblée : Q ≠ K, vérifie explicitement que `h_real ≠ s_real`
 tout en confirmant que le softmax utilisé correspond à `s_real`).
 
+**Annotation a posteriori (2026-09-20)** : la phrase « devient
+inconditionnelle (Q, K, V quelconques) » ci-dessus est exacte, mais
+seulement pour l'équivalence de **formule** entre `hopfield_step` et
+l'attention hermitienne (les deux calculent la même expression, quels
+que soient Q, K, V). Elle a été écrite avant que la distinction
+formule/énergie n'existe dans le vocabulaire du projet (établie le
+2026-09-20, cf. `docs/DevPlan.md`, section « Recherche — Équivalence
+Hopfield : formule vs énergie »). Elle ne dit rien, et n'a jamais
+prétendu dire quoi que ce soit, sur l'équivalence *énergétique* (garantie
+de convergence vers un attracteur), qui reste conditionnée à `V=K` — non
+satisfaite par les poids réels de BERT (`V≠K` appris indépendamment).
+Aucune méthode de tying `K=V` n'a jamais été proposée ni implémentée dans
+`WeightProjector` (`src/weights/projector.py`) : `q_proj`/`k_proj`/`v_proj`
+sont projetés par trois appels indépendants à `_project_linear`. Le seul
+endroit où `Q=K` (jamais `V=K`) a été imposé est le test de scaffolding
+Phase 1 `test_u03_equivalence_auto_associative`, jamais intégré au chemin
+de portage réel.
+
 ---
 
 ### BUG-003 — Gate du FFN basé sur le module, ne se réduit pas à GELU réel
