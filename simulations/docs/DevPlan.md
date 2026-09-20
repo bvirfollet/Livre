@@ -1361,6 +1361,75 @@ question de la citation portant sur l'ensemble du tableau, pas sur un
 chiffre unique), et que le garde-fou de cohérence est vert, alors le
 résultat pourra être proposé pour `Simulations_API.md`.
 
+#### Résultat du protocole confirmatoire — défaut de construction identifié (2026-09-20)
+
+**`scripts/run_basin_tunneling_confirmatory.py`, résultat archivé dans
+`docs/results/basin_tunneling_confirmatory_2026-09-20.json` : 80/80
+paires franchissent `P_B_max>0,5` — mais `P_B_max=1,0000` exactement
+pour les 80 paires**, y compris les deux à recouvrement quasi nul
+(`0,037` et `0,048`). **Vérifié : ce n'est pas un bug, c'est un fait
+mathématique exact, qui révèle un défaut de construction du test.**
+
+**Dérivation** : toutes les paires de bassins ont exactement la même
+norme (`‖ξ‖²=80`, imposé par `RMSNorm` sur chaque token, indépendamment
+du bassin). Pour `W=ξ_Aξ_A†+ξ_Bξ_B†` avec `‖ξ_A‖=‖ξ_B‖=α`, calcul exact
+(réduction 2×2, décomposition de Pauli) :
+
+```
+P_B(t) = 1 − (d²/α²)·cos²(|n|·t),   d²=α²−|c|²,  |n|=|c|α
+```
+
+`P_B_max=1` **dès que `|c|≠0`** (recouvrement non nul), quelle que soit
+sa petitesse — le théorème du double puits symétrique (inversion de
+l'ammoniac, etc.) : à profondeur égale, le transfert complet est une
+certitude mathématique, seule la **fréquence** (`Ω_R=2|c|α`, donc le
+temps d'attente `2π/Ω_R`) dépend du couplage, jamais l'amplitude
+maximale.
+
+**Conséquence : la construction hebbienne à poids égaux
+(`build_two_pattern_weights`) efface l'écart d'énergie classique réel
+entre les deux bassins avant même de commencer** — elle traite les deux
+états comme deux souvenirs de poids strictement égal par définition.
+`P_B_max` ne peut donc, par construction, jamais discriminer un
+« bassin facile à franchir » d'un « bassin difficile » : il vaut
+trivialement 1 pour toute paire non orthogonale. Le 80/80 n'est pas une
+confirmation, c'est un artefact du choix de construction.
+
+**Vérification directe (recalcul à partir des données déjà archivées,
+`Ω_R=2×recouvrement×α²`)** : corrélation (Pearson) entre l'écart
+classique (`gap`, l'objet qui nous intéresse — la hauteur de barrière
+réelle du paysage `E(x)`) et la **période de Rabi** (le temps de
+transfert, l'analogue correct du temps de franchissement WKB) :
+**`r=-0,058`** (nulle) — contre **`r=-0,688`** entre le recouvrement
+géométrique et cette même période. La vitesse du transfert quantique ne
+dépend que de la géométrie des deux vecteurs aplatis dans `C^80`, pas du
+tout de la barrière classique qu'ils représentent dans le paysage
+composite non linéaire.
+
+**Décision : aucune citation possible en l'état.** Ni le run
+exploratoire ni ce protocole confirmatoire ne répondent à la question
+initiale (le régime `K_ana` faible franchit-il plus facilement les
+barrières classiques mesurées). Le résultat positif du run exploratoire
+(`P_B` jusqu'à 90 %) était donc, lui aussi, un artefact de cette même
+construction — pas une confirmation de tunnel « sensible à la
+barrière », simplement la démonstration qu'un opérateur hebbien
+symétrique connecte toujours ses deux motifs à terme, indépendamment de
+tout paysage classique sous-jacent.
+
+**Deux pistes de correction, à trancher avec Bertrand avant de
+poursuivre** :
+1. **Pondérer la construction hebbienne** par un poids reflétant la
+   profondeur/énergie de chaque bassin (`W=w_Aξ_Aξ_A†+w_Bξ_Bξ_B†`) —
+   simple à implémenter, mais le choix de `w_A,w_B` à partir de `E_A,E_B`
+   reste arbitraire (Strate 2/3), pas dérivé d'un principe physique clair.
+2. **Discrétiser directement le paysage `E(x)` réel** le long d'un
+   chemin entre les deux bassins (chaîne de sites intermédiaires,
+   énergie sur site = `E(x)` interpolé, terme de saut = énergie
+   cinétique discrète) — un Hamiltonien de liaison forte (*tight-binding*)
+   qui encode réellement la forme de la barrière, résolu exactement (pas
+   de WKB), plus proche de l'intention initiale mais demande de définir
+   proprement le chemin et le terme de saut avant de coder.
+
 ## Historique des phases complétées
 
 <!-- Déplacer ici les phases terminées avec date de complétion -->

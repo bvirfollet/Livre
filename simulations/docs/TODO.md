@@ -37,20 +37,30 @@
   hors modèle Hopfield standard) pour discriminer non-classicité locale vs
   relationnelle ; étendre le protocole confirmatoire à `Q_i` agrégé (fait
   uniquement sur `Q_global` cette fois) et/ou à d'autres `nN` si jugé utile.
-- [ ] **Régime `K_ana` faible — transfert unitaire entre bassins, suite**
-  (cf. `docs/DevPlan.md` pour le détail complet) : premier run
-  exploratoire fait le 2026-09-20 (`scripts/run_basin_tunneling_unitary.py`,
-  réutilisation intégrale de `src/superposition/`, pas de calcul WKB —
-  approche abandonnée après la correction du glissement `ħ_eff`→`Y`,
-  cf. contribution Gémini `implications_théorème_Stone`). Résultat
-  positif net (`P_B` jusqu'à 90 % en évolution unitaire pure entre deux
-  bassins voisins), mais **exploratoire, non pré-enregistré** (grille de
-  `Δt` et choix de la paire de bassins faits après coup, cas le plus
-  favorable). Reste à faire avant toute citation : protocole confirmatoire
-  (plusieurs paires de bassins, seeds fraîches, grille de `Δt` et seuil
-  de `P_B` fixés avant le run) ; tester un `K_ana` intermédiaire
-  (canal dissipatif GKSL explicite, pas seulement les deux extrêmes
-  `K_ana=0` et `K_ana` fort déjà testés séparément).
+- [ ] **Régime `K_ana` faible — transfert unitaire entre bassins, défaut
+  de construction identifié (2026-09-20)** (cf. `docs/DevPlan.md` pour
+  le détail complet). Run exploratoire puis protocole confirmatoire
+  pré-enregistré (`scripts/run_basin_tunneling_unitary.py`,
+  `run_basin_tunneling_confirmatory.py`, réutilisation de
+  `src/superposition/`, pas de calcul WKB — abandonné après correction
+  du glissement `ħ_eff`→`Y`, cf. contribution Gémini
+  `implications_théorème_Stone`). **Résultat : `P_B_max=1` exactement
+  pour 80/80 paires testées, y compris à recouvrement quasi nul — fait
+  mathématique exact (double puits symétrique, nos états de bassin ont
+  tous la même norme via `RMSNorm`), pas une confirmation.** La
+  construction hebbienne à poids égaux (`build_two_pattern_weights`)
+  efface l'écart d'énergie classique réel entre bassins ; corrélation
+  gap classique / période de Rabi mesurée : `r=-0,058` (nulle) contre
+  `r=-0,688` pour recouvrement/période — la vitesse de transfert ne
+  dépend que de la géométrie des vecteurs, pas de la barrière classique.
+  **Aucune citation possible en l'état** (le run exploratoire précédent
+  non plus). Deux pistes de correction proposées, à trancher : pondérer
+  la construction par la profondeur des bassins (arbitraire, Strate 2/3),
+  ou discrétiser directement le paysage `E(x)` réel en Hamiltonien de
+  liaison forte (*tight-binding*) le long d'un chemin entre bassins.
+  Piste indépendante toujours ouverte : tester un `K_ana` intermédiaire
+  (canal dissipatif GKSL explicite), pas seulement les deux extrêmes
+  déjà testés séparément.
 - [ ] **Recherche séparée — compression hermitienne pour portage mobile**
   (cf. `docs/DevPlan.md`, section dédiée) : objectif et protocole posés
   avec Bertrand le 2026-08-14 (`d² ≪ 768`, comparaison à budget de réels
