@@ -1742,6 +1742,61 @@ confirmatoire Leggett-Garg déjà cité. **Reste à valider avec Bertrand
 avant le commit de citation dans `Simulations_API.md`** (formulation
 exacte de l'entrée, `contract_version` à bumper).
 
+### Recherche — Fermer la boucle : K_ana endogène (2026-09-20)
+
+**Correction d'une inversion sémantique.** La synthèse transmise pour
+second avis proposait « `K_ana` bas si cohérence forte, haut si
+dispersion ». C'est l'inverse de la phénoménologie correcte — retour
+confirmé : forcer `K_ana` haut pendant une exploration encore dispersée
+provoquerait un effondrement prématuré et arbitraire (« un préjugé
+violent »), pas une décision légitime. **`K_ana` doit croître quand un
+attracteur émerge par interférence constructive (cristallisation), rester
+bas pendant une authentique dispersion.** Origine de l'erreur : la
+formule `K_cible(Φ)` du document `implications_théorème_Stone`
+(sigmoïde) donne littéralement `K_ana→K_min` quand `Φ` est haut — en
+contradiction avec le texte qui l'accompagne dans le même document
+(« Phase de cristallisation... `K_ana` augmente »). Incohérence interne
+présente dès la source, reproduite sans le remarquer. Corrigée pour la
+suite.
+
+**Second point relevé, indépendant** : `Tr(ρ²)` (pureté) est **toujours
+égal à 1** sur une trajectoire pure individuelle (`|ψ(t)⟩` reste pur
+sous évolution unitaire + collapse de Born) — elle ne prend un sens que
+moyennée sur de nombreuses trajectoires (reconstitue `ρ`). Un
+régulateur qui agit **par trajectoire** (comme le nôtre) ne peut donc
+pas utiliser la pureté comme signal ; l'entropie de participation
+`S_part(ψ)`, elle, reste calculable sur un état pur, mais reste une
+opération globale sur toute la base `{e_k}` — pas strictement locale.
+
+**Mécanisme proposé, plus naturel : taux de saut asservi au
+chevauchement maximal.** Sur la trajectoire courante, `p_max(t) =
+max_k|⟨e_k|ψ(t)⟩|²` — tant qu'aucun bassin ne domine (`p_max≈1/8`), le
+taux de mesure reste quasi nul (exploration libre sous le régime
+unitaire) ; dès qu'un bassin franchit un seuil critique, le taux de
+mesure augmente spontanément et déclenche l'effondrement — pas de dé
+lancé de l'extérieur à taux constant, le taux **dépend de l'état de la
+trajectoire elle-même** :
+
+```
+λ_saut(t) = K₀ · (p_max(t))^γ     (γ ≥ 2)
+```
+
+**Piste retenue pour l'implémentation immédiate (« Phase 1 » de la
+proposition)** : remplacer le taux de Poisson constant `K_ana` du
+protocole confirmatoire par `λ_saut(t)` ci-dessus — teste si le
+mécanisme d'auto-sélection émerge effectivement sous la dynamique
+unitaire déjà caractérisée (le réseau déclenche-t-il lui-même son
+propre effondrement dès qu'un attracteur émerge, sans qu'on lui impose
+de taux constant ?).
+
+**Piste notée pour plus tard, plus profonde, non implémentée** : rendre
+la non-linéarité elle-même conservative (terme de rétroaction
+hamiltonienne à la Gross-Pitaevskii/Kerr, `H_eff(ψ)=H₀-χΣ_k|e_k⟩⟨e_k||
+⟨e_k|ψ⟩|²⟨e_k|`) — l'effondrement émergerait d'une bifurcation
+dynamique dans une évolution toujours unitaire, sans opérateur de
+mesure externe à invoquer du tout. Piste physiquement la plus profonde,
+pas encore explorée.
+
 ## Historique des phases complétées
 
 <!-- Déplacer ici les phases terminées avec date de complétion -->
