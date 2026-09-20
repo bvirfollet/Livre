@@ -1189,6 +1189,106 @@ succès à fixer avec Bertrand (cycle de développement obligatoire,
 
 ---
 
+### Recherche — Régime `K_ana` faible : transfert unitaire entre bassins (2026-09-20)
+
+**Origine :** correction méthodologique de Bertrand sur une proposition
+antérieure (calcul WKB avec un `ħ_eff` libre) — cf. contribution Gémini
+`contributions/gémini/implications_théorème_Stone`, qui établit que la
+constante de Planck `ħ` n'a **aucune nécessité mathématique** dans le
+théorème de Stone (elle n'est qu'un convertisseur d'unités entre
+l'action mécanique et la phase, sans dimension physique intrinsèque en
+unités naturelles `ħ=1`). Nommer notre paramètre libre « `ħ_eff` »
+importait indûment cette connotation physique dans un contexte purement
+informationnel — corrigé en le renommant **`Y`** (« Yod », suivant la
+contribution), qui joue le rôle du générateur unitaire (Stone) dans
+l'équation de Lindblad/GKSL `dρ/dt = -i/Y·[H,ρ] + K_ana·(dissipation)` :
+`Y` gouverne la phase cohérente/réversible, `K_ana` le canal
+dissipatif/projectif. Le ratio `Ξ=Y/K_ana` régule le régime — la
+contribution affirme explicitement que `Ξ≫1` (régime `K_ana` faible)
+rend « transparentes par effet tunnel de phase » des barrières
+insurmontables en régime `K_ana` élevé. C'est cette affirmation précise
+qui est testée ici, par **simulation exacte plutôt qu'approximation
+WKB** — `Y` n'est pas nécessairement constant (la contribution le
+traite comme un champ contextuel, `Y(t,ρ)`, pas une constante figée).
+
+**Méthode : réutilisation intégrale du module `src/superposition/`**
+(déjà construit et testé pour le protocole Leggett-Garg, régime unitaire
+cohérent `γ=0`) — aucun nouveau formalisme. Les deux bassins voisins
+déjà caractérisés (paysage tying complet, seed=14, cf. section
+précédente) sont aplatis en un vecteur complexe unique
+`nN=T×d_model=80` et jouent le rôle des deux motifs concurrents `ξ¹`/`ξ²`
+du protocole Leggett-Garg (`build_two_pattern_weights`,
+`evolution_operator=exp(-iW·Δt)`, `Δt` jouant le rôle de `t/Y`).
+
+**Protocole (`scripts/run_basin_tunneling_unitary.py`, script autonome et
+reproductible — reconstruit le paysage et retrouve la paire de bassins à
+chaque exécution, seeds fixées, pas de dépendance à un fichier binaire) :**
+- Paire de bassins voisins retrouvée (parmi 60 initialisations, paysage
+  seed=14) : écart d'énergie classique `0,07` (le plus petit trouvé),
+  recouvrement `|⟨ξ_A|ξ_B⟩|=0,33` (non nul — patterns non orthogonaux,
+  dynamique non triviale garantie).
+- État initial `z₀=ξ_A/‖ξ_A‖` (départ intégralement dans le bassin A).
+- Grille de `Δt` pré-registrée informellement pendant l'exploration :
+  `{0,1 ; 0,5 ; 1 ; 2 ; 5 ; 10 ; 20 ; 50}`.
+- Mesure : `P_B(Δt)=|⟨ξ_B/‖ξ_B‖|U(Δt)z₀⟩|²` (calcul exact, pas de
+  Monte-Carlo — une amplitude quantique fermée, pas une fréquence
+  d'échantillonnage).
+
+**Résultat (archivé dans `docs/results/basin_tunneling_unitary_2026-09-20.json`) :**
+
+```
+ dt (=t/Y)     P_B(dt)
+      0.10      0.3294
+      0.50      0.3398
+      1.00      0.7920
+      2.00      0.7465
+      5.00      0.7002
+     10.00      0.9035
+     20.00      0.4532
+     50.00      0.1194
+```
+
+**`P_B` atteint 90 % à `Δt=10`** — en partant intégralement dans le
+bassin A, l'évolution unitaire pure (`K_ana=0`) place le système dans le
+bassin B avec une probabilité écrasante, à une distance classique de
+0,07 (négligeable devant la plage totale du paysage, ~30 unités). C'est
+un **transfert que la dynamique classique dissipative ne produit jamais
+spontanément** (démontré au sens strict : la descente de gradient
+projetée par softmax converge vers un seul bassin et y reste, sauf
+perturbation externe — cf. section précédente). Le profil non monotone
+en `Δt` (oscillation, pas une simple montée) est la signature attendue
+d'une oscillation de Rabi entre deux niveaux couplés — `W` est de rang
+`≤2` par construction (`ξ_Aξ_A†+ξ_Bξ_B†`), donc toute la dynamique non
+triviale se réduit exactement à un problème à deux niveaux, résolu ici
+sans aucune approximation semi-classique.
+
+**Statut méthodologique, honnêtement : exploratoire, pas confirmatoire.**
+La grille de `Δt` et le choix de la paire de bassins (le plus petit
+écart trouvé, donc le cas le plus favorable) n'ont pas été
+pré-enregistrés avant de lancer ce run — exactement la même réserve que
+pour l'exploration multi-tirages du protocole Leggett-Garg avant son
+protocole confirmatoire (cf. Historique `docs/TODO.md`). Pour une
+citation Strate 1, il faudrait répéter sur plusieurs paires de bassins
+(pas seulement la plus favorable) et pré-enregistrer la grille de `Δt`
+et le seuil de `P_B` avant de lancer.
+
+**Ce qui est déjà solide, indépendamment du statut de citation** : la
+méthode elle-même (réutiliser le module unitaire existant sur le
+paysage d'énergie classique déjà caractérisé) est validée et rejouable
+sans coût — bien moins cher qu'un calcul WKB avec masse/`Y` inventés, et
+plus rigoureux (exact, pas semi-classique) dans le régime où elle
+s'applique (rang de `W` petit).
+
+**Reste ouvert :** un protocole confirmatoire (plusieurs paires de
+bassins, seeds fraîches, grille de `Δt` et seuil de `P_B` fixés avant le
+run) avant toute citation ; le rôle exact de `K_ana` dans une dynamique
+GKSL complète (ici testé uniquement à `K_ana=0` strict, jamais à une
+valeur intermédiaire — le régime réellement intéressant selon la
+contribution Gémini, « Vénus », `Ξ∼Ξ_optimal`) ; la construction d'un
+canal dissipatif `Lᵏ` explicite pour interpoler entre les deux régimes
+déjà testés séparément (`K_ana` fort classique bruité, `K_ana=0` unitaire
+pur) plutôt que de les traiter comme deux expériences disjointes.
+
 ## Historique des phases complétées
 
 <!-- Déplacer ici les phases terminées avec date de complétion -->

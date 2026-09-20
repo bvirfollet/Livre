@@ -37,19 +37,20 @@
   hors modèle Hopfield standard) pour discriminer non-classicité locale vs
   relationnelle ; étendre le protocole confirmatoire à `Q_i` agrégé (fait
   uniquement sur `Q_global` cette fois) et/ou à d'autres `nN` si jugé utile.
-- [ ] **Régime `K_ana` faible — tunnel quantique sur le paysage d'énergie**
-  (posé par Bertrand, 2026-09-20, cf. `docs/DevPlan.md` pour l'explicatif
-  complet) : sous-projet neuf, non démarré — distinct du régime `K_ana`
-  fort (bruit classique, déjà quantifié). Nécessite (1) réduire le
-  paysage à un profil 1D entre deux bassins voisins déjà identifiés,
-  (2) définir une masse/`ħ_eff` effectifs (Strate 2/3, interprétatifs),
-  (3) calculer l'amplitude WKB sur ce profil, (4) comparer au taux de
-  Kramers classique déjà mesuré. Relié au fait que le BERT hermitien vise
-  aussi à simuler des comportements quantiques (cf. le test de
-  superposition Leggett-Garg déjà cité, régime unitaire cohérent
-  distinct de celui étudié ici) — pont naturel entre les deux tracks,
-  mais formalisme entièrement à construire. Q&R à faire avant tout code
-  si priorisé.
+- [ ] **Régime `K_ana` faible — transfert unitaire entre bassins, suite**
+  (cf. `docs/DevPlan.md` pour le détail complet) : premier run
+  exploratoire fait le 2026-09-20 (`scripts/run_basin_tunneling_unitary.py`,
+  réutilisation intégrale de `src/superposition/`, pas de calcul WKB —
+  approche abandonnée après la correction du glissement `ħ_eff`→`Y`,
+  cf. contribution Gémini `implications_théorème_Stone`). Résultat
+  positif net (`P_B` jusqu'à 90 % en évolution unitaire pure entre deux
+  bassins voisins), mais **exploratoire, non pré-enregistré** (grille de
+  `Δt` et choix de la paire de bassins faits après coup, cas le plus
+  favorable). Reste à faire avant toute citation : protocole confirmatoire
+  (plusieurs paires de bassins, seeds fraîches, grille de `Δt` et seuil
+  de `P_B` fixés avant le run) ; tester un `K_ana` intermédiaire
+  (canal dissipatif GKSL explicite, pas seulement les deux extrêmes
+  `K_ana=0` et `K_ana` fort déjà testés séparément).
 - [ ] **Recherche séparée — compression hermitienne pour portage mobile**
   (cf. `docs/DevPlan.md`, section dédiée) : objectif et protocole posés
   avec Bertrand le 2026-08-14 (`d² ≪ 768`, comparaison à budget de réels
