@@ -14,134 +14,6 @@
 
 ## Priorité normale
 
-- [ ] **Équivalence Hopfield non vérifiée pour la couche complète
-  (FFN+Norm)** (soulevé par Bertrand, 2026-09-18) — **point important,
-  priorité haute logique même si classé ici pour l'instant**. Le fil
-  conducteur du projet est que BERT, malgré la complexité apparente de
-  ses couches (LayerNorm, FFN...), se ramène in fine à un réseau de
-  Hopfield (Ramsauer et al. 2020) — un Hopfield qu'on plonge ensuite dans
-  l'espace hermitien. Ce qu'on a réellement démontré :
-  - Phase 1 (`test_u03_equivalence_general_qkv`) : le **bloc d'attention
-    seul** (`HermitianSelfAttention`) est exactement un pas de Hopfield
-    (`hopfield_step`), pour `Q`, `K`, `V` quelconques.
-  - 2026-09-18 : la **couche complète** (attention+FFN+2 Norm+résiduelles,
-    `HermitianBertLayer`) reproduit BERT classique à `Im=0` — un test de
-    *portage*, pas un test d'*équivalence Hopfield*.
-  Ces deux résultats ne se recouvrent pas : `HermitianFFN` et
-  `HermitianRMSNorm`/`HermitianLayerNorm` ont été conçus sur d'autres
-  critères (préservation de phase, compatibilité de portage), **jamais
-  vérifiés vis-à-vis du cadre Hopfield**. Rien ne garantit que la couche
-  complète — résiduelle + norme + FFN autour du pas de Hopfield — reste
-  elle-même interprétable comme une dynamique de Hopfield (simple ou
-  généralisée) plutôt que comme un objet mathématique différent. Note :
-  Ramsauer et al. 2020 établissent l'équivalence pour l'**attention
-  seule**, pas pour un bloc transformeur complet avec FFN — donc il n'est
-  même pas évident que la littérature de référence promette cette
-  équivalence au niveau couche complète. À trancher avant de présenter le
-  travail natif comme « un Hopfield hermitien », y compris pour la Phase 3
-  (GLUE) et pour toute citation dans `Simulations_API.md` :
-  1. **Fait (2026-09-18)** : le sous-bloc attention, *isolé* à l'intérieur
-     de `HermitianBertLayer` assemblé et chargé avec de **vrais poids
-     pré-entraînés** (bruit imaginaire non nul, régime complexe réel — pas
-     seulement `Im=0`), reste exactement un pas de Hopfield —
-     `tests/test_weights.py::test_layer_attention_subblock_still_hopfield_equivalent_after_assembly`,
-     vert du premier coup. Ceci confirme que l'assemblage et le portage
-     n'ont pas silencieusement altéré le sous-bloc attention lui-même.
-  2. **Dérivation théorique faite (2026-09-20)** — cf. `docs/DevPlan.md`,
-     section dédiée, pour le détail complet. Résumé : **deux sens
-     distincts d'« équivalence Hopfield » ont été confondus jusqu'ici.**
-     (a) Équivalence de *formule* (Phase 1, `test_u03_equivalence_general_qkv`)
-     — vraie pour `Q,K,V` quelconques, quasi tautologique (l'attention et
-     `hopfield_step` calculent littéralement la même expression). (b)
-     Équivalence *dynamique/énergétique* (garantie de convergence vers un
-     attracteur, la propriété physiquement significative) — prouvée par
-     Ramsauer et al. 2020 **uniquement pour le cas auto-associatif**
-     (`V=K`, vérifié sur la source : leur passage à l'attention `Q,K,V`
-     séparés, éq. 10, est une observation formelle, pas une preuve
-     d'énergie). Or **BERT réel apprend `W_K` et `W_V` indépendamment**
-     (`V≠K` systématiquement) — donc le sens (b) n'a jamais été acquis,
-     même pour le bloc d'attention seul avec de vrais poids. Le trou est
-     plus profond qu'initialement repéré : il ne vient pas du FFN/de la
-     norme, il existe déjà à la racine de l'attention hermitienne dès
-     qu'on utilise des poids réels.
-
-     Dérivation propre complémentaire (cas `V=K`) : `Attention(x)=X·softmax(βX^Tx)
-     = ∇_x lse(β,X^Tx)` exactement. `x + Attention(x)` est donc un pas
-     d'Euler de **montée** de gradient sur `lse` seul (non borné), et
-     `RMSNorm` (qui force `‖sortie‖=γ√d` constant, cf.
-     `test_rmsnorm_output_rms_is_gamma`) agit comme une **rétraction sur
-     la sphère** — la technique standard de montée de gradient contrainte
-     à une variété. `Attention+résiduelle+RMSNorm` correspond donc
-     exactement à un pas de montée de gradient projetée sur `lse(β,K^Tx)`
-     sur une sphère, **mais seulement si `V=K`**. `LayerNorm` (qui centre)
-     projetterait sur une variété différente (sphère ∩ hyperplan
-     orthogonal à `𝟙`), pas la sphère simple — **second argument
-     théorique indépendant**, en plus de la préservation de phase, pour
-     préférer `RMSNorm` dans ce cadre.
-
-     **(i) FFN sans dérivation d'énergie — exploré le 2026-09-20**
-     (Krotov, *Hierarchical Associative Memory*, arXiv:2107.06446,
-     cf. `docs/DevPlan.md`) : le formalisme couvre bien toute fonction
-     d'activation, mais confirme et généralise la même contrainte
-     (`W₂=W₁ᵀ`) — ne résout pas le problème, en donne le vocabulaire
-     exact. **Protocole de tying `V=K` implémenté et testé (2026-09-20,
-     `docs/DevPlan.md`, section « Hopfield hermitien à poids liés »)** :
-     décroissance d'énergie confirmée sans exception à `K` strictement
-     fixe (étape 1), mais **rupture nette dès la moindre perturbation de
-     `K`** (étape 2 — fraction de pas monotones chute de 100% à ~60% dès
-     `σ=0,01`, aucune dégradation progressive) et **aucune monotonie
-     locale une fois `K` recalculé à chaque pas** (étape 3, exploratoire —
-     seulement 2/20 graines strictement monotones, malgré une tendance
-     globale décroissante sur 20/20). Conséquence directe : une
-     régularisation souple (rapprocher `V` de `K` sans les égaler) n'offre
-     vraisemblablement **aucune** garantie d'énergie, même approximative
-     — seul un tying strict serait porteur de la propriété, et encore
-     uniquement dans le cas `K` fixe (jamais vérifié pour l'empilement
-     réel).
-
-     **Tying FFN (`W₂=W₁†`) fait (2026-09-20)**, après un blocage
-     préalable resolu : le gate portage (`z·Φ(Re(z))`) est prouvé non
-     conservatif (théorème général : tout gate multiplicatif préservant
-     la phase n'est conservatif que s'il est radial) — trilemme phase/
-     énergie/portage `GELU` exact, insatisfaisable simultanément.
-     Résolu en séparant les deux variantes : `TiedHermitianFFN`
-     (`src/hermitian/tied_ffn.py`, poids `fc1` uniques, `W₂=W₁†` sans
-     paramètre séparé) + `conservative_radial_gate` (radial, sacrifie le
-     portage `GELU` exact — cohérent, cette variante l'avait déjà
-     sacrifié dès l'attention). Dérivation de Wirtinger complète :
-     `TiedHermitianFFN(x)=∇_x Σ_a F(|h_a(x)|)` exactement. Même
-     protocole que l'étape 1 attention : décroissance d'énergie
-     confirmée sans exception sur 20 graines
-     (`tests/test_ffn_tying.py`). Sensibilité à `W₁` variable (analogue
-     étape 2) non testée pour le FFN — piste identique disponible.
-     (ii) même en `V=K`, vérifier si `Q≠K` (qui, lui, ne casse pas l'égalité
-     formule=Hopfield-step déjà prouvée) affecte la dérivation d'énergie
-     ci-dessus — **traité le 2026-09-20** : test de symétrie du Jacobien
-     (condition nécessaire pour qu'un champ soit un gradient, même
-     principe que le test de Schwarz du gate) sur `V=K` tied avec une
-     projection `Q` apprise (`Q(ξ)=W_Q·ξ`, `W_Q≠I`) — **Jacobien non
-     symétrique dès que `W_Q≠I`**, symétrique seulement au cas déjà
-     testé (`Q=ξ`, protocole étapes 1-3). **`Q≠K` casse la propriété
-     d'énergie indépendamment de `V≠K`** — un second trou distinct, pas
-     une variante du premier : même un tying `V=K` parfait ne suffit
-     pas si `Q` reste une projection apprise non triviale, ce qui est le
-     cas dans toute architecture BERT-like (attention réelle a toujours
-     un `q_proj` séparé). (iii) conséquence pour le
-     portage : BERT pré-entraîné a `V≠K` par construction, donc porter
-     ses poids garantit la formule mais jamais la dynamique d'attracteur
-     — renforcé par les résultats ci-dessus (même une proximité
-     approximative ne suffirait pas) — à formuler explicitement avant
-     toute affirmation Strate 1 sur ce point dans le manuscrit.
-
-     **Empilement complet testé (2026-09-20)** : attention liée + FFN
-     liée assemblées en couche Post-LN, `K`/`W₁` tous deux fixes (cas le
-     plus favorable). **2/20 graines violent la monotonie stricte**
-     (écarts petits, `0,0001`-`0,013`, apparaissant tôt et persistant —
-     pas un artefact isolé), bien que la tendance globale reste
-     décroissante pour 20/20. Confirme que la propriété d'énergie ne
-     s'étend pas automatiquement par composition — chaque assemblage
-     (attention+FFN, `Q` non trivial, empilement multi-couches) doit
-     être vérifié séparément (`scripts/run_full_stack_tied_check.py`).
 - [ ] **Piste Chladni-Hopfield sur BERT hermitien** (discussion du
   2026-09-18, cf. `contributions/claude/annexe_chladni_hopfield_v3.md`
   et `contributions/claude/Revue_Claude_Analogie_Fig_Chaldni`) : hypothèse
@@ -165,6 +37,19 @@
   hors modèle Hopfield standard) pour discriminer non-classicité locale vs
   relationnelle ; étendre le protocole confirmatoire à `Q_i` agrégé (fait
   uniquement sur `Q_global` cette fois) et/ou à d'autres `nN` si jugé utile.
+- [ ] **Régime `K_ana` faible — tunnel quantique sur le paysage d'énergie**
+  (posé par Bertrand, 2026-09-20, cf. `docs/DevPlan.md` pour l'explicatif
+  complet) : sous-projet neuf, non démarré — distinct du régime `K_ana`
+  fort (bruit classique, déjà quantifié). Nécessite (1) réduire le
+  paysage à un profil 1D entre deux bassins voisins déjà identifiés,
+  (2) définir une masse/`ħ_eff` effectifs (Strate 2/3, interprétatifs),
+  (3) calculer l'amplitude WKB sur ce profil, (4) comparer au taux de
+  Kramers classique déjà mesuré. Relié au fait que le BERT hermitien vise
+  aussi à simuler des comportements quantiques (cf. le test de
+  superposition Leggett-Garg déjà cité, régime unitaire cohérent
+  distinct de celui étudié ici) — pont naturel entre les deux tracks,
+  mais formalisme entièrement à construire. Q&R à faire avant tout code
+  si priorisé.
 - [ ] **Recherche séparée — compression hermitienne pour portage mobile**
   (cf. `docs/DevPlan.md`, section dédiée) : objectif et protocole posés
   avec Bertrand le 2026-08-14 (`d² ≪ 768`, comparaison à budget de réels
@@ -241,5 +126,27 @@
   `docs/Simulations_API.md`** (`contract_version: 2026-09-18-v2`, entrée
   `[PENDING: RadioHumaine]` dans `Simulations_API_CHANGELOG.md`) — premier
   résultat citable de ce projet. 2026-09-18.
+- [x] **Équivalence Hopfield / tying `V=K` et `W₂=W₁†` — clos (2026-09-20)**,
+  branche `dev/hopfield-energy-tying`, détail complet dans
+  `docs/DevPlan.md`. Bilan final : deux sens d'« équivalence Hopfield »
+  distingués (formule, inconditionnelle et quasi tautologique ; énergie,
+  restreinte à `V=K`, jamais acquise pour BERT réel). Tying `V=K` et
+  `W₂=W₁†` implémentés et testés (`src/hopfield/tied_dynamics.py`,
+  `src/hermitian/tied_ffn.py`) — décroissance d'énergie confirmée à
+  poids strictement fixes, mais rupture nette dès la moindre variabilité
+  (aucune marge de tolérance), `Q≠K` casse la propriété indépendamment
+  de `V≠K` (Jacobien non symétrique dès `W_Q≠I`), et l'empilement complet
+  n'est pas automatiquement monotone par composition de deux composantes
+  pourtant monotones séparément. Approfondissement : les violations
+  observées sont un dépassement transitoire intra-bassin (dynamique non
+  normale), pas un franchissement de barrière ; un même paysage produit
+  bien une structure multi-bassins réelle (17 bassins/60 tirages, écarts
+  0,5-3 unités), et un bruit d'entrée de 5-10% du signal suffit à
+  produire un étalement du même ordre — confirme quantitativement le
+  régime `K_ana` fort. Régime `K_ana` faible/tunnel explicitement hors
+  de portée du système classique actuel, noté en piste séparée
+  ci-dessus. Conséquence pour le manuscrit : toute affirmation Strate 1
+  citant « Hopfield » pour BERT réel doit se limiter à l'équivalence de
+  formule, jamais à la dynamique d'attracteur.
 
 <!-- Format : - [x] YYYY-MM-DD — description (commit: abc1234) -->
