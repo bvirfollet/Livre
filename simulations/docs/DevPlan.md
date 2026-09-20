@@ -985,6 +985,74 @@ identique à l'attention, maintenant établie pour les deux composantes** :
 la garantie d'énergie du tying (attention **et** FFN) est une propriété
 du point exact, sans marge de tolérance mesurable.
 
+#### `Q≠K` : un second trou, distinct de `V≠K` (2026-09-20)
+
+**Question posée par Bertrand** : le protocole des étapes 1-3 pose
+`Q=ξ` (l'état lui-même, pas de projection apprise) — exactement le
+montage de Ramsauer, mais **pas** celui de BERT réel, où `Q=q_proj(x)`
+est une projection apprise indépendante. Est-ce que la garantie
+d'énergie (déjà acquise pour `Q=ξ`, avec `V=K`) survit à une vraie
+projection `Q` ?
+
+**Test direct** : symétrie du Jacobien de la sortie par rapport à `ξ`
+(condition nécessaire pour qu'un champ soit un gradient — même principe
+que le test de Schwarz du gate, généralisé en dimension `d`), avec
+`V=K` fixé et `Q(ξ)=W_Q·ξ` :
+- `W_Q=I` (cas déjà testé, étapes 1-3) : Jacobien symétrique. ✓
+- `W_Q` quelconque (`≠I`) : **Jacobien non symétrique** — vérifié
+  numériquement (`torch.autograd`, matrice 4×4, `W_Q` aléatoire).
+
+**Conclusion : `Q≠K` casse la propriété d'énergie indépendamment de
+`V≠K` — un second trou distinct, pas une variante du premier.** Même un
+tying `V=K` parfait ne suffit pas si `Q` reste une projection apprise
+non triviale — ce qui est systématiquement le cas dans toute
+architecture BERT-like (`q_proj` toujours présent et distinct). Pour
+qu'une couche d'attention hermitienne ait une énergie au sens de
+Ramsauer/Krotov, il faudrait donc **également** contraindre `Q=identité`
+(ou `Q=K` d'une façon qui préserve la symétrie du Jacobien — non
+explorée) — une contrainte supplémentaire, en plus de `V=K`, jamais
+mentionnée jusqu'ici dans ce projet.
+
+#### Empilement complet (attention liée + FFN liée), poids fixes (2026-09-20)
+
+**Question posée par Bertrand** : les deux composantes (attention,
+FFN) sont chacune monotones séparément (étape 1 de chaque, `K`/`W₁`
+fixes) — est-ce que ça reste vrai une fois assemblées dans une couche
+Post-LN complète (`attention → RMSNorm → FFN → RMSNorm`), avec `K` et
+`W₁` **tous deux fixes** (cas le plus favorable, sans même la
+sensibilité de l'étape 2) ?
+
+**Résultat (`scripts/run_full_stack_tied_check.py`, résultat archivé
+dans `docs/results/full_stack_tied_check_2026-09-20.json`, même
+protocole — 20 graines, 20 pas, `tol=1e-4`, énergie diagnostique =
+somme des deux énergies séparées évaluées au même état) : NON, pas à
+100 %.** 2 graines sur 20 violent la monotonie stricte (seeds 4 et 14 —
+8 et 14 violations sur leurs 20 pas respectivement), avec des écarts
+petits (`0,0001` à `0,013`, contre une plage totale d'énergie
+d'environ 150 unités sur la trajectoire) apparaissant relativement tôt
+(pas 6 et 12) puis persistant — pas un artefact numérique isolé, plutôt
+une oscillation autour d'un point d'équilibre où les deux composantes
+tirent dans des directions légèrement conflictuelles. **La tendance
+globale (E₀ vs E_final) reste décroissante pour les 20/20 graines** —
+la combinaison ne diverge pas, mais elle n'est plus strictement
+monotone.
+
+**Lecture, sans sur-interpréter ni minimiser** : ce n'est *pas* une
+divergence catastrophique qui invaliderait toute la direction — mais
+c'est la confirmation empirique attendue d'un fait mathématique simple :
+**la somme de deux fonctions de Lyapunov, chacune décroissante sous son
+propre champ de vecteurs, n'a aucune raison a priori de rester
+décroissante sous une composition séquentielle des deux champs** (la
+rétraction intermédiaire après l'attention déplace l'état dans une
+direction qui n'a jamais été garantie compatible avec la descente du
+FFN, et vice-versa). Combiné avec le trou `Q≠K` ci-dessus, ceci confirme
+que **la propriété d'énergie du tying, même dans son cas le plus
+favorable (`V=K`, `W₂=W₁†`, poids fixes), ne s'étend pas automatiquement
+par simple empilement** — chaque nouvelle composition (attention+FFN,
+`Q` non trivial, empilement multi-couches) doit être vérifiée
+séparément, elle ne se déduit pas des garanties déjà établies sur les
+parties.
+
 ### Recherche — Compression hermitienne pour portage mobile
 
 **Statut :** non planifié, non chiffré en phase numérotée. Indépendant du

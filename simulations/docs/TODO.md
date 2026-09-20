@@ -116,13 +116,32 @@
      étape 2) non testée pour le FFN — piste identique disponible.
      (ii) même en `V=K`, vérifier si `Q≠K` (qui, lui, ne casse pas l'égalité
      formule=Hopfield-step déjà prouvée) affecte la dérivation d'énergie
-     ci-dessus — toujours ouvert, non traité par le protocole ci-dessus
-     (qui pose `Q=ξ` par construction). (iii) conséquence pour le
+     ci-dessus — **traité le 2026-09-20** : test de symétrie du Jacobien
+     (condition nécessaire pour qu'un champ soit un gradient, même
+     principe que le test de Schwarz du gate) sur `V=K` tied avec une
+     projection `Q` apprise (`Q(ξ)=W_Q·ξ`, `W_Q≠I`) — **Jacobien non
+     symétrique dès que `W_Q≠I`**, symétrique seulement au cas déjà
+     testé (`Q=ξ`, protocole étapes 1-3). **`Q≠K` casse la propriété
+     d'énergie indépendamment de `V≠K`** — un second trou distinct, pas
+     une variante du premier : même un tying `V=K` parfait ne suffit
+     pas si `Q` reste une projection apprise non triviale, ce qui est le
+     cas dans toute architecture BERT-like (attention réelle a toujours
+     un `q_proj` séparé). (iii) conséquence pour le
      portage : BERT pré-entraîné a `V≠K` par construction, donc porter
      ses poids garantit la formule mais jamais la dynamique d'attracteur
      — renforcé par les résultats ci-dessus (même une proximité
      approximative ne suffirait pas) — à formuler explicitement avant
      toute affirmation Strate 1 sur ce point dans le manuscrit.
+
+     **Empilement complet testé (2026-09-20)** : attention liée + FFN
+     liée assemblées en couche Post-LN, `K`/`W₁` tous deux fixes (cas le
+     plus favorable). **2/20 graines violent la monotonie stricte**
+     (écarts petits, `0,0001`-`0,013`, apparaissant tôt et persistant —
+     pas un artefact isolé), bien que la tendance globale reste
+     décroissante pour 20/20. Confirme que la propriété d'énergie ne
+     s'étend pas automatiquement par composition — chaque assemblage
+     (attention+FFN, `Q` non trivial, empilement multi-couches) doit
+     être vérifié séparément (`scripts/run_full_stack_tied_check.py`).
 - [ ] **Piste Chladni-Hopfield sur BERT hermitien** (discussion du
   2026-09-18, cf. `contributions/claude/annexe_chladni_hopfield_v3.md`
   et `contributions/claude/Revue_Claude_Analogie_Fig_Chaldni`) : hypothèse
