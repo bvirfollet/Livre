@@ -1885,6 +1885,49 @@ guidée » que Bertrand décrit : le réseau attend un vrai vainqueur avant
 de laisser `K_ana` agir, plutôt que de forcer un choix sur une
 dominance à peine supérieure à la moyenne.
 
+#### Protocole confirmatoire — cristallisation spontanée et sélectivité de γ (pré-enregistré, 2026-09-20)
+
+**Écrit avant tout nouveau run.** Deux affirmations distinctes,
+chacune avec un critère fixé à l'avance — la leçon des protocoles
+précédents de ce fil.
+
+**Échantillon** : 3 paysages **fraîchement tirés** (seeds `401, 402,
+403` — namespace disjoint de tout ce qui a déjà été utilisé), même
+construction que précédemment (8 bassins par paysage).
+
+**Test E — la cristallisation spontanée sous `Y` seul généralise**
+(calcul exact, déterministe, pas de Monte-Carlo) :
+- `K0=0`, `Δt_total=20`, `200` sous-pas, état initial localisé dans le
+  bassin 0.
+- **Seuil de succès, fixé à l'avance** : `max_t p_max(t) > 0,5` sur les
+  **3 paysages** (bien au-dessus du niveau dispersé `1/8=0,125` —
+  seuil significatif, pas ajusté après coup).
+
+**Test C — `γ` contrôle la sélectivité, `K0` non** :
+- Deux valeurs de `γ` seulement, les extrêmes déjà explorés :
+  `γ=2` et `γ=20`, à `K0=10` fixe (choisi pour garantir suffisamment
+  d'événements de collapse même à `γ=20`, où le taux de collapse est
+  faible).
+- **`M=500` trajectoires** par paysage et par valeur de `γ` (contre 20
+  dans l'exploration).
+- Métrique : `p_max` au moment du premier saut, moyenné sur les
+  trajectoires ayant effectivement collapsé, avec erreur-type.
+- **Garde-fou de puissance, fixé à l'avance** : si moins de 20
+  trajectoires collapsent dans une condition, le test est déclaré
+  **non concluant** pour ce paysage plutôt que de forcer une lecture
+  sur un échantillon trop petit — pas un ajustement a posteriori, une
+  règle décidée avant de voir les résultats.
+- **Critère de succès, fixé à l'avance** : `z = (⟨p_max⟩_{γ=20} −
+  ⟨p_max⟩_{γ=2}) / √(σ₂₀²/M₂₀ + σ₂²/M₂) ≥ 5` (même standard 5σ que le
+  reste du projet), sur les **3 paysages**.
+
+**Décision de citation** : si Test E et Test C réussissent tous les
+deux sur les 3 paysages (et qu'aucun n'est déclaré non concluant par le
+garde-fou de puissance), le résultat (cristallisation spontanée
+généralisée + `γ` comme paramètre de sélectivité, indépendant de
+l'urgence contrôlée par `K0`) pourra être proposé pour
+`Simulations_API.md`.
+
 ## Historique des phases complétées
 
 <!-- Déplacer ici les phases terminées avec date de complétion -->
