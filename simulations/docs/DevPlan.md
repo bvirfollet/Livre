@@ -668,6 +668,82 @@ satisfait pas non plus).
    encore exploré (cf. discussion à suivre sur la méthodologie de
    projection initiale).
 
+**Revue de la méthodologie de projection initiale (2026-09-20)** :
+`WeightProjector`/`project_bert_attention` n'a jamais proposé ni implémenté
+de mécanisme de tying `K=V` — les trois projections `q_proj`/`k_proj`/
+`v_proj` sont trois appels indépendants à `_project_linear`, copiant les
+poids de BERT appris séparément. Le seul endroit où `Q=K` (jamais `V=K`)
+a été imposé est le test de scaffolding Phase 1
+`test_u03_equivalence_auto_associative`, jamais intégré au chemin de
+portage réel. L'entrée BUG-002 de `CorrectifPlan.md` a été annotée en
+conséquence (sa mention « inconditionnelle Q,K,V quelconques » ne
+concernait que l'équivalence de *formule*, jamais l'énergie).
+
+### Recherche — Hopfield hermitien à poids liés (tying V=K) : protocole de décroissance d'énergie
+
+**Décidé avec Bertrand le 2026-09-20** : avant d'implémenter le tying
+`V=K`/`W₂=W₁ᵀ` comme variante architecturale, vérifier directement,
+empiriquement et de façon falsifiable, la revendication centrale de
+Krotov/Ramsauer — que le tying garantit une décroissance d'énergie sous
+itération. Protocole en 3 temps, chacun pré-enregistré séparément (aucun
+seuil ajusté après avoir vu un résultat) :
+
+**Énergie utilisée** : `hopfield_energy` (`src/hopfield/equivalence.py`,
+déjà implémentée en Phase 1, jamais exercée par un test jusqu'ici) —
+`E(ξ) = -1/β·Σᵢ lse(β, Re(ξᵢ·Kⱼ†)) + ½‖ξ‖²`, le terme quadratique restant
+constant sous rétraction `RMSNorm` (`‖ξ‖=γ√d` fixe, déjà prouvé par
+`test_rmsnorm_output_rms_is_gamma`) — donc la monotonie de `E` se réduit à
+celle du terme d'attraction `-lse` seul, une fois la rétraction appliquée.
+
+**Mise en garde méthodologique explicite** : le théorème 2 de Ramsauer
+(décroissance d'énergie prouvée) porte sur leur règle de mise à jour
+*par remplacement* `ξ_new = X·softmax(β X^Tξ_old)` — pas sur la règle
+*résiduelle* `ξ_new = RMSNorm(ξ_old + X·softmax(...))` utilisée ici (fidèle
+à l'architecture transformeur réelle). Ce protocole ne cite donc pas le
+théorème de Ramsauer comme s'appliquant directement — il teste
+**empiriquement notre propre application discrète**, avec un pas
+résiduel de taille 1 (pas infinitésimal), ce qui n'est pas couvert
+automatiquement par l'analogie de descente de gradient contrainte déjà
+établie (`docs/DevPlan.md`, section précédente).
+
+**Étape 1 — `K` fixe, `ξ` itéré (Ramsauer strict, `V=K=K_fixe`)** :
+- `d_model=16`, `T=5` (motifs/tokens), `β=1.0`, `num_steps=20`,
+  `num_seeds=20` (`torch.manual_seed(seed)` pour `seed∈[0,20)`), `K_fixe`
+  et `ξ₀` ~ `N(0,1)` i.i.d., `RMSNorm` non entraînée (`γ=1`).
+- Critère de succès : `E(ξ_{t+1}) ≤ E(ξ_t) + tol` pour tout `t<num_steps`,
+  pour toutes les graines, `tol=1e-4` (cohérent avec `ATOL` du projet,
+  large devant le bruit FP32 attendu).
+- Un seul échec (une graine, un pas) suffit à infirmer la revendication
+  pour ce protocole.
+
+**Étape 2 — sensibilité à la variabilité de `K`** :
+- Même `d_model`/`T`/`β`/`num_steps`/`num_seeds`, mais `K_t = K_fixe +
+  σ·bruit_t` (bruit gaussien frais à chaque pas, indépendant de `ξ`).
+- Grille pré-enregistrée : `σ ∈ {0, 0.01, 0.05, 0.1, 0.2, 0.5, 1.0}`
+  (échelle directement comparable : `K_fixe` est lui-même ~`N(0,1)`).
+- Mesure : fraction des paires (graine, pas) respectant la monotonie
+  (`tol=1e-4`) à chaque `σ`. Seuil de rapport pré-enregistré : le plus
+  grand `σ` pour lequel cette fraction reste `≥95%` définit le seuil de
+  robustesse mesuré — pas un pass/fail unique, une courbe.
+- `σ=0` doit reproduire exactement l'étape 1 (garde-fou de cohérence).
+
+**Étape 3 — `K` réévalué à partir de `ξ` (empilement réel, exploratoire,
+Strate 2/3)** :
+- `K_t = k_proj(ξ_t)` (projection apprise, réutilisée en boucle — pas de
+  stimulus externe réinjecté, cf. discussion du 2026-09-20 : aucun
+  mécanisme de ce type n'existe dans l'architecture actuelle), `V_t=K_t`
+  tying forcé.
+- Aucun théorème ne couvre ce cas, même avec tying — **pas de critère de
+  succès/échec**, seulement une trajectoire `E(ξ_t)` rapportée et
+  commentée (tendance : décroissante / oscillante / divergente).
+- Ne doit jamais être présenté comme validant ou infirmant les étapes 1-2.
+
+**Portée de ce protocole** : attention seule (`V=K`). Le tying FFN
+(`W₂=W₁ᵀ`) reste hors scope ici — nécessite d'abord la dérivation d'une
+fonction de Lagrange `L(z)` pour notre `gate(z)=z·Φ(Re(z))` telle que
+`gate=∂L/∂z` (cf. formalisme de Krotov, non faite), sans quoi aucune
+énergie FFN n'est même définie pour un test de décroissance.
+
 ### Recherche — Compression hermitienne pour portage mobile
 
 **Statut :** non planifié, non chiffré en phase numérotée. Indépendant du
