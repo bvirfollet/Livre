@@ -1598,13 +1598,69 @@ précédent). **Statut : exploratoire**, pas encore pré-enregistré
 de `N_eff` fixé avant le run) reste à construire avant toute citation.
 
 **Reste à faire** : (i) protocole confirmatoire, comme pour tous les
-résultats précédents de ce fil ; (ii) comparer au régime dissipatif
-(`K_ana>0`, injection de bruit/mesures répétées) pour vérifier que
-l'entropie s'effondre bien dans ce régime, contraste attendu et pas
-encore testé ; (iii) l'intrication réseau/vecteur d'entrée (second
-volet du recadrage, pas encore abordé — nécessite de promouvoir
-l'entrée en degré de liberté quantique séparé, cf. discussion du
-2026-09-20).
+résultats précédents de ce fil ; (ii) ~~comparer au régime dissipatif~~
+— **fait, cf. sous-section suivante** ; (iii) l'intrication
+réseau/vecteur d'entrée (second volet du recadrage, pas encore
+abordé — nécessite de promouvoir l'entrée en degré de liberté quantique
+séparé, cf. discussion du 2026-09-20).
+
+#### Contraste avec le régime dissipatif — deux faux départs, puis le bon modèle (2026-09-20)
+
+**Faux départ 1 — déphasage aléatoire sur la base de coordonnées
+brutes** (`scripts/run_n_basin_dissipative_contrast.py`, premier essai) :
+à chaque petit pas, kick de phase aléatoire indépendant par coordonnée
+(écart-type `√(2·K_ana·dt_small)`), moyenné sur 100 trajectoires.
+**Résultat inattendu : l'entropie monte vers le maximum avec `K_ana`**
+(`1,72` à `K_ana=0` → `2,08` à `K_ana=10`, soit la distribution
+uniforme) — l'inverse de l'effondrement attendu.
+
+**Faux départ 2 — même déphasage, mais sur la base de concepts**
+(Gram-Schmidt/QR alignée sur les 8 motifs, pas la base de coordonnées
+brutes — cohérent avec `L_k` = « projecteurs de concept » de la
+contribution Gémini). **Même résultat qualitatif** (entropie vers le
+maximum). Diagnostic correct : un déphasage sans collapse ne préserve
+que les populations dans la base où il agit ; mesurer ensuite l'entropie
+de la **moyenne d'ensemble** sur les trajectoires souffre d'un biais de
+concavité (inégalité de Jensen — l'entropie d'une moyenne est toujours
+`≥` la moyenne des entropies). Si des trajectoires différentes finissent
+localisées sur des bassins différents, leur moyenne d'ensemble paraît
+étalée même si chaque trajectoire, individuellement, est bien localisée.
+
+**Correctif — véritable collapse projectif répété (règle de Born, effet
+Zénon quantique)** : à chaque petit pas, un événement de mesure se
+produit avec probabilité `1−e^{-K_ana·dt_small}` (processus de Poisson,
+`K_ana` = taux) ; s'il se produit, mesure projective dans la base de
+concepts (probabilités de Born sur les 8 projecteurs `|e_k⟩⟨e_k|` + un
+9ᵉ pour « aucun concept nommé »), collapse effectif de l'état sur
+l'issue tirée. **Entropie calculée par trajectoire, puis moyennée**
+(pas l'inverse — corrige le biais de Jensen identifié).
+
+**Résultat** (200 trajectoires par `K_ana`, résultat archivé dans
+`docs/results/n_basin_dissipative_contrast_2026-09-20.json`) :
+
+```
+K_ana   <S> par trajectoire   <N_eff>
+ 0.00              1.7150       5.557
+ 0.10              1.7094       5.526
+ 0.50              1.7113       5.536
+ 1.00              1.6479       5.196
+ 5.00              1.4700       4.349
+10.00              1.3349       3.799
+```
+
+**Décroissance monotone et nette**, passant même sous le niveau de
+recouvrement géométrique de fond (`1,478` à `t=0`, cf. section
+précédente) aux `K_ana` élevés — la mesure répétée fige bien la
+trajectoire près d'un bassin, contrairement au régime unitaire pur qui
+maintient un plateau élevé sans jamais redescendre. **C'est le
+contraste correct** : `K_ana` module continûment entre superposition
+entretenue (`K_ana→0`) et collapse progressif (`K_ana` grand),
+exactement le rôle que lui attribue la contribution Gémini.
+
+**Statut : exploratoire**, comme le reste de ce fil — grille de
+`K_ana`, nombre de trajectoires et paramètres de discrétisation choisis
+pour l'exploration, pas pré-enregistrés. Protocole confirmatoire
+toujours à construire avant toute citation.
 
 ## Historique des phases complétées
 

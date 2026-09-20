@@ -93,11 +93,19 @@
   stabilise sur un plateau élevé (`N_eff≈5,5-6/8`), sans jamais
   redescendre — signature directe de superposition simultanée, pas de
   bascule entre deux bassins. Pas encore pré-enregistré/confirmatoire.
-  **Reste à faire** : protocole confirmatoire ; contraste avec régime
-  dissipatif (`K_ana>0`, attendu : effondrement de l'entropie, pas
-  encore testé) ; volet intrication réseau/entrée, pas commencé ;
-  piste théorique de la transformée de Hilbert pour l'entrée (notée à
-  part, `docs/DevPlan.md`).
+  **Contraste dissipatif fait (2026-09-20)** : deux faux départs
+  (déphasage aléatoire sans collapse, base brute puis base de concepts
+  — biais de Jensen identifié, l'entropie de la moyenne d'ensemble
+  n'est pas la moyenne des entropies), puis correctif (vrai collapse
+  projectif répété, règle de Born, effet Zénon, entropie moyennée par
+  trajectoire) — décroissance monotone nette avec `K_ana`
+  (`1,72→1,33`), sous le niveau de recouvrement géométrique de fond aux
+  `K_ana` élevés. Contraste confirmé qualitativement, toujours
+  exploratoire (non pré-enregistré).
+  **Reste à faire** : protocole confirmatoire (superposition et
+  contraste dissipatif) ; volet intrication réseau/entrée, pas
+  commencé ; piste théorique de la transformée de Hilbert pour l'entrée
+  (notée à part, `docs/DevPlan.md`).
 
 - [ ] **Recherche séparée — compression hermitienne pour portage mobile**
   (cf. `docs/DevPlan.md`, section dédiée) : objectif et protocole posés
