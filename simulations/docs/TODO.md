@@ -79,16 +79,35 @@
      théorique indépendant**, en plus de la préservation de phase, pour
      préférer `RMSNorm` dans ce cadre.
 
-     **Reste ouvert** : (i) le FFN n'a aucune dérivation d'énergie —
-     piste identifiée : formalisme de Lagrangien de Krotov & Hopfield
-     pour fonctions d'activation générales (*Dense Associative Memory*
-     2016, *Large Associative Memory* 2021), pas encore exploré ; (ii)
-     même en `V=K`, vérifier si `Q≠K` (qui, lui, ne casse pas l'égalité
+     **(i) FFN sans dérivation d'énergie — exploré le 2026-09-20**
+     (Krotov, *Hierarchical Associative Memory*, arXiv:2107.06446,
+     cf. `docs/DevPlan.md`) : le formalisme couvre bien toute fonction
+     d'activation, mais confirme et généralise la même contrainte
+     (`W₂=W₁ᵀ`) — ne résout pas le problème, en donne le vocabulaire
+     exact. **Protocole de tying `V=K` implémenté et testé (2026-09-20,
+     `docs/DevPlan.md`, section « Hopfield hermitien à poids liés »)** :
+     décroissance d'énergie confirmée sans exception à `K` strictement
+     fixe (étape 1), mais **rupture nette dès la moindre perturbation de
+     `K`** (étape 2 — fraction de pas monotones chute de 100% à ~60% dès
+     `σ=0,01`, aucune dégradation progressive) et **aucune monotonie
+     locale une fois `K` recalculé à chaque pas** (étape 3, exploratoire —
+     seulement 2/20 graines strictement monotones, malgré une tendance
+     globale décroissante sur 20/20). Conséquence directe : une
+     régularisation souple (rapprocher `V` de `K` sans les égaler) n'offre
+     vraisemblablement **aucune** garantie d'énergie, même approximative
+     — seul un tying strict serait porteur de la propriété, et encore
+     uniquement dans le cas `K` fixe (jamais vérifié pour l'empilement
+     réel). Tying FFN (`W₂=W₁ᵀ`) toujours hors scope (Lagrangienne du
+     gate `g(z)=z·Φ(Re(z))` non dérivée).
+     (ii) même en `V=K`, vérifier si `Q≠K` (qui, lui, ne casse pas l'égalité
      formule=Hopfield-step déjà prouvée) affecte la dérivation d'énergie
-     ci-dessus ; (iii) conséquence pour le portage : BERT pré-entraîné a
-     `V≠K` par construction, donc porter ses poids garantit la formule
-     mais jamais la dynamique d'attracteur — à formuler explicitement
-     avant toute affirmation Strate 1 sur ce point dans le manuscrit.
+     ci-dessus — toujours ouvert, non traité par le protocole ci-dessus
+     (qui pose `Q=ξ` par construction). (iii) conséquence pour le
+     portage : BERT pré-entraîné a `V≠K` par construction, donc porter
+     ses poids garantit la formule mais jamais la dynamique d'attracteur
+     — renforcé par les résultats ci-dessus (même une proximité
+     approximative ne suffirait pas) — à formuler explicitement avant
+     toute affirmation Strate 1 sur ce point dans le manuscrit.
 - [ ] **Piste Chladni-Hopfield sur BERT hermitien** (discussion du
   2026-09-18, cf. `contributions/claude/annexe_chladni_hopfield_v3.md`
   et `contributions/claude/Revue_Claude_Analogie_Fig_Chaldni`) : hypothèse

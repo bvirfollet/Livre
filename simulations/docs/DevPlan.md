@@ -788,6 +788,36 @@ Strate 2/3)** :
   commentée (tendance : décroissante / oscillante / divergente).
 - Ne doit jamais être présenté comme validant ou infirmant les étapes 1-2.
 
+#### Résultat — Étape 3 (2026-09-20, observation, pas un test)
+
+`scripts/run_tied_dynamics_real_stacking.py` (résultat archivé dans
+`docs/results/tied_dynamics_real_stacking_2026-09-20.json`) : `k_proj`
+= `ComplexLinear` non entraînée (poids aléatoires fixes par graine),
+`V_t=K_t=k_proj(ξ_t)` recalculé à chaque pas.
+
+**Observation, sur 20 graines, 20 pas :**
+- **Monotonie stricte pas-à-pas : seulement 2/20 graines** — sans
+  surprise, aucun théorème ne garantit cette propriété une fois `K`
+  recalculé à chaque pas (mise en garde déjà actée ci-dessus).
+- **Tendance globale (`E` au pas 0 vs `E` au pas 20) : décroissante pour
+  20/20 graines**, sans exception — malgré l'absence de monotonie locale,
+  l'énergie finit systématiquement bien plus basse qu'au départ (typ.
+  `E₀≈45-67` → `E_final≈-10 à -47`).
+
+**Lecture, en restant strictement dans le registre de l'observation** :
+la dynamique réelle (K réévalué, sans tying figé) ne suit pas une
+descente de gradient propre à chaque pas — des remontées locales
+d'énergie sont la norme, pas l'exception — mais elle converge tout de
+même, empiriquement et systématiquement sur cet échantillon, vers des
+états de bien plus basse énergie après 20 pas. Ceci ne constitue **ni
+une confirmation, ni une infirmation** de la propriété formelle des
+étapes 1-2 : c'est un système dynamique différent (patterns mobiles, pas
+fixes), pour lequel aucune garantie n'a été revendiquée. Piste ouverte,
+non prioritaire : la tendance globale décroissante pourrait signaler une
+propriété de contraction plus faible que la monotonie stricte (ex. une
+décroissance seulement en moyenne, ou sur une fenêtre glissante) —
+non caractérisée ici, à explorer séparément si jugé utile.
+
 **Portée de ce protocole** : attention seule (`V=K`). Le tying FFN
 (`W₂=W₁ᵀ`) reste hors scope ici — nécessite d'abord la dérivation d'une
 fonction de Lagrange `L(z)` pour notre `gate(z)=z·Φ(Re(z))` telle que
