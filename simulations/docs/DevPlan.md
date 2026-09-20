@@ -1519,6 +1519,38 @@ entre les 3 paysages, échelle d'énergie propre à chaque paysage non
 normalisée entre paires) — un travail de contrôle plus lourd que ce qui
 a été fait jusqu'ici, à ne pas engager sans arbitrage explicite.
 
+### Recherche — Recadrage : superposition simultanée et intrication réseau/entrée (2026-09-20)
+
+**Correction conceptuelle de Bertrand, fondamentale** : le fil « tunnel »
+ci-dessus posait la mauvaise question. Le tunnel décrit un système
+**déjà localisé** (après effondrement de la fonction d'onde) qui
+s'échappe d'un puits vers un autre — une dynamique *séquentielle*
+post-mesure. Ce qui intéresse le projet est l'**inverse** : la
+coexistence cohérente de plusieurs bassins **avant** tout effondrement
+(« le parcours simultané de l'ensemble des puits »), et le couplage de
+cette superposition avec le vecteur d'entrée du réseau. Renvoie
+directement à l'**Objectif 2**, jamais commencé, du plan d'origine
+(`contributions/claude/plan_dev_simulation_superposition_intrication.md`,
+2026-08-11) — reformulé : le second système couplé n'est pas un second
+réseau, c'est le vecteur d'entrée lui-même.
+
+**Piste théorique distincte, notée séparément, non encore développée**
+(Bertrand, 2026-09-20) : analogie avec un signal sensitif analogique —
+l'information captée en entrée subirait l'équivalent d'une
+**transformée de Hilbert** pour initialiser la couche d'entrée
+hermitienne (construction du « signal analytique »
+`s_analytique(t)=s(t)+i·H[s](t)`, standard en traitement du signal pour
+complexifier un signal réel en lui donnant amplitude et phase
+instantanées bien définies). Ceci **expliquerait** pourquoi la
+contribution Gémini (`BERT_hermitien_PoC`) posait d'emblée une couche
+d'entrée hermitienne — pas un choix arbitraire, mais la construction
+canonique pour complexifier un signal réel. Remettrait directement en
+cause l'initialisation actuelle de la partie imaginaire dans
+`WeightProjector` (bruit gaussien, `imag_std`) — à remplacer, pour la
+couche d'entrée spécifiquement, par une construction de type Hilbert.
+**Non traité maintenant** — chantier théorique à part entière, à
+reprendre séparément.
+
 ## Historique des phases complétées
 
 <!-- Déplacer ici les phases terminées avec date de complétion -->
