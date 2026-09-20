@@ -47,13 +47,48 @@
      `tests/test_weights.py::test_layer_attention_subblock_still_hopfield_equivalent_after_assembly`,
      vert du premier coup. Ceci confirme que l'assemblage et le portage
      n'ont pas silencieusement altéré le sous-bloc attention lui-même.
-  2. **Reste ouvert, non répondu par (1)** : (1) ne teste que le
-     sous-bloc, pas la couche complète. Reste à statuer (littérature ou
-     dérivation propre) si la couche complète — résiduelle + norme + FFN
-     autour du pas de Hopfield — admet une fonction d'énergie de Hopfield
-     généralisée dont elle serait le pas de descente, ou à documenter
-     clairement que ce n'est **pas** le cas et que seul le sous-bloc
-     attention porte l'équivalence Hopfield stricto sensu.
+  2. **Dérivation théorique faite (2026-09-20)** — cf. `docs/DevPlan.md`,
+     section dédiée, pour le détail complet. Résumé : **deux sens
+     distincts d'« équivalence Hopfield » ont été confondus jusqu'ici.**
+     (a) Équivalence de *formule* (Phase 1, `test_u03_equivalence_general_qkv`)
+     — vraie pour `Q,K,V` quelconques, quasi tautologique (l'attention et
+     `hopfield_step` calculent littéralement la même expression). (b)
+     Équivalence *dynamique/énergétique* (garantie de convergence vers un
+     attracteur, la propriété physiquement significative) — prouvée par
+     Ramsauer et al. 2020 **uniquement pour le cas auto-associatif**
+     (`V=K`, vérifié sur la source : leur passage à l'attention `Q,K,V`
+     séparés, éq. 10, est une observation formelle, pas une preuve
+     d'énergie). Or **BERT réel apprend `W_K` et `W_V` indépendamment**
+     (`V≠K` systématiquement) — donc le sens (b) n'a jamais été acquis,
+     même pour le bloc d'attention seul avec de vrais poids. Le trou est
+     plus profond qu'initialement repéré : il ne vient pas du FFN/de la
+     norme, il existe déjà à la racine de l'attention hermitienne dès
+     qu'on utilise des poids réels.
+
+     Dérivation propre complémentaire (cas `V=K`) : `Attention(x)=X·softmax(βX^Tx)
+     = ∇_x lse(β,X^Tx)` exactement. `x + Attention(x)` est donc un pas
+     d'Euler de **montée** de gradient sur `lse` seul (non borné), et
+     `RMSNorm` (qui force `‖sortie‖=γ√d` constant, cf.
+     `test_rmsnorm_output_rms_is_gamma`) agit comme une **rétraction sur
+     la sphère** — la technique standard de montée de gradient contrainte
+     à une variété. `Attention+résiduelle+RMSNorm` correspond donc
+     exactement à un pas de montée de gradient projetée sur `lse(β,K^Tx)`
+     sur une sphère, **mais seulement si `V=K`**. `LayerNorm` (qui centre)
+     projetterait sur une variété différente (sphère ∩ hyperplan
+     orthogonal à `𝟙`), pas la sphère simple — **second argument
+     théorique indépendant**, en plus de la préservation de phase, pour
+     préférer `RMSNorm` dans ce cadre.
+
+     **Reste ouvert** : (i) le FFN n'a aucune dérivation d'énergie —
+     piste identifiée : formalisme de Lagrangien de Krotov & Hopfield
+     pour fonctions d'activation générales (*Dense Associative Memory*
+     2016, *Large Associative Memory* 2021), pas encore exploré ; (ii)
+     même en `V=K`, vérifier si `Q≠K` (qui, lui, ne casse pas l'égalité
+     formule=Hopfield-step déjà prouvée) affecte la dérivation d'énergie
+     ci-dessus ; (iii) conséquence pour le portage : BERT pré-entraîné a
+     `V≠K` par construction, donc porter ses poids garantit la formule
+     mais jamais la dynamique d'attracteur — à formuler explicitement
+     avant toute affirmation Strate 1 sur ce point dans le manuscrit.
 - [ ] **Piste Chladni-Hopfield sur BERT hermitien** (discussion du
   2026-09-18, cf. `contributions/claude/annexe_chladni_hopfield_v3.md`
   et `contributions/claude/Revue_Claude_Analogie_Fig_Chaldni`) : hypothèse

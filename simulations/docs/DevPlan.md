@@ -529,6 +529,95 @@ validée par Bertrand avant commit. Registre choisi délibérément technique
 du livre reste à écrire depuis une session sur le manuscrit
 `RadioHumaine`, pas depuis `simulations/`.
 
+### Recherche — Équivalence Hopfield : formule vs énergie (2026-09-20)
+
+**Origine :** réserve soulevée par Bertrand le 2026-09-18 (cf.
+`docs/TODO.md`) — le fil conducteur du projet est que BERT se ramène à un
+Hopfield (Ramsauer et al. 2020) plongé dans l'espace hermitien ; rien
+n'avait vérifié si cette équivalence tient encore une fois la couche
+complète (FFN+Norm+résiduelle) assemblée. Dérivation faite le
+2026-09-20, en réponse.
+
+**Deux sens distincts d'« équivalence Hopfield », à ne plus confondre :**
+
+1. **Équivalence de formule** — l'attention hermitienne et `hopfield_step`
+   calculent littéralement la même expression, `softmax(β·Re(QK†))·V`,
+   pour `Q,K,V` **quelconques**. C'est ce qu'établit `test_u03_equivalence_general_qkv`
+   (Phase 1). C'est vrai par construction (les deux implémentations codent
+   la même formule) — une garantie d'implémentation correcte, pas une
+   affirmation physique sur une dynamique d'attracteurs.
+2. **Équivalence dynamique/énergétique** — l'existence d'une fonction
+   d'énergie `E` dont la règle de mise à jour est (une approximation
+   discrète de) la descente de gradient, garantissant la convergence vers
+   des attracteurs (la propriété qui donne un sens physique au mot
+   « Hopfield »). C'est la propriété que Ramsauer et al. (2020) prouvent
+   — **mais uniquement pour le cas auto-associatif**.
+
+**Vérifié à la source (WebFetch, arXiv:2008.02217, 2026-09-20)** : Ramsauer
+et al. définissent `E(ξ) = -lse(β,X^Tξ) + ½ξ^Tξ + const` (leur éq. 2), dont
+le gradient donne exactement `X·softmax(βX^Tξ)` (leur éq. 3) — la même
+matrice `X` sert à comparer (dans le softmax) et à reconstruire. Quand ils
+passent à l'attention du transformeur avec `Q,K,V` séparés (leur éq. 10),
+c'est une **observation formelle** (« ceci est l'attention du
+transformeur »), **pas une preuve que la propriété d'énergie/Lyapunov
+survit** quand la matrice de reconstruction (`V`) diffère de la matrice de
+comparaison (`K`).
+
+**Dérivation propre (2026-09-20), pour préciser la condition exacte :**
+
+`∇_ξ lse(β,K^Tξ) = K·softmax(βK^Tξ)` (calcul direct, log-sum-exp). Donc la
+sortie de l'attention `V·softmax(βK^Tξ)` est un gradient exact **si et
+seulement si `V=K`** — une condition sur `V` vs `K`, indépendante de
+`Q` vs `K` (qui, lui, ne joue aucun rôle dans cette dérivation ; c'est la
+condition testée par erreur en Phase 1 pour l'équivalence de *formule*,
+qui elle est inconditionnelle).
+
+En posant `f(x) = x + Attention(x)` avec `V=K=X` :
+```
+f(x) = x + X·softmax(βX^Tx) = x + ∇_x lse(β,X^Tx)
+```
+un pas d'Euler de **montée** de gradient sur `lse(β,X^Tx)` seul (sans le
+terme quadratique de régularisation de Ramsauer — donc non borné en
+norme, divergerait). C'est exactement ce que corrige l'étape suivante :
+`RMSNorm` force `‖sortie‖ = γ√d`, une valeur **constante indépendante de
+l'entrée** (déjà prouvé, `test_rmsnorm_output_rms_is_gamma`) — c'est-à-dire
+une **rétraction sur une sphère de rayon fixe**, la technique standard de
+montée/descente de gradient contrainte à une variété (pas dans l'espace
+ambiant, puis projection sur la contrainte).
+
+**Résultat :** `Attention + résiduelle + RMSNorm` correspond exactement à
+un pas de montée de gradient projetée sur `lse(β,K^Tx)`, contraint à une
+sphère — **mais seulement si `V=K`**. `LayerNorm` (qui centre avant de
+diviser) projetterait sur une variété différente (sphère ∩ hyperplan
+orthogonal à `𝟙`, pas la sphère simple) — **second argument théorique
+indépendant**, distinct de la préservation de phase déjà établie, en
+faveur de `RMSNorm` comme architecture par défaut dans ce cadre précis.
+
+**Conséquence qui déplace le problème plus loin que prévu** : BERT réel
+apprend `W_K` et `W_V` **indépendamment** (`V≠K` systématiquement, jamais
+la condition auto-associative). Donc le sens (2) — la garantie
+d'attracteur — **n'a jamais été établi, même pour le bloc d'attention
+seul avec de vrais poids pré-entraînés**. Le trou n'est pas localisé au
+FFN/à la norme comme initialement supposé : il existe déjà à la racine,
+dès qu'on utilise des poids réels plutôt que des poids synthétiques
+auto-associatifs (comme dans `test_u03_equivalence_auto_associative`,
+Phase 1, qui teste précisément — et seulement — ce cas particulier).
+
+**Reste ouvert, non résolu :**
+- Le FFN n'a aucune dérivation d'énergie à ce jour. Piste identifiée :
+  formalisme de Lagrangien de Krotov & Hopfield pour fonctions
+  d'activation générales au-delà du softmax (*Dense Associative Memory*,
+  Krotov & Hopfield 2016 ; *Large Associative Memory*, Krotov 2021) — non
+  exploré.
+- Vérifier si `Q≠K` (qui ne casse pas l'équivalence de *formule*, déjà
+  prouvée inconditionnelle) affecte ou non la dérivation d'énergie
+  ci-dessus au-delà de la condition `V=K` déjà identifiée.
+- Conséquence pour toute affirmation Strate 1 : porter les poids de BERT
+  garantit l'équivalence de *formule*, jamais la dynamique d'attracteur —
+  à formuler explicitement avant toute citation dans `Simulations_API.md`
+  qui s'appuierait sur le mot « Hopfield » au sens physique, pas
+  seulement computationnel.
+
 ### Recherche — Compression hermitienne pour portage mobile
 
 **Statut :** non planifié, non chiffré en phase numérotée. Indépendant du
