@@ -1648,19 +1648,64 @@ K_ana   <S> par trajectoire   <N_eff>
 10.00              1.3349       3.799
 ```
 
-**Décroissance monotone et nette**, passant même sous le niveau de
-recouvrement géométrique de fond (`1,478` à `t=0`, cf. section
-précédente) aux `K_ana` élevés — la mesure répétée fige bien la
-trajectoire près d'un bassin, contrairement au régime unitaire pur qui
-maintient un plateau élevé sans jamais redescendre. **C'est le
-contraste correct** : `K_ana` module continûment entre superposition
-entretenue (`K_ana→0`) et collapse progressif (`K_ana` grand),
-exactement le rôle que lui attribue la contribution Gémini.
+**Correction (Bertrand, 2026-09-20) : ce n'est pas monotone strictement.**
+`0,05→1,7082`, `0,10→1,7094`, `0,50→1,7113` remontent légèrement avant
+de rebaisser — seulement 200 trajectoires, du bruit d'échantillonnage
+plausible dans la partie basse de la grille (pas de barre d'erreur
+calculée à cette étape, erreur de ma part de parler de monotonie sans
+l'avoir vérifié). Ce qui est établi, sans ambiguïté : une **tendance
+nette à la baisse** entre les extrêmes (`1,72` à `K_ana=0` contre
+`1,33` à `K_ana=10`), passant sous le niveau de recouvrement géométrique
+de fond (`1,478` à `t=0`). Le protocole confirmatoire ci-dessous
+formalise cette comparaison par une vraie erreur-type plutôt qu'une
+lecture à l'œil sur la grille.
 
 **Statut : exploratoire**, comme le reste de ce fil — grille de
 `K_ana`, nombre de trajectoires et paramètres de discrétisation choisis
 pour l'exploration, pas pré-enregistrés. Protocole confirmatoire
 toujours à construire avant toute citation.
+
+#### Protocole confirmatoire — superposition maintenue et collapse dissipatif (pré-enregistré, 2026-09-20)
+
+**Écrit avant tout nouveau run.** Deux affirmations distinctes à
+confirmer séparément, chacune avec un critère statistique explicite —
+pas de lecture à l'œil sur une grille, la leçon du faux départ
+ci-dessus.
+
+**Échantillon** : 3 paysages **fraîchement tirés** (seeds `301, 302,
+303` — namespace disjoint de tout ce qui a déjà été utilisé dans ce
+fil : `14, 201-205`), même construction que précédemment (`d_model=16`,
+`d_ff=32`, `T=5`, 60 initialisations pour cartographier les bassins,
+8 premiers bassins distincts retenus par paysage).
+
+**Test A — superposition maintenue sous évolution unitaire pure
+(`K_ana=0`), calcul exact, pas de Monte-Carlo** (l'évolution unitaire
+est déterministe, une seule trajectoire par paysage suffit) :
+- État initial localisé dans le bassin 0, évolution à `Δt=2,0` (dans le
+  plateau observé précédemment).
+- **Seuil de succès, fixé à l'avance** : `S(Δt=2,0) > 1,0` (la moitié
+  de l'entropie maximale `ln(8)=2,079` — un seuil significatif et
+  interprétable, pas ajusté après coup) sur les **3 paysages**.
+
+**Test B — collapse sous mesure projective répétée, comparaison
+statistique propre** :
+- Deux valeurs de `K_ana` seulement, les extrêmes déjà explorés :
+  `K_ana=0` et `K_ana=10`.
+- **`M=1000` trajectoires** par paysage et par valeur de `K_ana` (contre
+  200 dans l'exploration — resserre l'erreur-type d'un facteur
+  `√5≈2,2`).
+- Erreur-type calculée sur les entropies par trajectoire :
+  `σ_S/√M` pour chaque `(paysage, K_ana)`.
+- **Critère de succès, fixé à l'avance** : `z = (⟨S⟩_{K_ana=0} −
+  ⟨S⟩_{K_ana=10}) / √(σ₀²/M + σ₁₀²/M) ≥ 5` (même standard 5σ que le
+  reste du projet) — sur les **3 paysages**, pas seulement un.
+
+**Décision de citation** : si les deux tests réussissent sur les 3
+paysages, le résultat (superposition simultanée maintenue en régime
+unitaire, collapse statistiquement significatif sous mesure répétée)
+pourra être proposé pour `Simulations_API.md`. Un échec sur un seul
+paysage suffit à invalider une citation en l'état — pas de moyenne qui
+masquerait une hétérogénéité.
 
 ## Historique des phases complétées
 
