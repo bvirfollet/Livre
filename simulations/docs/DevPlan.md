@@ -1953,6 +1953,62 @@ commit de citation dans `Simulations_API.md`** — probablement à fondre
 avec l'entrée déjà proposée sur la superposition/collapse (même
 famille de résultats, mécanisme affiné).
 
+### Recherche — Vers un signal de collapse réellement interne (2026-09-20)
+
+**Origine** : remarque de Bertrand — `p_max(t)` (recouvrement avec les 8
+concepts nommés) demande une information de type « vue de l'extérieur »
+(la liste des concepts, construite par nous, pas calculable depuis
+l'intérieur du réseau sans qu'on la lui fournisse). Objection identique,
+généralisée, à celle déjà soulevée par Gémini sur `Tr(ρ²)`. Il faut un
+signal fondé uniquement sur `ψ` et `W`, tous deux déjà internes au
+réseau.
+
+**Faux départ — `ΔE²(ψ)=⟨ψ|W²|ψ⟩−⟨ψ|W|ψ⟩²` (le « capteur B » de la
+contribution Gémini d'origine).** Résout bien le problème d'étiquetage
+externe (ne dépend que de `ψ` et `W`), mais **structurellement
+inutilisable** : `⟨W⟩` et `⟨W²⟩` sont des quantités **conservées
+exactement** sous une évolution unitaire générée par `W` lui-même
+(`W` commute avec `exp(-iWt)`, donc avec `W²`) — `ΔE²(ψ(t))` est figé
+dès l'état initial, incapable par construction de détecter une
+résonance qui émerge dans le temps. Vérifié : sous `Y` seul, `ΔE²(t)`
+varie de `6606` à `6623` (`0,25%` de fluctuation relative, du bruit
+numérique de `matrix_exp`, pas un signal).
+
+**Signal retenu — entropie de participation sur la base de coordonnées
+brutes du réseau** (les `80` dimensions natives — littéralement ses
+propres unités, pas une liste de concepts fournie de l'extérieur).
+`c(t) = 1 − S_brut(t)/S_max` (`0`=dispersé, `1`=localisé). Cette base ne
+commute pas avec `W` en général, donc `c(t)` **évolue réellement** :
+vérifié sous `Y` seul, `c(t)` varie de `0,0708` à `0,1451` — une
+fluctuation de plusieurs points de pourcentage, pas du bruit numérique.
+
+**Revalidation de la cristallisation/sélectivité** (`scripts/explore_raw_participation_crystallization.py`,
+même paysage `seed=14`, `λ_saut(t)=K0·c_norm(t)^γ`, `c_norm` normalisé
+sur sa plage propre observée sous `Y` seul — nécessaire car la plage
+naturelle de `c(t)` est bien plus étroite que celle de `p_max(t)`,
+`K0` calibré pour l'ancien signal ne transposait pas directement) :
+
+```
+gamma   % effondrées   <pas du 1er saut>   <c au saut>
+  1.0        100%              2.8              0.1011
+  3.0        100%             11.6              0.1142
+  6.0        100%             20.5              0.1304
+ 12.0        100%             73.6              0.1365
+```
+
+**Même comportement qualitatif que `p_max`, cette fois sur un signal
+authentiquement interne** : `c` au moment du saut monte de `0,101` à
+`0,137` quand `γ` croît, se rapprochant du maximum naturel (`0,145`).
+`γ` contrôle toujours la sélectivité, `K0` (une fois recalibré à
+l'échelle du nouveau signal) toujours l'urgence.
+
+**Statut : exploratoire.** Le protocole confirmatoire déjà validé pour
+`p_max` (Test C/E) reste à refaire avec ce signal avant toute citation
+— pas fait à ce stade. Reste ouvert : est-ce que cette entropie « sur
+les neurones bruts » correspond à quelque chose de psychologiquement
+interprétable (un ressenti), ou est-ce un simple proxy technique — non
+tranché, à discuter séparément.
+
 ## Historique des phases complétées
 
 <!-- Déplacer ici les phases terminées avec date de complétion -->

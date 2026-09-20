@@ -140,9 +140,23 @@
   large (`z` entre `27,5` et `47,0`). **Condition de citation
   remplie** — reste à valider la formulation avec Bertrand.
 
-  **Reste à faire** : raffiner la métrique d'entropie post-saut (le
-  mécanisme de « respiration » — durée du régime effondré avant
-  re-dispersion, et comment elle dépend des conditions) ; volet
+  **Signal réellement interne trouvé (2026-09-20)** : `p_max`
+  demandait une liste de concepts nommés (externe) ; `ΔE²(ψ)` proposé
+  en remplacement s'est révélé structurellement figé (quantité
+  conservée sous l'évolution qu'il générait lui-même — pas un signal).
+  Retenu : entropie de participation sur les **coordonnées natives du
+  réseau** (`c(t)=1-S_brut/S_max`, aucun étiquetage externe, évolue
+  réellement sous `Y` seul). Cristallisation/sélectivité revalidées
+  avec ce signal (`scripts/explore_raw_participation_crystallization.py`)
+  — même comportement qualitatif que `p_max` (`γ` contrôle la
+  sélectivité). **Exploratoire, protocole confirmatoire à refaire avec
+  ce signal avant citation.**
+
+  **Reste à faire** : protocole confirmatoire pour le signal interne ;
+  raffiner la métrique d'entropie post-saut (le mécanisme de
+  « respiration » — durée du régime effondré avant re-dispersion) ;
+  volet plasticité interprétative (`W_imag`, `M=R+iI`, cf. `docs/DevPlan.md`,
+  discussion du 2026-09-20 sur la reconsolidation mnésique) ; volet
   intrication réseau/entrée, pas commencé ; piste théorique de la
   transformée de Hilbert pour l'entrée (notée à part, `docs/DevPlan.md`).
 
