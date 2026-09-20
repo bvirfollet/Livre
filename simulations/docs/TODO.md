@@ -54,10 +54,24 @@
   `r=-0,688` pour recouvrement/période — la vitesse de transfert ne
   dépend que de la géométrie des vecteurs, pas de la barrière classique.
   **Aucune citation possible en l'état** (le run exploratoire précédent
-  non plus). Deux pistes de correction proposées, à trancher : pondérer
-  la construction par la profondeur des bassins (arbitraire, Strate 2/3),
-  ou discrétiser directement le paysage `E(x)` réel en Hamiltonien de
-  liaison forte (*tight-binding*) le long d'un chemin entre bassins.
+  non plus).
+
+  **Piste 2 (tight-binding) explorée (2026-09-20), mise en pause,
+  inconclusive.** `scripts/run_basin_tight_binding.py` : chemin
+  interpolé + renormalisé, énergie réelle `E(x_n)` sur chaque site —
+  corrige bien le défaut ci-dessus (le vrai relief entre à présent dans
+  le calcul, états localisés retrouvés en régime de faible couplage).
+  Premier test (3 paires, `N` fixe) : relation barrière/séparation
+  inversée par rapport à l'intuition WKB — confondant identifié (`N`
+  fixe alors que la distance réelle entre bassins varie). Corrigé (`N`
+  proportionnel à la distance, pas physique constant) et réétendu à 53
+  paires/3 paysages : l'inversion nette disparaît, mais **aucune
+  corrélation nette du signe attendu n'émerge** (`r≈+0,29`, faible,
+  toujours du mauvais signe). **Fil mis en pause** — ni confirmé ni
+  infirmé, poursuivre demanderait de contrôler des facteurs
+  supplémentaires (forme du profil, hétérogénéité inter-paysages)
+  non isolés à ce stade.
+
   Piste indépendante toujours ouverte : tester un `K_ana` intermédiaire
   (canal dissipatif GKSL explicite), pas seulement les deux extrêmes
   déjà testés séparément.

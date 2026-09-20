@@ -1480,6 +1480,45 @@ répéter sur un échantillon plus large (`N_paires>3`) avant d'évaluer la
 relation barrière/séparation. Non fait à ce stade — point d'arrêt
 volontaire, à trancher avec Bertrand avant de relancer.
 
+#### Confondant corrigé, relation toujours non conforme à l'intuition WKB (2026-09-20, second run)
+
+**Correction appliquée** : `N` (nombre de sites) rendu proportionnel à
+la distance euclidienne réelle entre `ξ_A` et `ξ_B` (`N=round(distance/
+Δs_phys)`, `Δs_phys=0,5` fixé — pas physique par site désormais constant
+d'une paire à l'autre, `N∈[15,29]` selon la paire). Échantillon élargi :
+**53 paires**, 3 paysages (`seed=14,201,202`), toutes les paires
+adjacentes en énergie de chaque paysage (pas seulement les plus
+favorables).
+
+**Résultat** (`scripts/run_basin_tight_binding.py`, données archivées
+dans `docs/results/basin_tight_binding_2026-09-20.json`) :
+
+```
+Corrélation (Pearson) barrier_height vs delta_split(h=0,01)   :  0,286
+Corrélation (Pearson) sqrt_action    vs delta_split(h=0,01)   :  0,315
+Corrélation (Pearson) barrier_height vs delta_split(h=0,1)    :  0,288
+```
+
+Le confondant de distance est levé, mais **la corrélation reste faible
+et de signe opposé à l'intuition WKB** (barrière/action plus grande
+devrait donner une séparation plus *petite* — signe négatif attendu ;
+on trouve `+0,29`, positif et faible). Ce n'est plus l'inversion nette
+observée sur l'échantillon de 3 paires (où la paire à la plus haute
+barrière donnait la plus grande séparation, de très loin) — l'effet
+s'est atténué en élargissant l'échantillon, cohérent avec l'hypothèse
+que la première observation était en partie un artefact de petit
+échantillon — mais aucune relation nette du signe attendu n'émerge non
+plus.
+
+**Décision : aucune conclusion tirée, fil mis en pause ici.** Ni
+confirmation, ni infirmation propre : le signal est trop faible pour
+trancher avec cet échantillon et cette méthode. Poursuivre demanderait
+de contrôler des facteurs supplémentaires non encore isolés (forme
+exacte du profil au-delà de la hauteur/action scalaire, hétérogénéité
+entre les 3 paysages, échelle d'énergie propre à chaque paysage non
+normalisée entre paires) — un travail de contrôle plus lourd que ce qui
+a été fait jusqu'ici, à ne pas engager sans arbitrage explicite.
+
 ## Historique des phases complétées
 
 <!-- Déplacer ici les phases terminées avec date de complétion -->
