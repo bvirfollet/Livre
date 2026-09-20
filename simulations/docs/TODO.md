@@ -98,14 +98,23 @@
   — biais de Jensen identifié, l'entropie de la moyenne d'ensemble
   n'est pas la moyenne des entropies), puis correctif (vrai collapse
   projectif répété, règle de Born, effet Zénon, entropie moyennée par
-  trajectoire) — décroissance monotone nette avec `K_ana`
-  (`1,72→1,33`), sous le niveau de recouvrement géométrique de fond aux
-  `K_ana` élevés. Contraste confirmé qualitativement, toujours
-  exploratoire (non pré-enregistré).
-  **Reste à faire** : protocole confirmatoire (superposition et
-  contraste dissipatif) ; volet intrication réseau/entrée, pas
-  commencé ; piste théorique de la transformée de Hilbert pour l'entrée
-  (notée à part, `docs/DevPlan.md`).
+  trajectoire) — tendance nette à la baisse avec `K_ana` (`1,72→1,33`,
+  **pas strictement monotone sur la grille exploratoire**, correction
+  actée après relecture de Bertrand).
+
+  **Protocole confirmatoire réussi (2026-09-20)**
+  (`scripts/run_n_basin_confirmatory.py`, résultat archivé dans
+  `docs/results/n_basin_confirmatory_2026-09-20.json`) : 3 paysages
+  frais (seeds `301,302,303`), Test A (superposition maintenue, seuil
+  `S>1,0`) et Test B (collapse `K_ana=0` vs `10`, `M=1000` trajectoires,
+  seuil `z≥5σ`) **réussissent sur les 3 paysages**, marge large
+  (`z` entre `19,7` et `35,9`). **Condition de citation remplie** —
+  reste à valider la formulation exacte avec Bertrand avant de commit
+  dans `Simulations_API.md`.
+
+  **Reste à faire** : volet intrication réseau/entrée, pas commencé ;
+  piste théorique de la transformée de Hilbert pour l'entrée (notée à
+  part, `docs/DevPlan.md`).
 
 - [ ] **Recherche séparée — compression hermitienne pour portage mobile**
   (cf. `docs/DevPlan.md`, section dédiée) : objectif et protocole posés

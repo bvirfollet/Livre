@@ -1707,6 +1707,41 @@ pourra être proposé pour `Simulations_API.md`. Un échec sur un seul
 paysage suffit à invalider une citation en l'état — pas de moyenne qui
 masquerait une hétérogénéité.
 
+#### Résultat du protocole confirmatoire — les deux tests réussissent (2026-09-20)
+
+**`scripts/run_n_basin_confirmatory.py`, résultat archivé dans
+`docs/results/n_basin_confirmatory_2026-09-20.json`, 3 paysages frais
+(seeds `301, 302, 303`) :**
+
+```
+seed=301 : Test A S=1,9376 (seuil>1,0) OUI  | Test B <S>₀=1,9376±0 <S>₁₀=1,3751±0,019  z=29,64 OUI
+seed=302 : Test A S=1,7167 (seuil>1,0) OUI  | Test B <S>₀=1,7167±0 <S>₁₀=1,4507±0,014  z=19,69 OUI
+seed=303 : Test A S=1,9581 (seuil>1,0) OUI  | Test B <S>₀=1,9581±0 <S>₁₀=1,2482±0,020  z=35,90 OUI
+```
+
+**Test A et Test B réussissent sur les 3 paysages**, avec une marge
+large (`z` entre `19,7` et `35,9`, très au-delà du seuil `5σ`
+pré-enregistré). `<S>(K_ana=0)` a une erreur-type nulle par construction
+(aucun événement de mesure ne se produit jamais à `K_ana=0` —
+déterministe, chaque trajectoire donne exactement le même résultat, pas
+une coïncidence).
+
+**Ce que ce résultat établit précisément** : sur ce modèle (8 bassins
+réels d'un paysage tying complet, régime unitaire cohérent vs mesure
+projective répétée), (1) l'évolution unitaire pure maintient une
+authentique superposition à plusieurs bassins (entropie `>1,7` sur un
+maximum de `2,079`, jamais un collapse spontané), et (2) l'introduction
+d'un canal de mesure/projection répétée à taux `K_ana` fait décroître
+cette superposition de façon statistiquement non ambiguë. Les deux
+tenant ensemble, indépendamment de 3 tirages de paysage différents.
+
+**Décision (Producteur) : condition de citation remplie.** Protocole
+pré-enregistré avant le run, seeds fraîches, seuils fixés à l'avance,
+résultat sans ajustement a posteriori — même standard que le protocole
+confirmatoire Leggett-Garg déjà cité. **Reste à valider avec Bertrand
+avant le commit de citation dans `Simulations_API.md`** (formulation
+exacte de l'entrée, `contract_version` à bumper).
+
 ## Historique des phases complétées
 
 <!-- Déplacer ici les phases terminées avec date de complétion -->
