@@ -2009,6 +2009,43 @@ les neurones bruts » correspond à quelque chose de psychologiquement
 interprétable (un ressenti), ou est-ce un simple proxy technique — non
 tranché, à discuter séparément.
 
+#### Protocole confirmatoire — signal interne `c(t)` (pré-enregistré, 2026-09-20)
+
+**Formule** : `c(ψ) = 1 − S(ψ)/ln(80)`, `S(ψ)=-Σᵢ|ψᵢ|² ln|ψᵢ|²` sur les
+80 coordonnées natives aplaties de l'état — aucune référence externe.
+
+**Échantillon** : 3 paysages **fraîchement tirés** (seeds `501, 502,
+503` — namespace disjoint de tout ce qui précède), même construction
+que précédemment.
+
+**Calibration, fixée avant tout test statistique** (légitime : calcul
+exact et déterministe, indépendant de tout résultat de collapse, même
+principe que le dimensionnement de `M` par la marge exacte dans le
+protocole Leggett-Garg) : pour chaque paysage, `c_min, c_max` mesurés
+sur une trajectoire unitaire pure (`K0=0`, `Δt=60`, `600` sous-pas),
+puis `c_norm(t)=(c(t)-c_min)/(c_max-c_min)` — nécessaire car la plage
+naturelle de `c` diffère de celle de `p_max` (déjà observé, `0,07-0,15`
+contre `0,12-0,84`).
+
+**Test E' — cristallisation spontanée** : `max_t c(t) − c(0) > 0,2 ×
+c(0)` (la concentration maximale atteinte dépasse la concentration de
+départ d'au moins 20%, relatif — critère sans échelle absolue, transfère
+mieux entre paysages que le seuil fixe utilisé pour `p_max`).
+
+**Test C' — `γ` contrôle la sélectivité** : `γ∈{1,12}` (les extrêmes du
+balayage exploratoire), `K0=10` fixe, `λ_saut(t)=K0·c_norm(t)^γ`,
+`M=500` trajectoires par paysage et par `γ`. Métrique : `c` (non
+normalisé) au moment du premier saut, moyenné sur les trajectoires
+ayant collapsé. Garde-fou de puissance : `≥20` collapses par condition,
+sinon non concluant. **Critère de succès** : `z=(⟨c⟩_{γ=12}-⟨c⟩_{γ=1})/
+√(σ₁₂²/M₁₂+σ₁²/M₁) ≥ 5`.
+
+**Décision de citation** : si Test E' et Test C' réussissent tous les
+deux sur les 3 paysages, le résultat (signal de collapse interne,
+crystallisation spontanée + sélectivité de `γ`) pourra être proposé
+pour `Simulations_API.md`, en remplacement/complément de l'entrée déjà
+validée avec `p_max`.
+
 ## Historique des phases complétées
 
 <!-- Déplacer ici les phases terminées avec date de complétion -->
