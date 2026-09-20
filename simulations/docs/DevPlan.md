@@ -914,6 +914,77 @@ l'attention (rupture nette dès la moindre perturbation) : cette garantie
 n'a pas été testée pour `W₁` variable ici (hors scope de cette passe,
 piste identique disponible si jugé utile).
 
+#### Forme de la fonction qui remplace `GELU`, coût de calcul, et étape 2 (2026-09-20)
+
+**Forme exacte** (vérifiée par calcul direct) : à `Im=0`,
+`conservative_radial_gate` se réduit à `h(a) = sign(a)·GELU(|a|)` —
+c'est-à-dire la branche positive de `GELU` telle quelle (`a≥0` :
+`h(a)=GELU(a)`, identique), reflétée en fonction impaire pour `a<0`
+(`h(a)=-GELU(-a)`, au lieu de `GELU(a)` lui-même). Table de valeurs :
+
+```
+    a    GELU(a)    h(a)=sign(a)·GELU(|a|)
+ -3.0    -0.0040    -2.9960
+ -2.0    -0.0455    -1.9545
+ -1.0    -0.1587    -0.8413
+ -0.5    -0.1543    -0.3457
+  0.0     0.0000     0.0000
+  0.5     0.3457     0.3457
+  1.0     0.8413     0.8413
+  2.0     1.9545     1.9545
+  3.0     2.9960     2.9960
+```
+
+**Différence qualitative importante** : `GELU` *supprime* doucement les
+entrées négatives (`GELU(-2)≈-0,05`, quasi nul) — c'est précisément ce
+qui fait son intérêt comme fonction de gating. `h`, elle, **amplifie**
+les entrées négatives symétriquement aux positives (`h(-2)=-1,95`) —
+identique en valeur absolue à `GELU(2)`, pas suppressive du tout. Ce
+n'est plus une fonction de gating au sens usuel côté négatif : c'est une
+fonction impaire, quasi-linéaire aux grandes valeurs (`h(a)→a` quand
+`a→±∞`, contre `GELU(a)→0` pour `a→-∞`). Cohérent avec la preuve
+générale (tout gate conservatif+préservant la phase doit être impair en
+`Im=0`) — pas un défaut d'implémentation, une conséquence structurelle.
+
+**Coût de calcul** (`scripts/run_ffn_tied_energy_sensitivity.py`,
+mesure CPU, `d_model=768`, `d_ff=3072`, batch=8, `T=128`, moyenne sur
+200 itérations après 10 d'échauffement) :
+
+| | portage (`HermitianFFN`) | lié (`TiedHermitianFFN`) | ratio |
+|---|---|---|---|
+| FFN complet (forward) | 151,5 ms | 157,2 ms | **×1,04** |
+| gate seul (isolé) | 14,3 ms | 24,1 ms | ×1,68 |
+| paramètres de la couche | 9 444 864 | 4 724 736 | **×0,50** |
+
+Le gate radial est ~68 % plus coûteux *isolément* (un `sqrt`+2 carrés en
+plus pour `|z|`, contre `Φ(Re(z))` seul), mais le gate ne représente
+qu'une fraction du coût total du FFN — dominé par les deux produits
+matriciels (`fc1` et la contraction `conj(W₁)`). **Sur le FFN complet, le
+surcoût est de ~4 %**, négligeable. Le tying **économise 50 % des
+paramètres** de la couche (`fc2` n'existe pas) — bénéfice net, pas
+seulement un coût neutre.
+
+**Étape 2 (sensibilité à `W₁` variable), même protocole que l'attention** :
+
+```
+ sigma | fraction monotone
+----------------------------------------
+  0.00 | ################################################## 1.0000
+  0.01 | ##################################### 0.7425
+  0.05 | ################################ 0.6300
+  0.10 | ############################ 0.5525
+  0.20 | ######################## 0.4900
+  0.50 | ######################## 0.4700
+  1.00 | ######################## 0.4750
+```
+
+Seuil pré-enregistré (`≥95%`) : **`σ=0` uniquement, comme pour
+l'attention** — même rupture nette dès `σ=0,01` (100 %→74 %), pas de
+dégradation progressive, stabilisation vers ~47-63 % au-delà. **Conclusion
+identique à l'attention, maintenant établie pour les deux composantes** :
+la garantie d'énergie du tying (attention **et** FFN) est une propriété
+du point exact, sans marge de tolérance mesurable.
+
 ### Recherche — Compression hermitienne pour portage mobile
 
 **Statut :** non planifié, non chiffré en phase numérotée. Indépendant du
