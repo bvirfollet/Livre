@@ -1,0 +1,103 @@
+{
+  "landscape_seed": 14,
+  "dt_total": 20.0,
+  "n_substeps": 200,
+  "gamma_grid": [
+    2.0,
+    6.0,
+    12.0,
+    20.0
+  ],
+  "k0_grid": [
+    0.1,
+    1.0,
+    10.0
+  ],
+  "m_trajectories": 20,
+  "rows": [
+    {
+      "gamma": 2.0,
+      "k0": 0.1,
+      "pct_collapsed": 20.0,
+      "mean_first_jump_step": 64.25,
+      "mean_p_max_at_jump": 0.5196045413613319
+    },
+    {
+      "gamma": 2.0,
+      "k0": 1.0,
+      "pct_collapsed": 100.0,
+      "mean_first_jump_step": 46.3,
+      "mean_p_max_at_jump": 0.5305837124586106
+    },
+    {
+      "gamma": 2.0,
+      "k0": 10.0,
+      "pct_collapsed": 100.0,
+      "mean_first_jump_step": 5.2,
+      "mean_p_max_at_jump": 0.48246577829122544
+    },
+    {
+      "gamma": 6.0,
+      "k0": 0.1,
+      "pct_collapsed": 0.0,
+      "mean_first_jump_step": NaN,
+      "mean_p_max_at_jump": NaN
+    },
+    {
+      "gamma": 6.0,
+      "k0": 1.0,
+      "pct_collapsed": 30.0,
+      "mean_first_jump_step": 93.5,
+      "mean_p_max_at_jump": 0.6725206424792608
+    },
+    {
+      "gamma": 6.0,
+      "k0": 10.0,
+      "pct_collapsed": 95.0,
+      "mean_first_jump_step": 45.73684210526316,
+      "mean_p_max_at_jump": 0.6472648131219965
+    },
+    {
+      "gamma": 12.0,
+      "k0": 0.1,
+      "pct_collapsed": 0.0,
+      "mean_first_jump_step": NaN,
+      "mean_p_max_at_jump": NaN
+    },
+    {
+      "gamma": 12.0,
+      "k0": 1.0,
+      "pct_collapsed": 10.0,
+      "mean_first_jump_step": 146.0,
+      "mean_p_max_at_jump": 0.8340722620487213
+    },
+    {
+      "gamma": 12.0,
+      "k0": 10.0,
+      "pct_collapsed": 55.0,
+      "mean_first_jump_step": 119.45454545454545,
+      "mean_p_max_at_jump": 0.7543622011488135
+    },
+    {
+      "gamma": 20.0,
+      "k0": 0.1,
+      "pct_collapsed": 0.0,
+      "mean_first_jump_step": NaN,
+      "mean_p_max_at_jump": NaN
+    },
+    {
+      "gamma": 20.0,
+      "k0": 1.0,
+      "pct_collapsed": 0.0,
+      "mean_first_jump_step": NaN,
+      "mean_p_max_at_jump": NaN
+    },
+    {
+      "gamma": 20.0,
+      "k0": 10.0,
+      "pct_collapsed": 5.0,
+      "mean_first_jump_step": 142.0,
+      "mean_p_max_at_jump": 0.8381379246711731
+    }
+  ]
+}

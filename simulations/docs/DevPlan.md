@@ -1797,6 +1797,94 @@ dynamique dans une évolution toujours unitaire, sans opérateur de
 mesure externe à invoquer du tout. Piste physiquement la plus profonde,
 pas encore explorée.
 
+#### Résultat de la « Phase 1 » — auto-sélection confirmée, mais métrique à raffiner (2026-09-20)
+
+**`scripts/run_n_basin_endogenous_kana.py`, résultat archivé dans
+`docs/results/n_basin_endogenous_kana_2026-09-20.json`** : `λ_saut(t) =
+K0·p_max(t)²`, fenêtre longue (`Δt_total=20`, `200` sous-pas), `20`
+trajectoires par `K0` :
+
+```
+K0     <S_final>   % trajectoires effondrées   <pas du 1er saut>/200
+ 0,0      1,69              0%                    —
+ 1,0      1,68            100%                  67,7
+10,0      1,61            100%                   6,7
+50,0      1,70            100%                   0,6
+```
+
+**Le mécanisme déclenche bien son propre effondrement** : 100% des
+trajectoires connaissent au moins un saut dès `K0>0`, de plus en plus
+tôt quand `K0` croît — confirmation directe que le taux de mesure
+asservi à `p_max(t)` produit l'auto-sélection recherchée, sans taux
+imposé de l'extérieur.
+
+**Mais l'entropie finale ne baisse pas** (reste `~1,6-1,7`, quel que
+soit `K0`) — **pas un échec du mécanisme, un défaut de la métrique**.
+Après un saut, l'état effondré continue d'évoluer **unitairement**
+jusqu'à la fin de la fenêtre longue ; on a déjà établi (section
+précédente) qu'un état localisé remonte vers le plateau de superposition
+en quelques unités de `Δt` sous évolution unitaire pure. Le système ne
+« décide » pas une fois pour toutes : il s'effondre puis se re-disperse
+sous `Y` — le cycle cristallisation→relâchement→ré-intrication déjà
+décrit par ailleurs (contribution Gémini, analogie méditative).
+**Confirmation numérique non planifiée de ce cadre cyclique**, mais qui
+signale que la mesure retenue (entropie en fin de fenêtre longue) ne
+teste pas la bonne question — il faudrait suivre l'entropie **juste
+après** le premier saut, pas au bout d'une longue fenêtre unitaire
+ultérieure.
+
+**Reste à faire** : raffiner la métrique (entropie immédiatement après
+le premier événement de collapse, pas en fin de fenêtre) avant de tirer
+une conclusion quantitative sur l'effet de `K0`/`γ` ; explorer si la
+« respiration » observée (durée du régime effondré avant re-dispersion)
+dépend elle-même de `K0` — question distincte, potentiellement plus
+intéressante que l'entropie finale.
+
+#### Distinction cristallisation spontanée vs sélection forcée (2026-09-20)
+
+**Remarque de Bertrand, décisive** : un attracteur peut émerger
+**spontanément** sous l'effet de `Y` seul (sans aucune mesure) — mais si
+aucun « choix » ne se dessine naturellement, augmenter `K_ana` force
+quand même le système à sélectionner un bassin, arbitrairement. Ce sont
+deux régimes différents, à ne pas confondre dans une seule courbe.
+
+**Vérifié directement.** Sous `Y` seul (`K0=0`, même trajectoire, pas de
+mesure) : `p_max(t)` (le poids du bassin dominant à cet instant) varie
+naturellement entre `0,179` et `0,838` (moyenne `0,420`) — bien au-dessus
+du niveau dispersé (`1/8=0,125`). **La cristallisation spontanée sous
+`Y` seul est confirmée** : l'interférence constructive fait émerger de
+vrais vainqueurs temporaires, sans qu'aucune mesure n'intervienne.
+
+**Mais avec `λ_saut(t)=K0·p_max(t)^γ` et `γ=2` (valeur initiale), le
+saut se produit systématiquement autour de `p_max≈0,46-0,53`** — proche
+de la *moyenne* de fluctuation, pas des pics extrêmes — **quel que soit
+`K0`** (testé de `0,1` à `50`). Diagnostic : `K0` ne fait que
+ré-échelonner le temps du processus de Poisson, il ne change jamais le
+niveau de `p_max` préférentiellement sélectionné — c'est l'exposant `γ`
+qui contrôle cette sélectivité (le rapport de probabilité de saut entre
+deux niveaux de `p_max` est `(p_a/p_b)^γ`, indépendant de `K0`).
+
+**Confirmé par balayage de `γ`** (`K0∈{0,1;1;10}`, `γ∈{2;6;12;20}`) :
+
+```
+gamma   K0      % effondrées   <p_max au saut>
+  2.0    1.00      100%            0.531
+  6.0    1.00       30%            0.673
+ 12.0    1.00       10%            0.834
+ 20.0   10.00        5%            0.838
+```
+
+`p_max` au moment du saut monte de `0,53` (`γ=2`) à `0,83` (`γ≥12`) —
+se rapprochant du pic naturel maximal observé sous `Y` seul (`0,838`).
+**`γ` contrôle la sélectivité** (le système attend un vainqueur net
+avant de trancher) ; **`K0` contrôle seulement l'urgence** (la vitesse à
+laquelle, un niveau de dominance donné étant atteint, la décision se
+prend) — deux rôles bien distincts, pas un seul cadran. À `γ` élevé et
+`K0` modéré, le mécanisme approche la « cristallisation spontanée
+guidée » que Bertrand décrit : le réseau attend un vrai vainqueur avant
+de laisser `K_ana` agir, plutôt que de forcer un choix sur une
+dominance à peine supérieure à la moyenne.
+
 ## Historique des phases complétées
 
 <!-- Déplacer ici les phases terminées avec date de complétion -->

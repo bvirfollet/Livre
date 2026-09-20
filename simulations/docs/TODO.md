@@ -112,6 +112,20 @@
   reste à valider la formulation exacte avec Bertrand avant de commit
   dans `Simulations_API.md`.
 
+  **K_ana endogène — Phase 1 testée (2026-09-20)** : second avis (via
+  Gémini) a corrigé une inversion sémantique (K_ana doit croître avec
+  la cristallisation, pas la dispersion — erreur tracée à une
+  incohérence interne du document source) et proposé un mécanisme
+  d'auto-sélection, `λ_saut(t)=K0·p_max(t)²` (taux asservi à l'état
+  propre de la trajectoire, pas un taux externe constant). Testé
+  (`scripts/run_n_basin_endogenous_kana.py`) : le mécanisme déclenche
+  bien l'auto-effondrement (100% des trajectoires dès `K0>0`, de plus
+  en plus vite avec `K0`), mais la métrique (entropie en fin de fenêtre
+  longue) ne le montre pas — l'état effondré se re-disperse sous
+  évolution unitaire après le saut (cycle cristallisation/relâchement,
+  pas une décision permanente). Métrique à raffiner (entropie juste
+  après le premier saut) avant conclusion quantitative.
+
   **Reste à faire** : volet intrication réseau/entrée, pas commencé ;
   piste théorique de la transformée de Hilbert pour l'entrée (notée à
   part, `docs/DevPlan.md`).
