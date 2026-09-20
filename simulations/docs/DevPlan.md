@@ -668,6 +668,462 @@ satisfait pas non plus).
    encore exploré (cf. discussion à suivre sur la méthodologie de
    projection initiale).
 
+**Revue de la méthodologie de projection initiale (2026-09-20)** :
+`WeightProjector`/`project_bert_attention` n'a jamais proposé ni implémenté
+de mécanisme de tying `K=V` — les trois projections `q_proj`/`k_proj`/
+`v_proj` sont trois appels indépendants à `_project_linear`, copiant les
+poids de BERT appris séparément. Le seul endroit où `Q=K` (jamais `V=K`)
+a été imposé est le test de scaffolding Phase 1
+`test_u03_equivalence_auto_associative`, jamais intégré au chemin de
+portage réel. L'entrée BUG-002 de `CorrectifPlan.md` a été annotée en
+conséquence (sa mention « inconditionnelle Q,K,V quelconques » ne
+concernait que l'équivalence de *formule*, jamais l'énergie).
+
+### Recherche — Hopfield hermitien à poids liés (tying V=K) : protocole de décroissance d'énergie
+
+**Décidé avec Bertrand le 2026-09-20** : avant d'implémenter le tying
+`V=K`/`W₂=W₁ᵀ` comme variante architecturale, vérifier directement,
+empiriquement et de façon falsifiable, la revendication centrale de
+Krotov/Ramsauer — que le tying garantit une décroissance d'énergie sous
+itération. Protocole en 3 temps, chacun pré-enregistré séparément (aucun
+seuil ajusté après avoir vu un résultat) :
+
+**Énergie utilisée** : `hopfield_energy` (`src/hopfield/equivalence.py`,
+déjà implémentée en Phase 1, jamais exercée par un test jusqu'ici) —
+`E(ξ) = -1/β·Σᵢ lse(β, Re(ξᵢ·Kⱼ†)) + ½‖ξ‖²`, le terme quadratique restant
+constant sous rétraction `RMSNorm` (`‖ξ‖=γ√d` fixe, déjà prouvé par
+`test_rmsnorm_output_rms_is_gamma`) — donc la monotonie de `E` se réduit à
+celle du terme d'attraction `-lse` seul, une fois la rétraction appliquée.
+
+**Mise en garde méthodologique explicite** : le théorème 2 de Ramsauer
+(décroissance d'énergie prouvée) porte sur leur règle de mise à jour
+*par remplacement* `ξ_new = X·softmax(β X^Tξ_old)` — pas sur la règle
+*résiduelle* `ξ_new = RMSNorm(ξ_old + X·softmax(...))` utilisée ici (fidèle
+à l'architecture transformeur réelle). Ce protocole ne cite donc pas le
+théorème de Ramsauer comme s'appliquant directement — il teste
+**empiriquement notre propre application discrète**, avec un pas
+résiduel de taille 1 (pas infinitésimal), ce qui n'est pas couvert
+automatiquement par l'analogie de descente de gradient contrainte déjà
+établie (`docs/DevPlan.md`, section précédente).
+
+**Étape 1 — `K` fixe, `ξ` itéré (Ramsauer strict, `V=K=K_fixe`)** :
+- `d_model=16`, `T=5` (motifs/tokens), `β=1.0`, `num_steps=20`,
+  `num_seeds=20` (`torch.manual_seed(seed)` pour `seed∈[0,20)`), `K_fixe`
+  et `ξ₀` ~ `N(0,1)` i.i.d., `RMSNorm` non entraînée (`γ=1`).
+- Critère de succès : `E(ξ_{t+1}) ≤ E(ξ_t) + tol` pour tout `t<num_steps`,
+  pour toutes les graines, `tol=1e-4` (cohérent avec `ATOL` du projet,
+  large devant le bruit FP32 attendu).
+- Un seul échec (une graine, un pas) suffit à infirmer la revendication
+  pour ce protocole.
+
+**Étape 2 — sensibilité à la variabilité de `K`** :
+- Même `d_model`/`T`/`β`/`num_steps`/`num_seeds`, mais `K_t = K_fixe +
+  σ·bruit_t` (bruit gaussien frais à chaque pas, indépendant de `ξ`).
+- Grille pré-enregistrée : `σ ∈ {0, 0.01, 0.05, 0.1, 0.2, 0.5, 1.0}`
+  (échelle directement comparable : `K_fixe` est lui-même ~`N(0,1)`).
+- Mesure : fraction des paires (graine, pas) respectant la monotonie
+  (`tol=1e-4`) à chaque `σ`. Seuil de rapport pré-enregistré : le plus
+  grand `σ` pour lequel cette fraction reste `≥95%` définit le seuil de
+  robustesse mesuré — pas un pass/fail unique, une courbe.
+- `σ=0` doit reproduire exactement l'étape 1 (garde-fou de cohérence).
+
+#### Résultats — Étapes 1 et 2 (2026-09-20)
+
+**Étape 1 : confirmée sans exception.** `tests/test_hopfield_tying.py::test_u08_tied_dynamics_energy_nonincreasing_k_fixed`
+— sur les 20 graines pré-enregistrées, `E(ξ_{t+1}) ≤ E(ξ_t) + tol` tient à
+chaque pas, du premier coup. Garde-fou de non-vacuité (`σ=5.0` casse bien
+la monotonie sur au moins une graine) également vert. La dynamique
+résiduelle réelle (`ξ + Attention(ξ)` puis rétraction `RMSNorm`, pas
+infinitésimal, pas la règle de remplacement de Ramsauer) fait donc
+décroître `E` empiriquement, malgré la mise en garde méthodologique
+ci-dessus sur l'absence de garantie théorique directe pour cette forme
+précise de mise à jour.
+
+**Étape 2 : rupture nette, pas de dégradation progressive**
+(`scripts/run_tied_energy_sensitivity.py`, résultat archivé dans
+`docs/results/tied_energy_sensitivity_2026-09-20.json`) :
+
+```
+ sigma | fraction monotone
+----------------------------------------
+  0.00 | ################################################## 1.0000
+  0.01 | ############################### 0.6175
+  0.05 | ############################## 0.5925
+  0.10 | ############################## 0.5950
+  0.20 | ############################## 0.5900
+  0.50 | ############################ 0.5675
+  1.00 | ########################### 0.5400
+----------------------------------------
+```
+
+Seuil pré-enregistré (« plus grand `σ` avec fraction `≥95%` ») :
+**`σ=0` uniquement.** La fraction chute de 100 % à ~62 % dès le plus
+petit bruit testé (`σ=0,01`, un centième de l'échelle de `K`), puis se
+stabilise entre 54 % et 60 % sur deux ordres de grandeur de `σ`
+supplémentaires — pas une dégradation continue, un effondrement immédiat
+suivi d'un plateau.
+
+**Lecture, sans équivoque** : la garantie de décroissance d'énergie du
+tying `V=K` est une propriété du point exact, sans marge de tolérance
+mesurable — elle ne survit à aucune perturbation non nulle de `K`, même
+infinitésimale. Conséquence directe pour le choix de variante posé plus
+haut (tying strict vs régularisation souple) : une **régularisation
+souple** (rapprocher `V` de `K` sans les égaler exactement) n'offrirait
+vraisemblablement **aucune garantie d'énergie, même approximative** —
+seul un tying strict (`V:=K` exact, littéral) préserve la propriété
+observée ici. Le rapprochement progressif envisagé initialement comme
+piste d'apprentissage complémentaire (cf. section précédente, point 3)
+n'a donc plus de fondement théorique tel qu'observé empiriquement pour
+la propriété d'énergie — il pourrait rester pertinent pour d'autres
+critères (ex. score de tâche), mais pas pour celui-ci.
+
+**Étape 3 — `K` réévalué à partir de `ξ` (empilement réel, exploratoire,
+Strate 2/3)** :
+- `K_t = k_proj(ξ_t)` (projection apprise, réutilisée en boucle — pas de
+  stimulus externe réinjecté, cf. discussion du 2026-09-20 : aucun
+  mécanisme de ce type n'existe dans l'architecture actuelle), `V_t=K_t`
+  tying forcé.
+- Aucun théorème ne couvre ce cas, même avec tying — **pas de critère de
+  succès/échec**, seulement une trajectoire `E(ξ_t)` rapportée et
+  commentée (tendance : décroissante / oscillante / divergente).
+- Ne doit jamais être présenté comme validant ou infirmant les étapes 1-2.
+
+#### Résultat — Étape 3 (2026-09-20, observation, pas un test)
+
+`scripts/run_tied_dynamics_real_stacking.py` (résultat archivé dans
+`docs/results/tied_dynamics_real_stacking_2026-09-20.json`) : `k_proj`
+= `ComplexLinear` non entraînée (poids aléatoires fixes par graine),
+`V_t=K_t=k_proj(ξ_t)` recalculé à chaque pas.
+
+**Observation, sur 20 graines, 20 pas :**
+- **Monotonie stricte pas-à-pas : seulement 2/20 graines** — sans
+  surprise, aucun théorème ne garantit cette propriété une fois `K`
+  recalculé à chaque pas (mise en garde déjà actée ci-dessus).
+- **Tendance globale (`E` au pas 0 vs `E` au pas 20) : décroissante pour
+  20/20 graines**, sans exception — malgré l'absence de monotonie locale,
+  l'énergie finit systématiquement bien plus basse qu'au départ (typ.
+  `E₀≈45-67` → `E_final≈-10 à -47`).
+
+**Lecture, en restant strictement dans le registre de l'observation** :
+la dynamique réelle (K réévalué, sans tying figé) ne suit pas une
+descente de gradient propre à chaque pas — des remontées locales
+d'énergie sont la norme, pas l'exception — mais elle converge tout de
+même, empiriquement et systématiquement sur cet échantillon, vers des
+états de bien plus basse énergie après 20 pas. Ceci ne constitue **ni
+une confirmation, ni une infirmation** de la propriété formelle des
+étapes 1-2 : c'est un système dynamique différent (patterns mobiles, pas
+fixes), pour lequel aucune garantie n'a été revendiquée. Piste ouverte,
+non prioritaire : la tendance globale décroissante pourrait signaler une
+propriété de contraction plus faible que la monotonie stricte (ex. une
+décroissance seulement en moyenne, ou sur une fenêtre glissante) —
+non caractérisée ici, à explorer séparément si jugé utile.
+
+**Approfondissement (2026-09-20) — mécanisme testé, non confirmé.**
+Trace détaillée sur une graine non-monotone (seed=1) : l'alignement
+`cos(K_i,ξ_i)` monte jusqu'à un pic (~0,25 au pas 4-5) puis redescend et
+devient négatif (~-0,35 au pas 20), alors que `E` continue de décroître
+pendant toute cette seconde phase — le récit « auto-verrouillage sur sa
+propre clé » ne tient pas sur l'ensemble de la trajectoire.
+
+Hypothèse alternative testée, **vérifiée à la source** : le *rank
+collapse*/*token uniformity* de l'attention pure avec résiduelle (Dong,
+Cordonnier & Loukas, *Attention is Not All You Need: Pure Attention Loses
+Rank Doubly Exponentially with Depth*, ICML 2021, arXiv:2103.03404) —
+les représentations des tokens convergeraient vers une similarité
+mutuelle croissante, ce qui augmenterait mécaniquement `lse` et donc
+ferait baisser `E`. **Test direct (similarité cosinus moyenne entre
+paires de tokens, 4 graines, avant/après 20 pas) : résultat mitigé, pas
+de tendance unidirectionnelle** (2 graines vers plus de similarité, 2
+vers plus de dissimilarité) — **hypothèse non confirmée sur cette
+architecture**, vraisemblablement du fait de différences structurelles
+avec le cadre du papier (poids partagés/itérés plutôt que distincts par
+couche, `RMSNorm` sans centrage plutôt que `LayerNorm`, aucun FFN dans
+cette dynamique). Le mécanisme exact de la décroissance globale
+observée reste donc **non caractérisé** — traité comme une observation
+ouverte, pas une régularité comprise, tant qu'une meilleure hypothèse
+n'a pas été testée.
+
+**Portée de ce protocole** : attention seule (`V=K`). Le tying FFN
+(`W₂=W₁ᵀ`) reste hors scope ici — nécessite d'abord la dérivation d'une
+fonction de Lagrange `L(z)` pour notre `gate(z)=z·Φ(Re(z))` telle que
+`gate=∂L/∂z` (cf. formalisme de Krotov, non faite), sans quoi aucune
+énergie FFN n'est même définie pour un test de décroissance.
+
+### Recherche — Hopfield hermitien à poids liés (tying V=K) : FFN (2026-09-20)
+
+**Blocage initial, indépendant du tying** : le test de Schwarz
+(`∂g_réel/∂Im` vs `∂g_imag/∂Re`) appliqué à `gate(z)=z·Φ(Re(z))`
+(`gating.py`, variante portage BERT) donne `0` contre `Im·φ(Re)` —
+non conservatif, sauf sur `Im=0`. **Aucune fonction de Lagrange n'existe
+pour ce gate**, donc aucune énergie FFN n'est définissable, quelle que
+soit la condition sur les poids (`W₂=W₁ᵀ` ou non).
+
+**Théorème général (vérifié le 2026-09-20, calcul direct + preuve par
+séparation de variables)** : pour tout gate multiplicatif préservant la
+phase `g(z)=z·s(z)` (`s` réel), la condition de conservativeness
+`a·∂s/∂Im = Im·∂s/∂Re` équivaut, en coordonnées polaires
+(`a=Re,Im=r sinθ`), à `∂s/∂θ=0` — **`g` est conservatif si et seulement
+si `s` ne dépend que de `|z|`** (gate radial). Preuve : la condition
+définit une EDP linéaire dont la seule solution réelle univoque
+(périodique en `θ`) est `s(r)·e^{θ}` restreint à `θ`-indépendance, donc
+`s=s(r)`.
+
+**Trilemme qui en découle** : un gate radial `g(z)=z·s(|z|)` est
+conservatif ET préserve la phase — **mais** `g(a,0)=a·s(|a|)` est
+nécessairement une fonction **impaire** de `a` (`s(|a|)` pair), alors que
+`GELU` ne l'est pas (`GELU(-2)≈-0.045 ≠ -GELU(2)≈-1.95`). **Phase
+préservée, énergie, et portage exact à `GELU` réel ne peuvent pas être
+satisfaits tous les trois simultanément.**
+
+**Résolution actée avec Bertrand (2026-09-20)** : reconsidérer l'utilité
+de l'exigence « portage `GELU` exact » avant de trancher. Cette exigence
+ne sert qu'à valider la fidélité de la variante **portage BERT**
+(`HermitianFFN`, gate `phase_preserving_gate`) — qui n'a jamais revendiqué
+d'énergie. La variante **Hopfield hermitien strict** (`TiedHermitianFFN`,
+tying `W₂=W₁†`) a *déjà* renoncé au portage exact dès l'étape attention
+(`V:=K` diffère de `V` appris indépendamment par BERT) : lui imposer
+`GELU` exact au FFN n'était jamais une contrainte cohérente. **Deux
+gates pour deux variantes, rien d'essentiel sacrifié** :
+`phase_preserving_gate` reste inchangé pour le portage BERT ;
+`conservative_radial_gate(z)=z·Φ(|z|)` (`gating.py`) pour la variante
+stricte — conservatif ET préservant la phase, avec Lagrangienne fermée
+`radial_gate_lagrangian(r) = F(r) = ∫₀^r v·Φ(v) dv` (l'antidérivée de
+`GELU` évaluée en `|z|` — toujours « à saveur GELU », construite sur le
+module plutôt que sur `Re(z)`), vérifiée `∇L=g` par différences finies
+(`tests/test_ffn_tying.py`).
+
+**Implémentation** : `TiedHermitianFFN` (`src/hermitian/tied_ffn.py`) —
+un seul jeu de poids appris (`fc1`), `fc2` n'existe pas : la sortie
+utilise directement `conj(W₁)` (tying `W₂=W₁†` sans paramètre séparé),
+pas de biais (cohérent avec Krotov). **Dérivation de Wirtinger complète**
+(calcul à la main, vérifiée par différences finies) : avec `h=fc1(x)`
+(linéaire, sans conjugaison) et `g` radial, `TiedHermitianFFN(x) =
+∇_x Σ_a F(|h_a(x)|)` **exactement** — même structure que
+`Attention(x)=∇_x lse(...)` pour l'attention liée. Énergie définie par
+analogie directe : `E(x) = -Σ_a F(|h_a(x)|) + ½‖x‖²`
+(`src/hopfield/ffn_tied_dynamics.py`).
+
+**Protocole et résultat (même schéma que l'étape 1 attention — `W₁`
+fixe, `x` itéré, `d_model=16`, `d_ff=32`, `T=5`, `num_steps=20`,
+`num_seeds=20`, `tol=1e-4`)** : garde-fou de gradient exact vert
+(`test_u09_ffn_tied_gradient_property_matches_lagrangian`), puis
+**décroissance d'énergie confirmée sans exception sur les 20 graines**
+(`test_u09_ffn_tied_energy_nonincreasing`) — même résultat que pour
+l'attention à `K` strictement fixe. Cohérent avec l'étape 2 de
+l'attention (rupture nette dès la moindre perturbation) : cette garantie
+n'a pas été testée pour `W₁` variable ici (hors scope de cette passe,
+piste identique disponible si jugé utile).
+
+#### Forme de la fonction qui remplace `GELU`, coût de calcul, et étape 2 (2026-09-20)
+
+**Forme exacte** (vérifiée par calcul direct) : à `Im=0`,
+`conservative_radial_gate` se réduit à `h(a) = sign(a)·GELU(|a|)` —
+c'est-à-dire la branche positive de `GELU` telle quelle (`a≥0` :
+`h(a)=GELU(a)`, identique), reflétée en fonction impaire pour `a<0`
+(`h(a)=-GELU(-a)`, au lieu de `GELU(a)` lui-même). Table de valeurs :
+
+```
+    a    GELU(a)    h(a)=sign(a)·GELU(|a|)
+ -3.0    -0.0040    -2.9960
+ -2.0    -0.0455    -1.9545
+ -1.0    -0.1587    -0.8413
+ -0.5    -0.1543    -0.3457
+  0.0     0.0000     0.0000
+  0.5     0.3457     0.3457
+  1.0     0.8413     0.8413
+  2.0     1.9545     1.9545
+  3.0     2.9960     2.9960
+```
+
+**Différence qualitative importante** : `GELU` *supprime* doucement les
+entrées négatives (`GELU(-2)≈-0,05`, quasi nul) — c'est précisément ce
+qui fait son intérêt comme fonction de gating. `h`, elle, **amplifie**
+les entrées négatives symétriquement aux positives (`h(-2)=-1,95`) —
+identique en valeur absolue à `GELU(2)`, pas suppressive du tout. Ce
+n'est plus une fonction de gating au sens usuel côté négatif : c'est une
+fonction impaire, quasi-linéaire aux grandes valeurs (`h(a)→a` quand
+`a→±∞`, contre `GELU(a)→0` pour `a→-∞`). Cohérent avec la preuve
+générale (tout gate conservatif+préservant la phase doit être impair en
+`Im=0`) — pas un défaut d'implémentation, une conséquence structurelle.
+
+**Coût de calcul** (`scripts/run_ffn_tied_energy_sensitivity.py`,
+mesure CPU, `d_model=768`, `d_ff=3072`, batch=8, `T=128`, moyenne sur
+200 itérations après 10 d'échauffement) :
+
+| | portage (`HermitianFFN`) | lié (`TiedHermitianFFN`) | ratio |
+|---|---|---|---|
+| FFN complet (forward) | 151,5 ms | 157,2 ms | **×1,04** |
+| gate seul (isolé) | 14,3 ms | 24,1 ms | ×1,68 |
+| paramètres de la couche | 9 444 864 | 4 724 736 | **×0,50** |
+
+Le gate radial est ~68 % plus coûteux *isolément* (un `sqrt`+2 carrés en
+plus pour `|z|`, contre `Φ(Re(z))` seul), mais le gate ne représente
+qu'une fraction du coût total du FFN — dominé par les deux produits
+matriciels (`fc1` et la contraction `conj(W₁)`). **Sur le FFN complet, le
+surcoût est de ~4 %**, négligeable. Le tying **économise 50 % des
+paramètres** de la couche (`fc2` n'existe pas) — bénéfice net, pas
+seulement un coût neutre.
+
+**Étape 2 (sensibilité à `W₁` variable), même protocole que l'attention** :
+
+```
+ sigma | fraction monotone
+----------------------------------------
+  0.00 | ################################################## 1.0000
+  0.01 | ##################################### 0.7425
+  0.05 | ################################ 0.6300
+  0.10 | ############################ 0.5525
+  0.20 | ######################## 0.4900
+  0.50 | ######################## 0.4700
+  1.00 | ######################## 0.4750
+```
+
+Seuil pré-enregistré (`≥95%`) : **`σ=0` uniquement, comme pour
+l'attention** — même rupture nette dès `σ=0,01` (100 %→74 %), pas de
+dégradation progressive, stabilisation vers ~47-63 % au-delà. **Conclusion
+identique à l'attention, maintenant établie pour les deux composantes** :
+la garantie d'énergie du tying (attention **et** FFN) est une propriété
+du point exact, sans marge de tolérance mesurable.
+
+#### `Q≠K` : un second trou, distinct de `V≠K` (2026-09-20)
+
+**Question posée par Bertrand** : le protocole des étapes 1-3 pose
+`Q=ξ` (l'état lui-même, pas de projection apprise) — exactement le
+montage de Ramsauer, mais **pas** celui de BERT réel, où `Q=q_proj(x)`
+est une projection apprise indépendante. Est-ce que la garantie
+d'énergie (déjà acquise pour `Q=ξ`, avec `V=K`) survit à une vraie
+projection `Q` ?
+
+**Test direct** : symétrie du Jacobien de la sortie par rapport à `ξ`
+(condition nécessaire pour qu'un champ soit un gradient — même principe
+que le test de Schwarz du gate, généralisé en dimension `d`), avec
+`V=K` fixé et `Q(ξ)=W_Q·ξ` :
+- `W_Q=I` (cas déjà testé, étapes 1-3) : Jacobien symétrique. ✓
+- `W_Q` quelconque (`≠I`) : **Jacobien non symétrique** — vérifié
+  numériquement (`torch.autograd`, matrice 4×4, `W_Q` aléatoire).
+
+**Conclusion : `Q≠K` casse la propriété d'énergie indépendamment de
+`V≠K` — un second trou distinct, pas une variante du premier.** Même un
+tying `V=K` parfait ne suffit pas si `Q` reste une projection apprise
+non triviale — ce qui est systématiquement le cas dans toute
+architecture BERT-like (`q_proj` toujours présent et distinct). Pour
+qu'une couche d'attention hermitienne ait une énergie au sens de
+Ramsauer/Krotov, il faudrait donc **également** contraindre `Q=identité`
+(ou `Q=K` d'une façon qui préserve la symétrie du Jacobien — non
+explorée) — une contrainte supplémentaire, en plus de `V=K`, jamais
+mentionnée jusqu'ici dans ce projet.
+
+#### Empilement complet (attention liée + FFN liée), poids fixes (2026-09-20)
+
+**Question posée par Bertrand** : les deux composantes (attention,
+FFN) sont chacune monotones séparément (étape 1 de chaque, `K`/`W₁`
+fixes) — est-ce que ça reste vrai une fois assemblées dans une couche
+Post-LN complète (`attention → RMSNorm → FFN → RMSNorm`), avec `K` et
+`W₁` **tous deux fixes** (cas le plus favorable, sans même la
+sensibilité de l'étape 2) ?
+
+**Résultat (`scripts/run_full_stack_tied_check.py`, résultat archivé
+dans `docs/results/full_stack_tied_check_2026-09-20.json`, même
+protocole — 20 graines, 20 pas, `tol=1e-4`, énergie diagnostique =
+somme des deux énergies séparées évaluées au même état) : NON, pas à
+100 %.** 2 graines sur 20 violent la monotonie stricte (seeds 4 et 14 —
+8 et 14 violations sur leurs 20 pas respectivement), avec des écarts
+petits (`0,0001` à `0,013`, contre une plage totale d'énergie
+d'environ 150 unités sur la trajectoire) apparaissant relativement tôt
+(pas 6 et 12) puis persistant — pas un artefact numérique isolé, plutôt
+une oscillation autour d'un point d'équilibre où les deux composantes
+tirent dans des directions légèrement conflictuelles. **La tendance
+globale (E₀ vs E_final) reste décroissante pour les 20/20 graines** —
+la combinaison ne diverge pas, mais elle n'est plus strictement
+monotone.
+
+**Lecture, sans sur-interpréter ni minimiser** : ce n'est *pas* une
+divergence catastrophique qui invaliderait toute la direction — mais
+c'est la confirmation empirique attendue d'un fait mathématique simple :
+**la somme de deux fonctions de Lyapunov, chacune décroissante sous son
+propre champ de vecteurs, n'a aucune raison a priori de rester
+décroissante sous une composition séquentielle des deux champs** (la
+rétraction intermédiaire après l'attention déplace l'état dans une
+direction qui n'a jamais été garantie compatible avec la descente du
+FFN, et vice-versa). Combiné avec le trou `Q≠K` ci-dessus, ceci confirme
+que **la propriété d'énergie du tying, même dans son cas le plus
+favorable (`V=K`, `W₂=W₁†`, poids fixes), ne s'étend pas automatiquement
+par simple empilement** — chaque nouvelle composition (attention+FFN,
+`Q` non trivial, empilement multi-couches) doit être vérifiée
+séparément, elle ne se déduit pas des garanties déjà établies sur les
+parties.
+
+#### Approfondissement (2026-09-20) — nature réelle des violations, structure des bassins, échelle du bruit
+
+**Demande de Bertrand** : reformuler la question en termes de monotonie
+*globale* de l'empilement plutôt que de monotonie stricte pas-à-pas —
+si des bassins locaux se créent par accumulation de couches, ce serait
+un problème mineur tant que la barrière séparant les bassins reste
+faible devant le bruit du signal d'entrée (régime `K_ana` fort) ou
+franchissable par un mécanisme de type effet tunnel (régime `K_ana`
+faible).
+
+**1) Les violations mesurées ne sont pas une barrière entre bassins.**
+Inspection directe des deux trajectoires violantes (seeds 4 et 14) :
+chacune atteint un **minimum**, puis remonte **doucement et
+monotonement** vers sa valeur d'équilibre asymptotique (seed 4 :
+minimum à `t=11` (`E=-101,4448`), puis remontée jusqu'à `E_final=
+-101,4414` ; seed 14 : minimum à `t=6`, remontée similaire). C'est un
+**dépassement (overshoot) à l'intérieur d'un seul bassin**, pas un
+franchissement entre deux — signature typique d'une dynamique linéaire
+**non normale** près du point fixe (le jacobien de la carte combinée
+n'a aucune raison d'être symétrique, puisque l'énergie diagnostique
+n'est une vraie potentielle que pour chaque composante séparément, pas
+pour l'assemblage — croissance transitoire non normale, phénomène
+classique, pas exotique).
+
+**2) Mais la structure multi-bassins existe réellement, à une autre
+échelle.** Test dédié : paysage figé (`K`, `W₁` d'une seule graine),
+60 conditions initiales différentes, 60 pas. Résultat : **17 bassins
+distincts** (regroupement des énergies finales à `±0,5`), avec des
+écarts entre bassins voisins de **0,5 à 3,4** unités — contre une plage
+totale d'environ 30 unités sur cet échantillon. Confirme directement
+l'intuition de Bertrand : l'empilement crée bien des bassins locaux,
+mais peu profonds à l'échelle du paysage global (à ne pas confondre
+avec l'overshoot du point 1, phénomène différent, échelle ~0,01, 50 à
+300 fois plus petit).
+
+**3) Échelle de bruit nécessaire pour franchir ces bassins (test
+direct, pas une extrapolation)** : bruit gaussien frais injecté sur
+l'état à chaque pas, magnitude `σ`, paysage et condition initiale fixes,
+10 tirages de bruit par `σ` :
+
+```
+sigma=0.000  étendue des E_final = 0.000
+sigma=0.001  étendue = 0.020
+sigma=0.005  étendue = 0.120
+sigma=0.010  étendue = 0.230
+sigma=0.020  étendue = 0.470
+sigma=0.050  étendue = 1.140
+sigma=0.100  étendue = 2.210
+```
+
+`RMSNorm` force `‖x‖~1` par token, donc `σ` se lit directement comme
+une fraction du signal. **À `σ≈0,05-0,1` (5-10% du signal), l'étalement
+induit par le bruit (1 à 2 unités) devient du même ordre que les écarts
+inter-bassins mesurés au point 2 (0,5 à 3 unités).** En-dessous de
+`σ≈0,02`, le bruit ne suffit pas à changer de bassin.
+
+**Conclusion, sans sur-interpréter** : l'hypothèse de Bertrand est
+confirmée quantitativement pour le régime `K_ana` fort — un bruit
+d'entrée d'une magnitude réaliste (quelques % du signal) produit une
+exploration entre bassins voisins de l'ordre de grandeur mesuré,
+cohérent avec l'idée qu'une évolution énergique n'y reste pas piégée.
+**Le régime `K_ana` faible / effet tunnel reste, lui, explicitement
+hors de portée de la simulation actuelle** — le système codé ici est
+classique et déterministe ; tester un mécanisme d'exploration
+sub-seuil (tunneling ou équivalent) demanderait un formalisme
+authentiquement stochastique (Langevin) ou quantique (amplitude WKB),
+distinct de ce qui existe aujourd'hui. Ce n'est pas contredit par ce
+qu'on a trouvé, mais ce n'est pas non plus démontré — piste distincte,
+à traiter séparément si jugée prioritaire, pas à confondre avec le
+résultat classique ci-dessus.
+
 ### Recherche — Compression hermitienne pour portage mobile
 
 **Statut :** non planifié, non chiffré en phase numérotée. Indépendant du
