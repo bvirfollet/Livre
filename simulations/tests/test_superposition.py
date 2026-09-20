@@ -13,7 +13,7 @@ import math
 import torch
 
 from src.superposition.dynamics import evolution_operator, evolve
-from src.superposition.patterns import build_two_pattern_weights
+from src.superposition.patterns import build_n_pattern_weights, build_two_pattern_weights
 from tests.conftest import ATOL, RTOL
 
 PATTERN1 = torch.tensor([1.0, 0.0])
@@ -37,6 +37,22 @@ def test_u05_hermiticity_hand_n2():
     )
     assert torch.allclose(w_with_diag, expected_with_diag, atol=ATOL, rtol=RTOL)
     assert torch.allclose(w_with_diag, w_with_diag.conj().T, atol=ATOL, rtol=RTOL)
+
+
+def test_u05_n_pattern_matches_two_pattern_for_n2():
+    """build_n_pattern_weights([p1,p2]) == build_two_pattern_weights(p1,p2) —
+    garde-fou de non-régression avant d'utiliser la généralisation à N motifs."""
+    w_two = build_two_pattern_weights(PATTERN1, PATTERN2, zero_diagonal=False)
+    w_n = build_n_pattern_weights([PATTERN1, PATTERN2], zero_diagonal=False)
+    assert torch.allclose(w_two, w_n, atol=ATOL, rtol=RTOL)
+
+
+def test_u05_n_pattern_hermiticity_random_n8():
+    """W construit à partir de 8 motifs aléatoires est hermitien."""
+    d = 12
+    patterns = [torch.randn(d, dtype=torch.complex64) for _ in range(8)]
+    w = build_n_pattern_weights(patterns)
+    assert torch.allclose(w, w.conj().T, atol=ATOL, rtol=RTOL)
 
     w_zero_diag = build_two_pattern_weights(PATTERN1, PATTERN2, zero_diagonal=True)
     expected_zero_diag = torch.tensor(

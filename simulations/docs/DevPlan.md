@@ -1551,6 +1551,61 @@ couche d'entrée spécifiquement, par une construction de type Hilbert.
 **Non traité maintenant** — chantier théorique à part entière, à
 reprendre séparément.
 
+**Choix tranchés avec Bertrand pour le test opérationnel** :
+`N=8` bassins (intermédiaire, ni les 2 motifs du fil précédent ni la
+totalité) — pris comme les **vrais** bassins déjà cartographiés d'un
+paysage déjà utilisé (`seed=14`), pas des motifs synthétiques, pour
+garder la possibilité de croiser avec les résultats du fil précédent.
+`d=8` retenu pour toute représentation qubit-par-nœud à venir (renvoie
+au chantier dormant « compression hermitienne pour portage mobile »,
+`d=28/32` jamais tranché). **Métrique retenue** : entropie de
+participation sur les 8 directions de bassin — pas le protocole
+Leggett-Garg existant (`K(nS)`), qui repose sur un observable binaire
+et ne généralise pas naturellement à `N=8` issues sans inventer une
+variante ad hoc (le plan d'origine avertissait déjà de ce risque).
+
+**Premier résultat, exploratoire** (`scripts/run_n_basin_superposition.py`,
+`build_n_pattern_weights` généralisant `build_two_pattern_weights` à
+`N` motifs, résultat archivé dans
+`docs/results/n_basin_superposition_2026-09-20.json`) : état initial
+localisé exactement dans le bassin 0, évolution unitaire pure
+(`K_ana=0`), entropie de participation sur les 8 bassins :
+
+```
+dt (=t/Y)   entropie S   N_eff
+     0.00       1.478    4.39   (recouvrement géométrique de fond, motifs non orthogonaux)
+     0.05       1.987    7.29
+     0.10       1.797    6.03
+     0.50       1.721    5.59
+     2.00       1.715    5.56
+    10.00       1.810    6.11
+    20.00       1.693    5.43
+```
+(maximum théorique : `S=2,079`, `N_eff=8`, distribution uniforme)
+
+**Lecture** : même à `t=0`, l'entropie n'est pas nulle — les 8 bassins
+ne sont pas orthogonaux, un recouvrement géométrique de fond existe
+indépendamment de toute dynamique. Mais sous évolution unitaire pure,
+l'entropie **augmente encore** dès les premiers pas et se stabilise sur
+un plateau élevé (`N_eff≈5,5-6`, sur 8 possibles), **sans jamais
+redescendre vers la localisation** sur toute la plage de `Δt` testée.
+C'est la signature directe de la superposition simultanée recherchée —
+le réseau reste dans une combinaison cohérente de plusieurs bassins à
+la fois, pas une oscillation entre deux (le défaut du fil « tunnel »
+précédent). **Statut : exploratoire**, pas encore pré-enregistré
+(seuils/plage de `Δt` choisis pour l'exploration, pas fixés à l'avance)
+— un protocole confirmatoire (plusieurs paysages, seeds fraîches, seuil
+de `N_eff` fixé avant le run) reste à construire avant toute citation.
+
+**Reste à faire** : (i) protocole confirmatoire, comme pour tous les
+résultats précédents de ce fil ; (ii) comparer au régime dissipatif
+(`K_ana>0`, injection de bruit/mesures répétées) pour vérifier que
+l'entropie s'effondre bien dans ce régime, contraste attendu et pas
+encore testé ; (iii) l'intrication réseau/vecteur d'entrée (second
+volet du recadrage, pas encore abordé — nécessite de promouvoir
+l'entrée en degré de liberté quantique séparé, cf. discussion du
+2026-09-20).
+
 ## Historique des phases complétées
 
 <!-- Déplacer ici les phases terminées avec date de complétion -->

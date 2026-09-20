@@ -75,6 +75,30 @@
   Piste indépendante toujours ouverte : tester un `K_ana` intermédiaire
   (canal dissipatif GKSL explicite), pas seulement les deux extrêmes
   déjà testés séparément.
+
+- [ ] **Recadrage (2026-09-20) — superposition simultanée + intrication
+  réseau/entrée** (cf. `docs/DevPlan.md`, remplace le fil « tunnel »
+  ci-dessus, jugé conceptuellement mal posé — le tunnel décrit un
+  système déjà localisé qui s'échappe, pas la coexistence cohérente de
+  plusieurs bassins avant effondrement). Renvoie à l'Objectif 2 du plan
+  d'origine (`contributions/claude/plan_dev_simulation_superposition_intrication.md`,
+  jamais commencé), reformulé : le second système couplé est le
+  vecteur d'entrée, pas un second réseau.
+  **Premier test fait, exploratoire** : `N=8` bassins réels (paysage
+  seed=14, croisable avec le fil précédent), `build_n_pattern_weights`
+  (généralisation à N motifs, testée), entropie de participation sur
+  les 8 bassins plutôt que `K(nS)` (binaire, ne généralise pas à N=8
+  sans variante ad hoc). Résultat : sous évolution unitaire pure,
+  l'entropie monte au-delà du recouvrement géométrique de fond et se
+  stabilise sur un plateau élevé (`N_eff≈5,5-6/8`), sans jamais
+  redescendre — signature directe de superposition simultanée, pas de
+  bascule entre deux bassins. Pas encore pré-enregistré/confirmatoire.
+  **Reste à faire** : protocole confirmatoire ; contraste avec régime
+  dissipatif (`K_ana>0`, attendu : effondrement de l'entropie, pas
+  encore testé) ; volet intrication réseau/entrée, pas commencé ;
+  piste théorique de la transformée de Hilbert pour l'entrée (notée à
+  part, `docs/DevPlan.md`).
+
 - [ ] **Recherche séparée — compression hermitienne pour portage mobile**
   (cf. `docs/DevPlan.md`, section dédiée) : objectif et protocole posés
   avec Bertrand le 2026-08-14 (`d² ≪ 768`, comparaison à budget de réels

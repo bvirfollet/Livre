@@ -13,6 +13,22 @@ s'applique pas ici.
 import torch
 
 
+def build_n_pattern_weights(
+    patterns: list[torch.Tensor], zero_diagonal: bool = True
+) -> torch.Tensor:
+    """W = Σᵢ ξⁱξⁱ† (stockage hebbien complexe, `N` motifs quelconques),
+    généralisation de `build_two_pattern_weights`. Hermitien par
+    construction pour tout `N`."""
+    w = None
+    for pattern in patterns:
+        pattern = pattern.to(torch.complex64)
+        term = torch.outer(pattern, pattern.conj())
+        w = term if w is None else w + term
+    if zero_diagonal:
+        w = w - torch.diag(torch.diagonal(w))
+    return w
+
+
 def build_two_pattern_weights(
     pattern1: torch.Tensor, pattern2: torch.Tensor, zero_diagonal: bool = True
 ) -> torch.Tensor:
