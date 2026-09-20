@@ -22,18 +22,40 @@ portage et un effet réel de l'architecture sont sinon indiscernables.
 
 ## Tests unitaires (Phase 1)
 
+**Correction du 2026-08-14 :** la mention initiale « cas N=2 et N=3 vérifiés
+à la main dans `BERT_hermitien_PoC` » était inexacte — ce fichier ne
+contient aucun exemple numérique explicite pour l'attention hermitienne ou
+l'équivalence Hopfield (vérifié par grep exhaustif sur le document source).
+Les cas N=2 ci-dessous sont calculés à la main directement dans les fichiers
+de test (`tests/test_hermitian.py`, `tests/test_hopfield.py`), avec le
+détail du calcul en docstring.
+
+**Tolérances fixées a priori (falsifiabilité avant calcul) :** `atol=1e-5`,
+`rtol=1e-4`, arithmétique FP32 — cf. `tests/conftest.py::ATOL/RTOL`. Choisies
+larges par rapport au bruit d'arrondi FP32 attendu (~1e-7) : un dépassement
+signale un vrai bug, pas du bruit numérique.
+
 | ID | Ce qui est testé | Entrée | Résultat attendu |
 |---|---|---|---|
-| U-01 | Hermiticité de `S = QK†` après symétrisation | Q, K aléatoires | `S == S.conj().T` à la tolérance flottante près |
-| U-02 | Réalité du spectre | `S` hermitienne | `torch.linalg.eigh(S).eigenvalues` sans partie imaginaire résiduelle significative |
-| U-03 | Équivalence Hopfield 1-pas ≡ attention hermitienne | cas N=2 et N=3 (vérifiés à la main dans `BERT_hermitien_PoC`) | sorties identiques à la tolérance flottante près |
-| U-04 | Overflow FP16 sur le produit hermitien | valeurs de grande magnitude, dtype FP16 | reproduit l'overflow documenté (test de régression négatif — sert à documenter *pourquoi* BF16 est requis) |
+| U-01 | Hermiticité de `H = (S+S†)/2` après symétrisation | Q, K aléatoires + cas N=2 calculé à la main | `H_real` symétrique, `H_imag` antisymétrique (diagonale nulle), à `atol=1e-5`/`rtol=1e-4` |
+| U-02 | Réalité du spectre | cas N=2 hermitien calculé à la main (valeurs propres analytiques) + invariant `Tr(H) = Σλ` sur cas aléatoire | `torch.linalg.eigh` (cast FP32 local) reproduit les valeurs propres attendues à `atol=1e-5`/`rtol=1e-4` |
+| U-03 | Équivalence Hopfield 1-pas ≡ attention hermitienne | cas auto-associatif Q=K=V + cas général Q,K,V indépendants + cas N=2 calculé à la main | sorties identiques à `atol=1e-5`/`rtol=1e-4` — équivalence **inconditionnelle** depuis la correction BUG-002 du 2026-08-14 (`CorrectifPlan.md`) : le softmax de `HermitianSelfAttention` porte sur S brut, jamais sur le H symétrisé |
+| U-04 | Overflow FP16 sur le produit hermitien | valeurs de grande magnitude (300), dtype FP16 vs BF16 | reproduit l'overflow documenté en FP16 (test de régression négatif) ; absence d'overflow en BF16 sur les mêmes valeurs |
 
 ## Tests d'intégration — portage de poids (Phase 2)
 
+**Portée initiale actée avec Bertrand le 2026-08-14 :** bloc d'attention
+seul (`BertAttention` HuggingFace = self-attention + `output.dense`).
+**Étendue le 2026-09-18** à la couche complète, à l'empilement
+(`HermitianBertModel`) et aux embeddings — le modèle BERT complet (hors
+pooler, non porté) est maintenant couvert.
+
 | ID | Précondition | Action | Résultat attendu | Résultat obtenu |
 |---|---|---|---|---|
-| I-01 | Modèle hermitien instancié, partie imaginaire forcée à 0 | Forward sur un batch de test | Sortie ≈ sortie de `bert-base-uncased` HuggingFace (tolérance à fixer avant le run) | |
+| I-01 | `HermitianSelfAttention` instancié, poids projetés via `WeightProjector` depuis un `BertAttention` HuggingFace, partie imaginaire forcée à 0 (`imag_std=0.0`) | Forward sur un batch aléatoire, comparé à `hf_attention.output.dense(hf_attention.self(x)[0])` (bypass LayerNorm/résiduelle, absentes du module) | Sortie réelle ≈ sortie HuggingFace à `atol=1e-5`/`rtol=1e-4` ; sortie imaginaire exactement nulle | **Vert** (`prajjwal1/bert-tiny`, `tests/test_weights.py`) — diff max observée ~1e-6 |
+| I-01 étendu (couche) | `HermitianBertLayer` complet (`norm_cls=HermitianLayerNorm`, `norm_eps` aligné sur `config.layer_norm_eps`), poids projetés via `project_bert_layer` depuis un `BertLayer` HuggingFace complet, `Im=0` | Forward sur un batch aléatoire, comparé à `hf_layer(x)` (couche complète, résiduelles + 2 LayerNorm inclus) | Sortie réelle ≈ sortie HuggingFace à `atol=1e-5`/`rtol=1e-4` ; sortie imaginaire exactement nulle | **Vert** (2026-09-18, `tests/test_weights.py::test_i01_extended_full_layer_matches_classic_bert`) — vert du premier coup |
+| I-01 étendu (embeddings) | `HermitianEmbeddings` (`norm_cls=HermitianLayerNorm`), poids projetés via `project_bert_embeddings`, `Im=0` | Forward sur des `input_ids` aléatoires, comparé à `hf_embeddings(input_ids)` | Sortie réelle ≈ sortie HuggingFace ; sortie imaginaire exactement nulle | **Vert** (2026-09-18, `tests/test_weights.py::test_i01_embeddings_match_classic_bert`) |
+| I-01 étendu (modèle complet) | `HermitianEmbeddings` + `HermitianBertModel` (empilement complet, `norm_cls=HermitianLayerNorm`), poids projetés via `project_bert_embeddings`+`project_bert_model`, `Im=0` | Forward `input_ids → embeddings → empilement`, comparé à `hf_model.embeddings(input_ids)` puis `hf_model.encoder(...)` (sans pooler, non porté) | Sortie réelle ≈ sortie HuggingFace ; sortie imaginaire exactement nulle | **Vert** (2026-09-18, `tests/test_weights.py::test_i01_extended_full_model_matches_classic_bert`) — vert du premier coup, aucun bug résiduel |
 
 ## Tests d'intégration — effet architectural GLUE (Phase 3)
 
@@ -46,6 +68,54 @@ portage et un effet réel de l'architecture sont sinon indiscernables.
 | ID | Composant tiers | Stimulus | Comportement attendu | Observé |
 |---|---|---|---|---|
 | I-03 | Circuit Perceval reconstruit depuis la décomposition de Givens | `compute_unitary()` | `U @ U.conj().T ≈ I` | |
+
+## Tests unitaires — Superposition Leggett-Garg (nouveau sous-track, cf. docs/DevPlan.md)
+
+Régime unitaire cohérent (`γ=0`), distinct de la dynamique dissipative
+testée par U-01 à U-04. Détail complet du protocole (`nN`, `nS`, `M`,
+seuils) dans `docs/DevPlan.md`, section « Recherche — Superposition
+quantique ».
+
+| ID | Ce qui est testé | Entrée | Résultat attendu |
+|---|---|---|---|
+| U-05 | Hermiticité de `W` construit à partir de deux motifs | motifs `ξ¹`, `ξ²` (cas `nN=2` calculé à la main) | `W == W.conj().T` à `atol=1e-5`/`rtol=1e-4` |
+| U-06 | Unitarité de l'évolution `U=e^{-iWΔt}` | `W` hermitien (cast FP32 pour `matrix_exp`) | `U U† ≈ I` à `atol=1e-5`/`rtol=1e-4` ; norme `|z|` conservée après application de `U` |
+| U-07 | Cas `nN=2` vérifié à la main | `W`, `z(0)` explicites, calcul analytique de `z(t)` pour `nS=3` pas | sortie du code ≈ calcul analytique à `atol=1e-5`/`rtol=1e-4` |
+
+## Tests d'intégration — Superposition Leggett-Garg (harnais Monte-Carlo)
+
+| ID | Précondition | Action | Résultat attendu | Résultat obtenu |
+|---|---|---|---|---|
+| I-04 | U-05 à U-07 verts | Régression (`exact_leggett_garg_k3`, sans bruit d'échantillonnage) : (a) `dt=0` (aucune évolution) ; (b) balayage de `dt` sur le cas `nN=2` à la main. **Écart au plan initial** : la paramétrisation exacte saturant `K(3)=3/2` n'a pas été reproduite (non retrouvée dans arXiv:1409.1132, qui documente la borne mais pas les paramètres optimaux du LGI standard, seulement de sa forme de Wigner) | (a) `K(3)=1.0` exact (borne classique, corrélation triviale) ; (b) `1.0 < max\|K(3)\| ≤ 1.5` sur le balayage (viole la borne classique, ne dépasse jamais la borne quantique prouvée) | **Vert** (`tests/test_superposition_harness.py`) — max observé ≈1,248 |
+| I-05 | I-04 vert | Run complet : 10 tests (`Q_global` × 5 `nN`, `Q_i` agrégé × 5 `nN`), `dt=1.0`, motifs `src/superposition/experiment.py::generate_patterns`, seeds archivées. Commandes : `python scripts/run_superposition_i05.py --n-nodes 2 3 5 10 20 --dt 1.0 --m-samples 300` (protocole initial) puis `python scripts/run_superposition_i05.py --auto-m --sigma-target 5.0` (M recalculé, cf. `docs/DevPlan.md`) | Violation ≥5σ (par test), correction de Bonferroni sur la famille de 10 | **Run 1 (`M=300` fixe) : PARTIEL** — 2/10 à 5σ. **Run 2 (`M` recalculé par `nN`, même jour) : 9/10 à 5σ** (`nN=3` local exclu — absence *significative* de violation, σ=−12,64, distinct de `Q_global` qui viole à σ=6,41 pour ce même réseau). Archivé dans `docs/results/i05_run_2026-09-13.json`. **Toujours non cité dans `Simulations_API.md`** : un seul tirage de motifs par `nN`, robustesse de l'anomalie `nN=3` non établie. |
+| — | I-05 (run 2) | Exploration (non un ID formel) : 50 tirages de motifs indépendants pour `nN=3` et `nN=10` (`K(3)` exact, sans bruit — `run_multi_realization_exact`), pour vérifier si l'anomalie `nN=3` du run précédent est caractéristique de la taille ou du tirage | — (exploratoire, pas de seuil pré-enregistré) | **L'anomalie ne tient pas** : `nN=3` viole localement dans 82 % des tirages (moyenne comparable à `nN=10`, 94 %) — le tirage initial (seed 1003) était minoritaire (18 % des tirages à `nN=3` ne violent pas), pas caractéristique. Pas encore un protocole confirmatoire pré-enregistré (nombre de tirages et critère choisis pour répondre à la question posée, pas fixés à l'avance) — cf. `docs/DevPlan.md` pour la suite proposée (test binomial pré-enregistré). |
+
+## Tests — Recherche compression hermitienne (non planifiée, cf. docs/DevPlan.md)
+
+**Non chiffrable en IDs de test tant que `d` cible et métrique de succès
+ne sont pas arbitrés avec Bertrand** — consigné ici pour mémoire du
+protocole convenu le 2026-08-14, à formaliser en tests concrets
+(`R-01`, `R-02`, ...) une fois ces points tranchés.
+
+Question falsifiable : à budget de réels strictement égal (`d²` pour les
+deux côtés), `HermitianBottleneck` (`R^768 → Herm(d)` plein rang, `d² ≪ 768`)
+préserve-t-il plus d'information sémantique utile que `RealBottleneck`
+(`R^768 → R^{d²}` non contraint) ?
+
+Trois métriques candidates, à ne pas mélanger dans un même run (chacune
+répond à une question différente, cf. principe de séparation stricte
+ci-dessus) :
+- Fidélité de reconstruction (distance Hilbert-Schmidt / MSE) — teste la
+  compression pure, sans tâche linguistique.
+- Perplexité après distillation — teste la préservation de la capacité
+  générative.
+- Score GLUE après fine-tuning — teste la préservation de la capacité
+  discriminative en aval.
+
+Piège de protocole à ne pas reproduire (déjà identifié, cf.
+`docs/DevPlan.md`) : un encodeur `Herm(d)` construit via un produit
+extérieur (`φ(x)φ(x)†`, rang 1) handicape artificiellement le côté
+hermitien — n'utiliser que des encodeurs plein rang des deux côtés.
 
 ## Cas limites à couvrir systématiquement
 

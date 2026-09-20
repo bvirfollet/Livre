@@ -16,8 +16,8 @@
 
 ---
 
-contract_version: 2026-08-14-v1
-date: 2026-08-14
+contract_version: 2026-09-18-v2
+date: 2026-09-18
 consumers:
   - RadioHumaine
 
@@ -25,18 +25,36 @@ consumers:
 
 ## 1. Résultats disponibles
 
-<!-- Aucun résultat validé à ce stade — initialisation du contrat.
-     Ajouter une section par résultat citable, au format :
+### Violation de Leggett-Garg dans un réseau hermitien à deux motifs (régime unitaire cohérent)
 
-     ### [Nom du résultat]
-     **Affirmation testée :** <!-- ex. l'extension hermitienne de BERT
-       préserve le score GLUE à ±X% -->
-     **Méthode :** <!-- renvoi à docs/test_plan.md, ID du test -->
-     **Seuil de significativité fixé a priori :** <!-- valeur -->
-     **Résultat :** <!-- OUI / NON / PARTIEL, chiffre -->
-     **Figure/table :** <!-- chemin -->
-     **Strate proposée pour le livre :** <!-- 1, 2 ou 3 -->
--->
+**Affirmation testée :** un réseau de nœuds hermitiens (représentation
+phasor, `W` construit par stockage hebbien de deux motifs concurrents)
+viole une inégalité de Leggett-Garg généralisée à `nS=3` temps de mesure,
+de façon statistiquement incompatible avec un taux de violation nul —
+pour des tailles de réseau `nN=3` et `nN=10`.
+
+**Méthode :** `docs/test_plan.md` (U-05 à U-07, I-04, protocole
+confirmatoire pré-enregistré `docs/DevPlan.md`),
+`scripts/run_superposition_confirmatory.py`.
+
+**Seuil de significativité fixé a priori :** succès par tirage = 5σ (`M`
+dimensionné sur la marge exacte, plafonné à `M≤200000`) ; décision globale
+= `p_value` du test binomial `< p_null≈2,87×10⁻⁷` (30 tirages frais par
+`nN`).
+
+**Résultat :** `nN=3` : 17/30 succès, `p=7,13×10⁻¹⁰⁴`. `nN=10` : 24/30
+succès, `p=5,63×10⁻¹⁵²`. Rejet net de l'hypothèse nulle pour les deux
+tailles.
+
+**Figure/table :** `docs/results/confirmatory_run_2026-09-18.json`.
+
+**Strate proposée pour le livre : Strate 1**, avec une réserve explicite
+à reporter dans le texte : le résultat est établi pour ce modèle
+spécifique (phasor scalaire, deux motifs, régime unitaire cohérent,
+mesure projective avec collapse) — pas une démonstration générale de
+superposition dans tout réseau hermitien, et sa valeur principale est
+méthodologique (falsifiabilité du protocole) plutôt qu'une découverte
+physique nouvelle.
 
 ---
 
