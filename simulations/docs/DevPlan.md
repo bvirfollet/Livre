@@ -1430,6 +1430,56 @@ poursuivre** :
    de WKB), plus proche de l'intention initiale mais demande de définir
    proprement le chemin et le terme de saut avant de coder.
 
+#### Piste 2 implémentée — chaîne de liaison forte sur le vrai paysage (2026-09-20)
+
+**Suite à la remarque de Bertrand** (l'égalité des normes imposée par
+`RMSNorm` est le défaut de fond, analogie explicite avec l'altitude sur
+un globe terrestre absente d'une sphère de Bloch nue) : implémentation
+de la piste 2. Chemin interpolé linéairement entre `ξ_A` et `ξ_B` en
+représentation `(x_real,x_imag)`, **chaque point intermédiaire
+renormalisé par token** (`HermitianRMSNorm`, `γ=1`, même module que
+partout ailleurs dans le projet — pas un artefact d'échelle), `N=20`
+intervalles. Énergie sur site `ε_n=E(x_n)` = la vraie énergie composite
+(attention+FFN liées), calculée sur le même paysage que la paire de
+bassins. Chaîne tridiagonale `H_nn=ε_n`, `H_{n,n±1}=-t` (`t` = terme de
+saut, balayé), diagonalisée exactement. États localisés `L`/`R`
+identifiés par leur poids réel en début/fin de chaîne (pas une
+convention de signe supposée) — recombinaisons symétrique/antisymétrique
+des deux états propres les plus bas.
+
+**Ce qui marche** (`scripts/run_basin_tight_binding.py`, résultat
+archivé dans `docs/results/basin_tight_binding_2026-09-20.json`) :
+le profil `E(x_n)` montre une **vraie barrière** (jusqu'à `+31` unités
+au-dessus des puits pour la paire testée la plus extrême) — le défaut
+de la piste précédente (norme égale effaçant le relief) est corrigé,
+le chemin réel entre à présent dans le calcul. En régime de faible
+couplage (`hopping=0,01`), les états `L`/`R` sont effectivement
+localisés (`L(0)²` jusqu'à `0,99`, `L(N)²≈0`) — le régime physique
+attendu (double puits faiblement couplé) est retrouvé, contrairement à
+la piste précédente où `P_B_max=1` était une certitude triviale
+indépendante de tout.
+
+**Ce qui reste confondu, honnêtement, avant toute conclusion** : sur
+les 3 paires testées (même paysage, seed=14), la relation entre hauteur
+de barrière et écart de séparation `ΔE_split` (à `hopping` fixe) n'est
+**pas** celle attendue par l'intuition WKB (barrière plus haute →
+séparation plus petite) — la paire à la plus haute barrière (`30,97`)
+donne la plus grande séparation (`0,29`), pas la plus petite.
+**Cause identifiée** : la distance euclidienne réelle entre `ξ_A` et
+`ξ_B` diffère fortement selon la paire (`13,65` / `11,15` / `10,26`,
+vérifié directement) et corrèle avec la hauteur de barrière — or `N=20`
+est fixé indépendamment de cette distance, donc le pas physique par
+site (`distance/N`) diffère d'une paire à l'autre. Un même `hopping`
+nominal ne correspond alors pas au même couplage physique par unité de
+distance selon la paire — confondant, pas encore contrôlé.
+
+**Reste à faire avant toute conclusion** : fixer le pas physique
+(`distance/N` constant — donc `N` proportionnel à la distance réelle
+mesurée, pas une valeur fixe) plutôt que le nombre de sites, puis
+répéter sur un échantillon plus large (`N_paires>3`) avant d'évaluer la
+relation barrière/séparation. Non fait à ce stade — point d'arrêt
+volontaire, à trancher avec Bertrand avant de relancer.
+
 ## Historique des phases complétées
 
 <!-- Déplacer ici les phases terminées avec date de complétion -->
