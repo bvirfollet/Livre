@@ -1,0 +1,88 @@
+{
+  "landscape_seeds": [
+    401,
+    402,
+    403
+  ],
+  "m_trajectories": 500,
+  "gamma_pair": [
+    2.0,
+    20.0
+  ],
+  "k0_fixed": 10.0,
+  "success_max_p_max_e": 0.5,
+  "success_z_c": 5.0,
+  "results": {
+    "401": {
+      "test_e": {
+        "max_p_max": 0.9151139259338379,
+        "success": true
+      },
+      "test_c": {
+        "stats": {
+          "2.0": {
+            "n_collapses": 500,
+            "mean": 0.4837872385978699,
+            "se": 0.007803937885910273
+          },
+          "20.0": {
+            "n_collapses": 82,
+            "mean": 0.8828176259994507,
+            "se": 0.008190330117940903
+          }
+        },
+        "z_score": 35.2719853047107,
+        "success": true,
+        "underpowered": false
+      }
+    },
+    "402": {
+      "test_e": {
+        "max_p_max": 0.8287093043327332,
+        "success": true
+      },
+      "test_c": {
+        "stats": {
+          "2.0": {
+            "n_collapses": 500,
+            "mean": 0.4709732234477997,
+            "se": 0.006865652743726969
+          },
+          "20.0": {
+            "n_collapses": 27,
+            "mean": 0.788054883480072,
+            "se": 0.00926598347723484
+          }
+        },
+        "z_score": 27.494917797970594,
+        "success": true,
+        "underpowered": false
+      }
+    },
+    "403": {
+      "test_e": {
+        "max_p_max": 0.8945562839508057,
+        "success": true
+      },
+      "test_c": {
+        "stats": {
+          "2.0": {
+            "n_collapses": 500,
+            "mean": 0.6013532280921936,
+            "se": 0.003910889849066734
+          },
+          "20.0": {
+            "n_collapses": 268,
+            "mean": 0.8410596251487732,
+            "se": 0.0032665268518030643
+          }
+        },
+        "z_score": 47.0417327984902,
+        "success": true,
+        "underpowered": false
+      }
+    }
+  },
+  "test_e_all_pass": true,
+  "test_c_all_pass": true
+}

@@ -1928,6 +1928,31 @@ généralisée + `γ` comme paramètre de sélectivité, indépendant de
 l'urgence contrôlée par `K0`) pourra être proposé pour
 `Simulations_API.md`.
 
+#### Résultat du protocole confirmatoire — les deux tests réussissent (2026-09-20)
+
+**`scripts/run_n_basin_gamma_confirmatory.py`, résultat archivé dans
+`docs/results/n_basin_gamma_confirmatory_2026-09-20.json`, 3 paysages
+frais (seeds `401, 402, 403`) :**
+
+```
+seed=401 : Test E max_p_max=0,9151 OUI | Test C <p_max>(γ=2)=0,484±0,008 (n=500) <p_max>(γ=20)=0,883±0,008 (n=82)  z=35,27 OUI
+seed=402 : Test E max_p_max=0,8287 OUI | Test C <p_max>(γ=2)=0,471±0,007 (n=500) <p_max>(γ=20)=0,788±0,009 (n=27)  z=27,49 OUI
+seed=403 : Test E max_p_max=0,8946 OUI | Test C <p_max>(γ=2)=0,601±0,004 (n=500) <p_max>(γ=20)=0,841±0,003 (n=268) z=47,04 OUI
+```
+
+**Test E et Test C réussissent sur les 3 paysages**, avec une marge
+très large (`z` entre `27,5` et `47,0`, largement au-dessus du seuil
+`5σ`). Le garde-fou de puissance tient (`n≥27` collapses partout, au-
+dessus du minimum `20` fixé à l'avance — le paysage `402` est le plus
+proche de la limite, mais reste valide selon la règle pré-enregistrée).
+
+**Décision (Producteur) : condition de citation remplie.** Protocole
+pré-enregistré avant le run, seeds fraîches, seuils et garde-fou de
+puissance fixés à l'avance. **Reste à valider avec Bertrand avant le
+commit de citation dans `Simulations_API.md`** — probablement à fondre
+avec l'entrée déjà proposée sur la superposition/collapse (même
+famille de résultats, mécanisme affiné).
+
 ## Historique des phases complétées
 
 <!-- Déplacer ici les phases terminées avec date de complétion -->

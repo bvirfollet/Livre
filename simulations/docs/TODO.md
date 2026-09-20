@@ -123,12 +123,28 @@
   en plus vite avec `K0`), mais la métrique (entropie en fin de fenêtre
   longue) ne le montre pas — l'état effondré se re-disperse sous
   évolution unitaire après le saut (cycle cristallisation/relâchement,
-  pas une décision permanente). Métrique à raffiner (entropie juste
-  après le premier saut) avant conclusion quantitative.
+  pas une décision permanente).
 
-  **Reste à faire** : volet intrication réseau/entrée, pas commencé ;
-  piste théorique de la transformée de Hilbert pour l'entrée (notée à
-  part, `docs/DevPlan.md`).
+  **Distinction cristallisation spontanée / sélection forcée établie
+  (2026-09-20)** : `γ` contrôle la sélectivité (le niveau de dominance
+  requis avant de trancher), `K0` contrôle seulement l'urgence (la
+  vitesse) — vérifié par balayage (`p_max` au saut monte de `0,53` à
+  `0,83` quand `γ` passe de 2 à 20, indépendant de `K0`).
+
+  **Protocole confirmatoire réussi (2026-09-20)**
+  (`scripts/run_n_basin_gamma_confirmatory.py`, résultat archivé dans
+  `docs/results/n_basin_gamma_confirmatory_2026-09-20.json`) : Test E
+  (cristallisation spontanée généralisée, `max p_max>0,5`) et Test C
+  (`γ` contrôle la sélectivité, comparaison `γ=2` vs `γ=20`, `z≥5σ`)
+  **réussissent sur les 3 paysages frais** (seeds `401,402,403`), marge
+  large (`z` entre `27,5` et `47,0`). **Condition de citation
+  remplie** — reste à valider la formulation avec Bertrand.
+
+  **Reste à faire** : raffiner la métrique d'entropie post-saut (le
+  mécanisme de « respiration » — durée du régime effondré avant
+  re-dispersion, et comment elle dépend des conditions) ; volet
+  intrication réseau/entrée, pas commencé ; piste théorique de la
+  transformée de Hilbert pour l'entrée (notée à part, `docs/DevPlan.md`).
 
 - [ ] **Recherche séparée — compression hermitienne pour portage mobile**
   (cf. `docs/DevPlan.md`, section dédiée) : objectif et protocole posés
