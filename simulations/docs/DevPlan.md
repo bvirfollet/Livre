@@ -818,6 +818,31 @@ propriété de contraction plus faible que la monotonie stricte (ex. une
 décroissance seulement en moyenne, ou sur une fenêtre glissante) —
 non caractérisée ici, à explorer séparément si jugé utile.
 
+**Approfondissement (2026-09-20) — mécanisme testé, non confirmé.**
+Trace détaillée sur une graine non-monotone (seed=1) : l'alignement
+`cos(K_i,ξ_i)` monte jusqu'à un pic (~0,25 au pas 4-5) puis redescend et
+devient négatif (~-0,35 au pas 20), alors que `E` continue de décroître
+pendant toute cette seconde phase — le récit « auto-verrouillage sur sa
+propre clé » ne tient pas sur l'ensemble de la trajectoire.
+
+Hypothèse alternative testée, **vérifiée à la source** : le *rank
+collapse*/*token uniformity* de l'attention pure avec résiduelle (Dong,
+Cordonnier & Loukas, *Attention is Not All You Need: Pure Attention Loses
+Rank Doubly Exponentially with Depth*, ICML 2021, arXiv:2103.03404) —
+les représentations des tokens convergeraient vers une similarité
+mutuelle croissante, ce qui augmenterait mécaniquement `lse` et donc
+ferait baisser `E`. **Test direct (similarité cosinus moyenne entre
+paires de tokens, 4 graines, avant/après 20 pas) : résultat mitigé, pas
+de tendance unidirectionnelle** (2 graines vers plus de similarité, 2
+vers plus de dissimilarité) — **hypothèse non confirmée sur cette
+architecture**, vraisemblablement du fait de différences structurelles
+avec le cadre du papier (poids partagés/itérés plutôt que distincts par
+couche, `RMSNorm` sans centrage plutôt que `LayerNorm`, aucun FFN dans
+cette dynamique). Le mécanisme exact de la décroissance globale
+observée reste donc **non caractérisé** — traité comme une observation
+ouverte, pas une régularité comprise, tant qu'une meilleure hypothèse
+n'a pas été testée.
+
 **Portée de ce protocole** : attention seule (`V=K`). Le tying FFN
 (`W₂=W₁ᵀ`) reste hors scope ici — nécessite d'abord la dérivation d'une
 fonction de Lagrange `L(z)` pour notre `gate(z)=z·Φ(Re(z))` telle que
