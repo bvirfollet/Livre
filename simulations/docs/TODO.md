@@ -173,9 +173,24 @@
   d'`S_brut` (dépendance de jauge, dilution spatiale). Exploratoire :
   plage naturelle large (`0,006-0,286`), sélectivité de `γ` reproduite
   nettement (`R` au saut : `0,146→0,248`). **Protocole confirmatoire pas
-  encore fait.** Piste complémentaire notée (pas testée) : entropie de
-  Gram inter-tokens `ρ_liens=XX†/Tr(XX†)` pour capter l'information
-  portée par les liens (pas seulement les nœuds).
+  encore fait.**
+
+  **Limite de `R(t)` identifiée (2026-09-22)** : ne référence jamais
+  `W` (les poids/la mémoire), seulement `ψ` — ne peut pas distinguer
+  une cohérence incidente d'une vraie convergence vers un attracteur
+  appris. Même limite pour la piste `ρ_liens` (Gram inter-tokens),
+  jamais testée, qui ne référence que `X` (l'état), pas `W` non plus.
+
+  **`a_rel(t)` testé (2026-09-22)** : `(1/Y)⟨ψ|i[W_ffn,W_att]|ψ⟩`,
+  reconnecté à l'architecture réelle (`W_att` depuis `K` de l'attention
+  liée, `W_ffn` depuis `W₁` du FFN lié) — utilise `W`, pas seulement
+  `ψ`. Confirmé non trivial (`a_rel(t)` varie réellement,
+  `‖[W_att,W_ffn]‖=104,5≠0`), mais **la sélectivité de `γ` ne se
+  reproduit pas** (`|a_rel|` au saut reste `~1,4` quel que soit `γ`,
+  pas monotone) — comportement qualitativement différent des signaux
+  précédents, pas encore compris (hypothèse : oscillation trop rapide).
+  Exploratoire, résultat mitigé, pas de protocole confirmatoire
+  envisagé pour l'instant.
 
   **Reste à faire** : protocole confirmatoire pour `R(t)` ; tester
   l'entropie de liens ; raffiner la métrique d'entropie post-saut (le

@@ -2146,6 +2146,58 @@ implémentée ni testée.
 fraîches, seuils pré-enregistrés — même discipline que pour `p_max` et
 `S_brut`) reste à faire avant toute citation.
 
-## Historique des phases complétées
+### Recherche — Couplage attention/FFN, `a_rel(t)` (2026-09-22)
+
+**Origine** : remarque de Bertrand — `R(t)` et `S_liens` ne référencent
+jamais `W` (les poids/la mémoire), seulement `ψ` ; sans référence aux
+poids, un signal ne peut pas distinguer une cohérence incidente d'une
+vraie convergence vers un attracteur appris. Reprise de la « piste 1 »
+de la contribution Gémini (`a_rel(t)=(1/Y)⟨ψ|i[W_ffn,W_att]|ψ⟩`),
+reconnectée à l'architecture réelle (attention liée + FFN lié) plutôt
+qu'au modèle jouet à motifs.
+
+**Construction (linéarisation assumée, à documenter comme
+approximation)** : `W_att` — bloc-diagonal `80×80`, un bloc `16×16`
+par token = `kₜkₜ†` (le `K` de l'attention liée, propre à ce token).
+`W_ffn` — bloc-diagonal, le **même** bloc `16×16=W₁†W₁` répété pour
+chaque token (le FFN est *position-wise*, mêmes poids partout).
+Garde-fous vérifiés : les deux hermitiens, `‖[W_att,W_ffn]‖=104,5≠0`
+(sinon `a_rel` serait trivialement nul partout).
+
+**Piège méthodologique rencontré et corrigé** : premier essai avec
+`z0` = vecteur propre de `W_total=W_att+W_ffn` — trajectoire
+**stationnaire** (`a_rel(t)≡0`), le même piège que `ΔE²` mais
+auto-infligé cette fois (un état propre du générateur total n'évolue
+qu'à une phase globale près). Corrigé : `z0` = vecteur propre dominant
+de `W_att` **seul** — comme `[W_att,W_ffn]≠0`, ce n'est généralement pas
+un état propre de `W_total`, la dynamique devient non triviale.
+
+**Résultat** (`scripts/explore_attention_ffn_commutator.py`, même
+paysage `seed=14` pour `K`/`W₁`) :
+
+```
+Sous Y seul : a_rel(t) min=-1,3539 max=1,5148 moyenne=0,0022
+
+gamma   % effondrées   <pas du 1er saut>   <|a_rel| au saut>
+  1.0        100%              0,7              1,4255
+  3.0        100%              0,7              1,4052
+  6.0        100%             32,0              1,3611
+ 12.0         90%             17,2              1,4777
+```
+
+**Signal confirmé non trivial** (variation réelle, utilise `W` et pas
+seulement `ψ` — contrairement à `R(t)`/`S_liens`) — **mais la
+sélectivité de `γ` ne se reproduit pas** : `|a_rel|` au saut reste
+`~1,4-1,48` quel que soit `γ` (pas de montée monotone), et `<pas du 1er
+saut>` n'est pas monotone non plus (`0,7→0,7→32,0→17,2`). Différent des
+comportements propres de `p_max`, `S_brut` (corrigé), `R(t)`.
+**Hypothèse non vérifiée** : `a_rel(t)` oscille peut-être trop
+rapidement (contrairement aux signaux précédents, plus lisses) pour
+que la loi `p_max^γ`-like sélectionne proprement les extrêmes — à
+creuser avant toute conclusion.
+
+**Statut : exploratoire, résultat honnêtement mitigé.** Pas de
+protocole confirmatoire envisagé tant que le comportement qualitatif
+n'est pas mieux compris.
 
 <!-- Déplacer ici les phases terminées avec date de complétion -->
