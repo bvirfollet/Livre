@@ -201,6 +201,23 @@
   théorique de la transformée de Hilbert pour l'entrée (notée à part,
   `docs/DevPlan.md`).
 
+- [ ] **Requalifier tous les signaux endogènes (`p_max`, `S_brut`, `R(t)`,
+  `a_rel`) sur un réseau réellement entraîné** (posé par Bertrand,
+  2026-09-22) : tous les tests de ce fil (superposition simultanée,
+  collapse, sélectivité de `γ`) ont été faits sur des constructions
+  **non entraînées** — `K`/`W₁` tirés au hasard indépendamment (jamais
+  co-adaptés), motifs stockés par construction hebbienne plutôt
+  qu'appris. Le comportement collectif « normalement attendu » d'un
+  couplage attention/FFN (par exemple la nature et la vitesse de
+  l'oscillation `a_rel`, cf. discussion du 2026-09-22 sur le manque
+  d'apprentissage entre les deux couches) ne peut probablement pas être
+  correctement capté sur un réseau jamais entraîné. Nécessite de
+  reprendre ces mêmes signaux sur un réseau ayant véritablement appris
+  (fine-tuning réel sur une tâche, ou au minimum un entraînement
+  auto-supervisé même simple) avant de tirer des conclusions générales
+  sur ces comportements collectifs. Dépend indirectement de la Phase 3
+  (harnais GLUE), jamais commencée.
+
 - [ ] **Recherche séparée — compression hermitienne pour portage mobile**
   (cf. `docs/DevPlan.md`, section dédiée) : objectif et protocole posés
   avec Bertrand le 2026-08-14 (`d² ≪ 768`, comparaison à budget de réels
