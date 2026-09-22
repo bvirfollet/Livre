@@ -2046,6 +2046,106 @@ crystallisation spontanée + sélectivité de `γ`) pourra être proposé
 pour `Simulations_API.md`, en remplacement/complément de l'entrée déjà
 validée avec `p_max`.
 
+#### Résultat du protocole confirmatoire — bug trouvé, correction, résultat mitigé (2026-09-20)
+
+**Bug identifié par Bertrand dans la définition de `c`** : la première
+version normalisait par `ln(80)` (la dimension totale du réseau, une
+constante architecturale globale — irréaliste comme information
+disponible depuis l'intérieur). Corrigé en utilisant l'entropie brute
+`S(ψ)` (toujours positive), sans jamais invoquer `ln(N)` — `c_norm`
+(utilisée dans la loi de saut, Test C') est invariante à cette
+correction par construction (transformation affine). **Mais le
+critère du Test E' (marge relative sur `c0`) ne l'était pas** : avec
+l'ancien signe (`c` négatif), le test devenait vacuoirement toujours
+vrai. Corrigé en formulant le Test E' directement sur `S(ψ)` (positive
+par nature), qui donne le résultat honnête suivant.
+
+**`scripts/run_c_signal_confirmatory.py`, résultat archivé dans
+`docs/results/c_signal_confirmatory_2026-09-20.json`, 3 paysages frais
+(seeds `501, 502, 503`), après correction :**
+
+```
+seed=501 : Test E' S0=3,9889 -> S_min=3,6193 (baisse -9,3%, seuil -20%) NON | Test C' z=13,21 OUI
+seed=502 : Test E' S0=3,9541 -> S_min=3,6922 (baisse -6,6%, seuil -20%) NON | Test C' z=50,43 OUI
+seed=503 : Test E' S0=4,1366 -> S_min=3,8254 (baisse -7,5%, seuil -20%) NON | Test C' z=77,06 OUI
+```
+
+**Test C' (sélectivité de `γ`) réussit toujours** (`z` entre `13,2` et
+`77,1`, non affecté par le bug — passe par la normalisation invariante).
+**Test E' (cristallisation spontanée) échoue net sur les 3 paysages** :
+la baisse d'entropie réelle (`6,6-9,3%`) reste sous le seuil
+pré-enregistré (`20%`).
+
+**Lecture, sans minimiser ni sur-dramatiser** : ce n'est pas un échec
+du mécanisme de cristallisation lui-même (déjà établi, avec marge très
+large, sur `p_max`) — c'est une limite du **signal choisi pour
+l'observer**. L'entropie sur les 80 coordonnées brutes dilue le
+phénomène dans des dimensions sans rapport avec un attracteur
+particulier ; le même événement de résonance produit un signal
+beaucoup plus faible ici que sur `p_max` (dont le recouvrement porte
+spécifiquement sur les directions de concept). Prix à payer pour
+l'absence d'étiquetage externe.
+
+**Décision (Producteur) : condition de citation NON remplie** pour ce
+signal — contredit la conclusion précédente, erreur reconnue et
+corrigée immédiatement, pas glissée sous le tapis. L'entrée déjà
+validée sur `p_max` reste, elle, inchangée et toujours valide.
+
+### Recherche — Paramètre d'ordre de Kuramoto, un signal endogène qui tient (2026-09-22)
+
+**Origine** : seconde contribution Gémini
+(`contributions/gémini/implications_théorème_Stone_suite`), en réponse
+au signal `S_brut` défaillant. Diagnostic corroboré et affiné : `S_brut`
+souffre de deux défauts distincts — **dépendance de jauge arbitraire**
+(la base de coordonnées de PyTorch n'a aucun sens géométrique intrinsèque
+pour le réseau) et **dilution de phase** (un attracteur est une
+*direction* de `C^80`, pas une localisation sur des coordonnées
+numérotées — mesurer l'entropie des coordonnées mesure une localisation
+spatiale qui n'existe pas).
+
+**Signal retenu — paramètre d'ordre de Kuramoto** :
+```
+R(ψ) = |Σⱼψⱼ| / Σⱼ|ψⱼ|  ∈ [0,1]
+```
+Zéro dépendance à `W` (contrairement à `p_max`, `ΔE²`, ou `C_phase`
+proposé en intermédiaire par Gémini puis écarté pour la même raison) ;
+invariant sous rotation de jauge globale `ψ↦e^{iα}ψ` ; coût `O(N)`.
+Mesure l'alignement de phase, pas une localisation — corrige les deux
+défauts identifiés.
+
+**Résultat exploratoire** (`scripts/explore_kuramoto_order_parameter.py`,
+même paysage `seed=14`) :
+
+```
+Sous Y seul : R(t) min=0,0059 max=0,2863 moyenne=0,1333
+
+gamma   % effondrées   <pas du 1er saut>   <R au saut>
+  1.0        100%              1.2              0.1455
+  3.0        100%              5.2              0.1761
+  6.0        100%             29.7              0.2260
+ 12.0        100%             49.7              0.2477
+```
+
+**Plage naturelle bien plus large qu'`S_brut`** (`0,006` à `0,286`,
+contre `3,75-4,07` sur une échelle bien plus resserrée en relatif pour
+l'entropie brute) — et **le même comportement qualitatif que `p_max`
+se reproduit nettement** : `R` au moment du saut monte de `0,146` à
+`0,248` avec `γ`, se rapprochant du maximum naturel (`0,286`).
+
+**Reste ouvert, noté par Gémini et non encore traité** : `R(t)` capture
+la cohérence de phase au niveau des **nœuds**, pas l'information portée
+par les **liens** (déjà identifiée comme source distincte de
+non-classicité dans le protocole Leggett-Garg, « source 2 »). Piste
+complémentaire proposée : entropie de la matrice de Gram inter-tokens
+`ρ_liens=XX†/Tr(XX†)` (`X∈C^{T×d}`, `T=5` — matrice `5×5` seulement),
+100% endogène, qui capterait spécifiquement la cohérence relationnelle
+entre tokens plutôt que l'alignement de phase par nœud. Pas encore
+implémentée ni testée.
+
+**Statut : exploratoire.** Protocole confirmatoire (Test E'/C', seeds
+fraîches, seuils pré-enregistrés — même discipline que pour `p_max` et
+`S_brut`) reste à faire avant toute citation.
+
 ## Historique des phases complétées
 
 <!-- Déplacer ici les phases terminées avec date de complétion -->

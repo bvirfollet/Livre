@@ -149,16 +149,42 @@
   réellement sous `Y` seul). Cristallisation/sélectivité revalidées
   avec ce signal (`scripts/explore_raw_participation_crystallization.py`)
   — même comportement qualitatif que `p_max` (`γ` contrôle la
-  sélectivité). **Exploratoire, protocole confirmatoire à refaire avec
-  ce signal avant citation.**
+  sélectivité).
 
-  **Reste à faire** : protocole confirmatoire pour le signal interne ;
-  raffiner la métrique d'entropie post-saut (le mécanisme de
-  « respiration » — durée du régime effondré avant re-dispersion) ;
-  volet plasticité interprétative (`W_imag`, `M=R+iI`, cf. `docs/DevPlan.md`,
-  discussion du 2026-09-20 sur la reconsolidation mnésique) ; volet
-  intrication réseau/entrée, pas commencé ; piste théorique de la
-  transformée de Hilbert pour l'entrée (notée à part, `docs/DevPlan.md`).
+  **Protocole confirmatoire lancé, bug trouvé et corrigé (2026-09-20)**
+  (`scripts/run_c_signal_confirmatory.py`, résultat archivé dans
+  `docs/results/c_signal_confirmatory_2026-09-20.json`) : normalisation
+  par `ln(80)` retirée (constante architecturale globale, irréaliste ;
+  de toute façon annulée par la normalisation empirique en aval) —
+  mais ce changement a révélé que le critère du Test E' n'était pas
+  bien posé sous le nouveau signe (vacuoirement toujours vrai).
+  Corrigé. **Résultat après correction : Test C' (sélectivité de `γ`)
+  réussit toujours sur les 3 paysages (`z` entre `13,2` et `77,1`) ;
+  Test E' (cristallisation) échoue net** (baisse d'entropie réelle
+  `6,6-9,3%`, sous le seuil `20%` pré-enregistré). **Condition de
+  citation NON remplie** pour ce signal — le mécanisme de
+  cristallisation reste établi sur `p_max` (entrée déjà validée,
+  inchangée), mais le signal purement interne le dilue trop pour le
+  détecter au seuil fixé.
+
+  **Signal Kuramoto `R(t)` trouvé, prometteur (2026-09-22)** (seconde
+  contribution Gémini, cf. `docs/DevPlan.md`) : `R(ψ)=|Σψⱼ|/Σ|ψⱼ|`,
+  zéro dépendance à `W`, invariant de jauge, corrige les deux défauts
+  d'`S_brut` (dépendance de jauge, dilution spatiale). Exploratoire :
+  plage naturelle large (`0,006-0,286`), sélectivité de `γ` reproduite
+  nettement (`R` au saut : `0,146→0,248`). **Protocole confirmatoire pas
+  encore fait.** Piste complémentaire notée (pas testée) : entropie de
+  Gram inter-tokens `ρ_liens=XX†/Tr(XX†)` pour capter l'information
+  portée par les liens (pas seulement les nœuds).
+
+  **Reste à faire** : protocole confirmatoire pour `R(t)` ; tester
+  l'entropie de liens ; raffiner la métrique d'entropie post-saut (le
+  mécanisme de « respiration » — durée du régime effondré avant
+  re-dispersion) ; volet plasticité interprétative (`W_imag`, `M=R+iI`,
+  cf. `docs/DevPlan.md`, discussion du 2026-09-20 sur la reconsolidation
+  mnésique) ; volet intrication réseau/entrée, pas commencé ; piste
+  théorique de la transformée de Hilbert pour l'entrée (notée à part,
+  `docs/DevPlan.md`).
 
 - [ ] **Recherche séparée — compression hermitienne pour portage mobile**
   (cf. `docs/DevPlan.md`, section dédiée) : objectif et protocole posés
