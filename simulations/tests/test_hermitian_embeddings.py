@@ -1,11 +1,42 @@
 """Tests structurels pour les embeddings natifs (cf. docs/SW_Design.md).
 Le portage de poids réel est testé bout-en-bout dans test_weights.py."""
 
+import math
+
 import torch
 
-from src.hermitian.embeddings import HermitianEmbeddings
+from src.hermitian.embeddings import HermitianEmbeddings, sinusoidal_position_imag_init
 from src.hermitian.norm import HermitianLayerNorm, HermitianRMSNorm
 from tests.conftest import ATOL, RTOL
+
+
+def test_position_embeddings_imag_is_sinusoidal_by_default():
+    """Correctif du 2026-09-25 : position_embeddings_imag n'est plus du
+    bruit gaussien non structuré, mais sin(pos·ωₖ)."""
+    emb = HermitianEmbeddings(
+        vocab_size=50, d_model=8, max_position_embeddings=16, type_vocab_size=2
+    )
+    weight = emb.position_embeddings_imag.weight.detach()
+
+    positions = torch.arange(16, dtype=torch.float32).unsqueeze(1)
+    dims = torch.arange(8, dtype=torch.float32).unsqueeze(0)
+    omega = 1.0 / (10000.0 ** (dims / 8))
+    expected = torch.sin(positions * omega)
+
+    assert torch.allclose(weight, expected, atol=ATOL, rtol=RTOL)
+    # garde-fou de non-vacuité : à pos=0 tout vaut 0 (sin(0)=0), il faut
+    # vérifier ailleurs qu'à pos=0 pour que le test soit significatif
+    assert weight[1].abs().max().item() > 0.0
+
+
+def test_sinusoidal_position_imag_init_reusable_standalone():
+    """La fonction d'initialisation reste utilisable isolément (pas
+    seulement via le constructeur)."""
+    embedding = torch.nn.Embedding(10, 4)
+    sinusoidal_position_imag_init(embedding, d_model=4)
+    assert not torch.isnan(embedding.weight).any()
+    expected_at_pos2_dim0 = math.sin(2 * 1.0)  # omega_0 = 1/10000^0 = 1
+    assert abs(embedding.weight[2, 0].item() - expected_at_pos2_dim0) < 1e-5
 
 
 def test_embeddings_forward_shape_and_finite():
