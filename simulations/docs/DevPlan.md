@@ -2200,4 +2200,61 @@ creuser avant toute conclusion.
 protocole confirmatoire envisagé tant que le comportement qualitatif
 n'est pas mieux compris.
 
+### Recherche — Premier entraînement par gradient : matériel exploitable et clarification mode 1/mode 2 (2026-09-22/25)
+
+**Matériel trouvé** : `contributions/gémini/BERT_hermitien_PoC` contient
+un cadre de distillation complet (Maître BERT réel → Élève hermitien),
+perte composite à 3 termes (`L_état`, `L_attention`, `L_Hopfield`).
+Écrit pour une architecture différente de la nôtre (nœud-matrice
+`Herm(28)`, congruence `WHW†`) — le code ne se réutilise pas tel quel,
+mais la structure à 3 termes se transpose directement sur notre
+architecture vectorielle, et deux des trois termes ont déjà leurs
+briques (`hopfield_energy` pour `L_Hopfield`, jamais utilisée comme
+objectif d'entraînement jusqu'ici ; nos propres poids d'attention pour
+`L_attention`). `L_Hopfield` reboucle directement sur la piste laissée
+ouverte depuis la section Krotov (rapprocher `V` de `K`, `W₂` de `W₁ᵀ`
+par apprentissage plutôt que par tying strict imposé).
+
+**Clarification centrale, actée avec Bertrand** : la tension entre les
+deux lectures de l'apprentissage de la partie imaginaire — « Hopfield
+is all you need » (Ramsauer, `I` est un paramètre ordinaire, appris par
+la même descente de gradient que `R`) versus le cadre `M=R+iI` du
+manuscrit (`I` = interprétation, plastique, mécanisme différent) — se
+résout **par une distinction de phase, pas de composante** :
+
+- **Entraînement (mode 1)** : rétropropagation classique sur `R` **et**
+  `I` ensemble, vers un objectif de distillation — « l'école », y
+  compris l'interprétation des faits fait partie de l'apprentissage.
+- **Exploitation (mode 2)** : la dynamique `K_ana`/plasticité hebbienne
+  déjà conçue (collapse, reconsolidation) s'exerce **après**
+  l'entraînement, pendant l'usage réel — « la vraie vie », l'intuition
+  associée au mode hamiltonien dominant.
+
+Conséquence directe pour la boucle à construire : **pas d'exclusion de
+la partie imaginaire de l'optimiseur** — tout le modèle se rétropropage
+normalement pendant cette phase.
+
+**Point aveugle identifié en discutant** : jusqu'ici, aucune notion
+d'apprentissage **par nœud** n'avait été posée — seuls les poids de
+connexion (`W_Q,W_K,W_V,W₁`, tables d'embeddings) sont entraînables.
+Proposition de Bertrand (traitée à part, cf. `docs/TODO.md`) : une
+capacité de plasticité synaptique locale apprise par nœud, `κᵢ`,
+modulant `K_ana` localement (`λ_saut⁽ⁱ⁾=K0·κᵢ·signal^γ`) — reportée
+après un premier entraînement de base fonctionnel, pour ne pas cumuler
+les inconnues.
+
+**Gap identifié dans les embeddings, à corriger en premier** :
+`WeightProjector` initialise **toutes** les tables imaginaires
+(mot/position/type) comme du bruit gaussien indépendant, sans aucune
+structure — le point faible que la piste « transformée de Hilbert »
+avait déjà signalé sans le traiter. Cas retenu pour une première
+correction : la **position**, cas le plus net (le codage positionnel
+original du Transformer, Vaswani et al., est déjà construit en paires
+`sin`/`cos` — la partie réelle et imaginaire d'une exponentielle
+complexe). Le cas du mot est reconnu comme une question ouverte, moins
+directe (l'indice d'un mot n'est pas un axe temporel, l'analogie de
+Hilbert ne se transpose pas aussi clairement) — non traité ici.
+
+## Historique des phases complétées
+
 <!-- Déplacer ici les phases terminées avec date de complétion -->

@@ -218,6 +218,18 @@
   sur ces comportements collectifs. Dépend indirectement de la Phase 3
   (harnais GLUE), jamais commencée.
 
+- [ ] **`K_ana` local par nœud — plasticité synaptique différenciée**
+  (posé par Bertrand, 2026-09-25, traité à part du premier entraînement
+  pour ne pas cumuler les inconnues) : au lieu d'un `K_ana` global,
+  chaque nœud/dimension porterait sa propre capacité de plasticité
+  apprise `κᵢ`, entrant dans la loi de saut comme facteur local
+  (`λ_saut⁽ⁱ⁾(t)=K0·κᵢ·signal(t)^γ`) — l'analogue réseau de la
+  plasticité synaptique différenciée en biologie. Cohérent avec la
+  distinction phase d'entraînement (mode 1, tout s'apprend ensemble) vs
+  exploitation (mode 2, dynamique `K_ana`) actée le 2026-09-22/25.
+  Non commencé, à reprendre après un premier entraînement de base
+  fonctionnel.
+
 - [ ] **Recherche séparée — compression hermitienne pour portage mobile**
   (cf. `docs/DevPlan.md`, section dédiée) : objectif et protocole posés
   avec Bertrand le 2026-08-14 (`d² ≪ 768`, comparaison à budget de réels
